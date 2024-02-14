@@ -1,26 +1,26 @@
 from pathlib import Path
 from typing import NamedTuple
-import requests
 
-# TODO get data from log
+import requests
 
 
 class Faction(NamedTuple):
     id: int
     name: str
+    short: str
 
 
 def faction_from_log(log):
     if log == 'german':
-        return Faction(0, 'Wehrmacht')
+        return Faction(0, 'Wehrmacht', 'WM')
     elif log == 'soviet':
-        return Faction(1, 'Soviet Union')
+        return Faction(1, 'Soviet Union', 'SU')
     elif log == 'west_german':
-        return Faction(2, 'Oberkommando West')
+        return Faction(2, 'Oberkommando West', 'OKW')
     elif log == 'aef':
-        return Faction(3, 'US Forces')
+        return Faction(3, 'US Forces', 'US')
     elif log == 'british':
-        return Faction(4, 'British Forces')
+        return Faction(4, 'British Forces', 'UK')
     else:
         return None
 
@@ -87,12 +87,13 @@ for player_line in player_lines:
 
     players.append(Player(player_id, name, relic_id, team, faction, rank, rank_level))
 
-row = '| {} | {} | {}'
-sep = ('+ ' + '-' * 5 + ' + ' + '-' * 3 + ' + ' + '-' * 32) * 2 + ' +'
+row = '| {} | {} | {} | {}'
+sep = ('+ ' + '-' * 3 + ' + ' + '-' * 5 + ' + ' + '-' * 3 + ' + ' + '-' * 32) * 2 + ' +'
 print(sep)
-print(row.format('Rank'.ljust(5), 'Lvl', 'Name'.ljust(32)) * 2 + ' |')
+print(row.format('Fac', 'Rank'.ljust(5), 'Lvl', 'Name'.ljust(32)) * 2 + ' |')
 print(sep)
 for player in players:
-    s = row.format(str(player.rank).rjust(5), str(player.rank_level).rjust(3), player.name.ljust(32))
+    s = row.format(player.faction.short.ljust(3), str(player.rank).rjust(5), str(player.rank_level).rjust(3),
+                   player.name.ljust(32))
     print(s, end='') if player.team == 0 else print(s + ' |')
 print(sep)

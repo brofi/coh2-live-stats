@@ -93,20 +93,42 @@ for player_line in player_lines:
 
     players.append(Player(player_id, name, relic_id, team, faction, rank, rank_level, highest_rank, highest_rank_level))
 
-row = '| {} | {} | {} | {}'
-sep = ('+ ' + '-' * 3 + ' + ' + '-' * 5 + ' + ' + '-' * 3 + ' + ' + '-' * 32) * 2 + ' +'
+row = '| {} | {} | {} | {} '
+sep = ('+ ' + '-' * 3 + ' + ' + '-' * 5 + ' + ' + '-' * 5 + ' + ' + '-' * 32 + ' ') * 2 + '+'
+team_size = latest_match_player_count / 2
 print(sep)
-print(row.format('Fac', 'Rank'.ljust(5), 'Lvl', 'Name'.ljust(32)) * 2 + ' |')
+print(row.format('Fac', 'Rank'.ljust(5), 'Level', 'Name'.ljust(32)) * 2 + '|')
 print(sep)
+rank_sums = [0, 0]
+rank_level_sums = [0, 0]
 for player in players:
-    rank = str(player.rank)
-    if player.rank <= 0 < player.highest_rank:
-        rank = '+' + str(player.highest_rank)
+    rank = player.rank
+    rank_str = str(rank)
+    if rank <= 0 < player.highest_rank:
+        rank = player.highest_rank
+        rank_str = '+' + str(player.highest_rank)
+    rank_sums[player.team] += rank if rank > 0 else 1000  # TODO get avg rank in mode
 
-    rank_level = str(player.rank_level)
-    if player.rank_level <= 0 < player.highest_rank_level:
-        rank_level = '+' + str(player.highest_rank_level)
+    rank_level = player.rank_level
+    rank_level_str = str(rank_level)
+    if rank_level <= 0 < player.highest_rank_level:
+        rank_level = player.highest_rank_level
+        rank_level_str = '+' + str(player.highest_rank_level)
+    rank_level_sums[player.team] += rank_level if rank_level > 0 else 5  # TODO get avg level in mode
 
-    s = row.format(player.faction.short.ljust(3), rank.rjust(5), rank_level.rjust(3), player.name.ljust(32))
-    print(s, end='') if player.team == 0 else print(s + ' |')
+    s = row.format(player.faction.short.ljust(3), rank_str.rjust(5), rank_level_str.rjust(5), player.name.ljust(32))
+    print(s, end='') if player.team == 0 else print(s + '|')
+print(sep)
+avg_row = 'Avg | {}{:>4.0f} | {}{:.1f} | '
+avg_rank_0 = rank_sums[0] / team_size
+avg_rank_level_0 = rank_level_sums[0] / team_size
+avg_rank_1 = rank_sums[1] / team_size
+avg_rank_level_1 = rank_level_sums[1] / team_size
+print('| ' +
+      avg_row.format('*' if avg_rank_0 < avg_rank_1 else ' ', avg_rank_0,
+                     '*' if avg_rank_level_0 > avg_rank_level_1 else ' ', avg_rank_level_0) +
+      (' ' * 32) + ' | ' +
+      avg_row.format('*' if avg_rank_1 < avg_rank_0 else ' ', avg_rank_1,
+                     '*' if avg_rank_level_1 > avg_rank_level_0 else ' ', avg_rank_level_1) +
+      (' ' * 32) + ' |')
 print(sep)

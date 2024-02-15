@@ -75,16 +75,10 @@ def init_players_from_api(players):
     for tid, pt in enumerate(possible_teams):
         possible_teams[tid] = [t for t in pt if len(t) >= max(map(len, pt))]
 
-    # TODO team ranks
-    # get id from statsGroup entry, query the leaderboardStats for given id
-    # result is either 1 (allies or axis) or 2 (allies and axis) entries'
-    # TODO test
-    # case: player 1 has team (1,2), player 2 has team (2,3) and there is no team (1,2,3). So did (1,2) or (2,3) queue?
-    # test with roy, aldo, schnugge
     for player in players:
         for i, t in enumerate(possible_teams[player.team]):
             if player.relic_id in t:
-                player.pre_made_team = i
+                player.pre_made_team.append(i)
 
 
 # game mode: 1v1: 0, 2v2: 1, 3v3: 2, 4v4: 3
@@ -124,10 +118,10 @@ def print_players(players):
             rank_level_str = '+' + str(player.highest_rank_level)
         rank_level_sums[player.team] += rank_level if rank_level > 0 else 6  # TODO get avg level in mode
 
-        # TODO if only 1 player don't forget \n
         s = row.format(player.faction.short.ljust(3), rank_str.rjust(5), rank_level_str.rjust(5),
-                       ('' if player.pre_made_team < 0 else str(player.pre_made_team)).rjust(4),
+                       ','.join(map(str, player.pre_made_team)).rjust(4),
                        player.name.ljust(32))
+        # TODO if only 1 player don't forget \n
         print(s, end='') if player.team == 0 else print(s + '|')
 
     print(sep)

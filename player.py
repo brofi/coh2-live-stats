@@ -20,7 +20,12 @@ class Player:
     teams: list[list[int]] = field(default_factory=list)
 
     # Derived data
-    pre_made_team: int = -1
+
+    # There could be multiple possible pre-made teams. For example when players A, B
+    # and C with teams (A,B), (B,C) have no team (A,B,C). Which means either player
+    # A or C queued alone or the current match is the first match of a new team
+    # (A,B,C).
+    pre_made_team: list[int] = field(default_factory=list)
 
     @staticmethod
     def from_log(player_line):

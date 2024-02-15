@@ -87,14 +87,14 @@ for player in players:
     if rank <= 0 < player.highest_rank:
         rank = player.highest_rank
         rank_str = '+' + str(player.highest_rank)
-    rank_sums[player.team] += rank if rank > 0 else 1000  # TODO get avg rank in mode
+    rank_sums[player.team] += rank if rank > 0 else 1500  # TODO get avg rank in mode
 
     rank_level = player.rank_level
     rank_level_str = str(rank_level)
     if rank_level <= 0 < player.highest_rank_level:
         rank_level = player.highest_rank_level
         rank_level_str = '+' + str(player.highest_rank_level)
-    rank_level_sums[player.team] += rank_level if rank_level > 0 else 5  # TODO get avg level in mode
+    rank_level_sums[player.team] += rank_level if rank_level > 0 else 6  # TODO get avg level in mode
 
     # TODO team ranks
     # get id from statsGroup entry, query the leaderboardStats for given id

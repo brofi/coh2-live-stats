@@ -19,6 +19,9 @@ class Player:
     highest_rank_level: int = -1
     teams: list[list[int]] = field(default_factory=list)
 
+    # Derived data
+    pre_made_team: int = -1
+
     @staticmethod
     def from_log(player_line):
         s = player_line.split(' ')

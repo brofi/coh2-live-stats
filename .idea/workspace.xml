@@ -4,20 +4,32 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="init">
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="Detect pre-made teams">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
+    <option name="PREVIOUS_COMMIT_AUTHORS">
+      <list>
+        <option value="andy &lt;brofi.archlinux@gmail.com&gt;" />
+      </list>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 0
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0
+}</component>
   <component name="ProjectId" id="2cL2wlPUIj10qfxOvc10gWk0lss" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
@@ -30,6 +42,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
@@ -81,11 +94,89 @@
       <option name="project" value="LOCAL" />
       <updated>1707887067439</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Print player information from log file">
+      <option name="closed" value="true" />
+      <created>1707887142304</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1707887142304</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Get player ranks from CoH2 API">
+      <option name="closed" value="true" />
+      <created>1707899813756</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1707899813756</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Format player ranks output">
+      <option name="closed" value="true" />
+      <created>1707906632145</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1707906632145</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Show faction shorthand">
+      <option name="closed" value="true" />
+      <created>1707909350357</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1707909350357</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Fall back to the highest rank if not ranked anymore">
+      <option name="closed" value="true" />
+      <created>1707911709876</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1707911709876</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Show (best) average ranks">
+      <option name="closed" value="true" />
+      <created>1707917709531</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1707917709531</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Show (best) average ranks">
+      <option name="closed" value="true" />
+      <created>1707917988384</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1707917988384</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Detect pre-made teams">
+      <option name="closed" value="true" />
+      <created>1707969373336</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1707969373336</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="init" />
-    <option name="LAST_COMMIT_MESSAGE" value="init" />
+    <MESSAGE value="Print player information from log file" />
+    <MESSAGE value="Get player ranks from CoH2 API" />
+    <MESSAGE value="Format player ranks output" />
+    <MESSAGE value="Show faction shorthand" />
+    <MESSAGE value="Fall back to the highest rank if not ranked anymore" />
+    <MESSAGE value="Show (best) average ranks" />
+    <MESSAGE value="Detect pre-made teams" />
+    <option name="LAST_COMMIT_MESSAGE" value="Detect pre-made teams" />
+  </component>
+  <component name="XDebuggerManager">
+    <watches-manager>
+      <configuration name="PythonConfigurationType">
+        <watch expression="possible_teams" />
+      </configuration>
+    </watches-manager>
   </component>
 </project>

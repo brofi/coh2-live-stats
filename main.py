@@ -154,9 +154,17 @@ def print_players(players):
             row.append(rank_level_str)
             rank_level_sum += rank_level if rank_level > 0 else 6  # TODO get avg level in mode
 
+            team_ranks = [str(t.rank) for t in player.pre_made_teams]
+            team_rank_levels = [str(t.rank_level) for t in player.pre_made_teams]
+            for i, t in enumerate(player.pre_made_teams):
+                if t.rank <= 0 < t.highest_rank:
+                    team_ranks[i] = '+' + str(t.highest_rank)
+                if t.rank_level <= 0 < t.highest_rank_level:
+                    team_rank_levels[i] = '+' + str(t.highest_rank_level)
+
             row.append(','.join(map(str, [chr(pre_made_teams.index(t.id) + 65) for t in player.pre_made_teams])))
-            row.append(','.join(map(str, [t.rank for t in player.pre_made_teams])))
-            row.append(','.join(map(str, [t.rank_level for t in player.pre_made_teams])))
+            row.append(','.join(team_ranks))
+            row.append(','.join(team_rank_levels))
             row.append(player.name)
 
             table.append(row)

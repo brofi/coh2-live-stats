@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 
 from faction import Faction
+from team import Team
 
 
 @dataclass
@@ -17,7 +18,7 @@ class Player:
     rank_level: int = -1
     highest_rank: int = -1
     highest_rank_level: int = -1
-    teams: list[list[int]] = field(default_factory=list)
+    teams: list[Team] = field(default_factory=list)
 
     # Derived data
 
@@ -25,7 +26,7 @@ class Player:
     # and C with teams (A,B), (B,C) have no team (A,B,C). Which means either player
     # A or C queued alone or the current match is the first match of a new team
     # (A,B,C).
-    pre_made_team: list[int] = field(default_factory=list)
+    pre_made_teams: list[Team] = field(default_factory=list)
 
     @staticmethod
     def from_log(player_line):

@@ -8,6 +8,7 @@ from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
 from player import Player
+from team import Team
 
 logfile = Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log')
 request_url = "https://coh2-api.reliclink.com/community/leaderboard/GetPersonalStat?title=coh2&profile_ids=[{}]"
@@ -41,9 +42,11 @@ def get_players_from_log():
 def init_players_from_api(players):
     print('Getting player data fom CoH2 API...')
     for player in players:
-        leaderboard_id = get_leaderboard_id((len(players) / 2) - 1, player)
+        leaderboard_id = get_leaderboard_id((len(players) // 2) - 1, player)
         r = requests.get(request_url.format(player.relic_id))
-        for d in r.json()['leaderboardStats']:
+        stats = r.json()['leaderboardStats']
+        groups = r.json()['statGroups']
+        for d in stats:
             if d['leaderboard_id'] == leaderboard_id:
                 player.rank = d['rank']
                 player.rank_level = d['ranklevel']
@@ -51,33 +54,38 @@ def init_players_from_api(players):
                 player.highest_rank_level = d['highestranklevel']
                 break
 
-        for d in r.json()['statGroups']:
-            t = list()
-            for m in d['members']:
-                t.append(m['profile_id'])
+        for g in groups:
+            t = Team(g['id'])
+            for m in g['members']:
+                t.members.append(m['profile_id'])
+            for d in stats:
+                if d['statgroup_id'] == t.id and d['leaderboard_id'] == get_team_leaderboard_id(g['type'], player):
+                    t.rank = d['rank']
+                    t.rank_level = d['ranklevel']
+                    t.highest_rank = d['highestrank']
+                    t.highest_rank_level = d['highestranklevel']
             player.teams.append(t)
 
     # Derive player data
-    possible_teams = [[], []]
     for player in players:
+        pre_made_teams = []
+        max_team_size = -1
         for team in player.teams:
-            if len(team) > 1 and team not in possible_teams[player.team]:
+            if len(team.members) > 1:
                 isvalid = True
-                for member in team:
+                for member in team.members:
                     if member not in [p.relic_id for p in players if p.team == player.team]:
                         isvalid = False
                         break
                 if isvalid:
-                    possible_teams[player.team].append(team)
-
-    # Only keep the biggest teams
-    for tid, pt in enumerate(possible_teams):
-        possible_teams[tid] = [t for t in pt if len(t) >= max(map(len, pt))]
-
-    for player in players:
-        for i, t in enumerate(possible_teams[player.team]):
-            if player.relic_id in t:
-                player.pre_made_team.append(i)
+                    team_size = len(team.members)
+                    if team_size > max_team_size:
+                        max_team_size = team_size
+                    pre_made_teams.append(team)
+        pre_made_teams.sort(key=lambda x: x.id)
+        for team in pre_made_teams:
+            if len(team.members) >= max_team_size:
+                player.pre_made_teams.append(team)
 
 
 # game mode: 1v1: 0, 2v2: 1, 3v3: 2, 4v4: 3
@@ -90,9 +98,30 @@ def get_leaderboard_id(game_mode, player):
     return lid
 
 
+def get_team_leaderboard_id(num_team_members, player):
+    leaderboard_id = -1
+    if num_team_members > 1:
+        leaderboard_id = 20 + (num_team_members - 2) * 2
+        if is_team_allies(player):
+            leaderboard_id += 1
+    return leaderboard_id
+
+
+def is_team_axis(player):
+    return player.faction.id == 0 or player.faction.id == 2
+
+
+def is_team_allies(player):
+    return not is_team_axis(player)
+
+
 def print_players(players):
+    if len(players) <= 1:
+        print('Not enough players.')
+        return
+
     team_size = len(players) / 2
-    headers = ['Fac', 'Rank', 'Level', 'Team', 'Name']
+    headers = ['Fac', 'Rank', 'Lvl', 'Team', 'T_Rank', 'T_Lvl', 'Name']
 
     # TODO if team 1 add row, if team 0 expand row
     for team in range(2):
@@ -100,6 +129,11 @@ def print_players(players):
         table = []
         rank_sum = 0
         rank_level_sum = 0
+
+        pre_made_teams = []
+        for player in (p for p in players if p.team == team):
+            pre_made_teams.extend(t.id for t in player.pre_made_teams if t.id not in pre_made_teams)
+        pre_made_teams.sort()
 
         for player in (p for p in players if p.team == team):
             row = [player.faction.short]
@@ -120,7 +154,9 @@ def print_players(players):
             row.append(rank_level_str)
             rank_level_sum += rank_level if rank_level > 0 else 6  # TODO get avg level in mode
 
-            row.append(','.join(map(str, player.pre_made_team)))
+            row.append(','.join(map(str, [chr(pre_made_teams.index(t.id) + 65) for t in player.pre_made_teams])))
+            row.append(','.join(map(str, [t.rank for t in player.pre_made_teams])))
+            row.append(','.join(map(str, [t.rank_level for t in player.pre_made_teams])))
             row.append(player.name)
 
             table.append(row)
@@ -128,12 +164,13 @@ def print_players(players):
         avg_rank = rank_sum / team_size
         avg_rank_level = rank_level_sum / team_size
         table.append([] * len(headers))
-        table.append(['Avg', avg_rank, avg_rank_level, '', ''])
+        avg_row = ['Avg', avg_rank, avg_rank_level]
+        table.append(avg_row + ([] * (len(headers) - len(avg_row))))
 
         print(tabulate(table,
                        headers=headers,
                        tablefmt='pretty',
-                       colalign=('left', 'right', 'right', 'center', 'left')))
+                       colalign=('left', 'right', 'right', 'center', 'right', 'right', 'left')))
 
 
 def watch_log_file():

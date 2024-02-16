@@ -1,8 +1,7 @@
 import time
 from pathlib import Path
 
-import time
-from pathlib import Path
+from tabulate import tabulate
 
 import requests
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
@@ -92,52 +91,49 @@ def get_leaderboard_id(game_mode, player):
 
 
 def print_players(players):
-    print()
-    row = '| {} | {} | {} | {} | {} '
-    sep = ('+ ' + '-' * 3 + ' + ' + '-' * 5 + ' + ' + '-' * 5 + ' + ' + '-' * 4 + ' + ' + '-' * 32 + ' ') * 2 + '+'
     team_size = len(players) / 2
-    print(sep)
-    print(row.format('Fac', 'Rank'.ljust(5), 'Level', 'Team', 'Name'.ljust(32)) * 2 + '|')
-    print(sep)
-    rank_sums = [0, 0]
-    rank_level_sums = [0, 0]
+    headers = ['Fac', 'Rank', 'Level', 'Team', 'Name']
 
-    # Print player data
-    for player in players:
-        rank = player.rank
-        rank_str = str(rank)
-        if rank <= 0 < player.highest_rank:
-            rank = player.highest_rank
-            rank_str = '+' + str(player.highest_rank)
-        rank_sums[player.team] += rank if rank > 0 else 1500  # TODO get avg rank in mode
+    # TODO if team 1 add row, if team 0 expand row
+    for team in range(2):
+        print()
+        table = []
+        rank_sum = 0
+        rank_level_sum = 0
 
-        rank_level = player.rank_level
-        rank_level_str = str(rank_level)
-        if rank_level <= 0 < player.highest_rank_level:
-            rank_level = player.highest_rank_level
-            rank_level_str = '+' + str(player.highest_rank_level)
-        rank_level_sums[player.team] += rank_level if rank_level > 0 else 6  # TODO get avg level in mode
+        for player in (p for p in players if p.team == team):
+            row = [player.faction.short]
 
-        s = row.format(player.faction.short.ljust(3), rank_str.rjust(5), rank_level_str.rjust(5),
-                       ','.join(map(str, player.pre_made_team)).rjust(4),
-                       player.name.ljust(32))
-        # TODO if only 1 player don't forget \n
-        print(s, end='') if player.team == 0 else print(s + '|')
+            rank = player.rank
+            rank_str = str(rank)
+            if rank <= 0 < player.highest_rank:
+                rank = player.highest_rank
+                rank_str = '+' + str(player.highest_rank)
+            row.append(rank_str)
+            rank_sum += rank if rank > 0 else 1500  # TODO get avg rank in mode
 
-    print(sep)
-    avg_row = 'Avg | {}{:>4.0f} | {}{:.1f} | '
-    avg_rank_0 = rank_sums[0] / team_size
-    avg_rank_level_0 = rank_level_sums[0] / team_size
-    avg_rank_1 = rank_sums[1] / team_size
-    avg_rank_level_1 = rank_level_sums[1] / team_size
-    print('| ' +
-          avg_row.format('*' if avg_rank_0 < avg_rank_1 else ' ', avg_rank_0,
-                         '*' if avg_rank_level_0 > avg_rank_level_1 else ' ', avg_rank_level_0) +
-          ' ' * 4 + ' | ' + (' ' * 32) + ' | ' +
-          avg_row.format('*' if avg_rank_1 < avg_rank_0 else ' ', avg_rank_1,
-                         '*' if avg_rank_level_1 > avg_rank_level_0 else ' ', avg_rank_level_1) +
-          ' ' * 4 + ' | ' + (' ' * 32) + ' | ')
-    print(sep)
+            rank_level = player.rank_level
+            rank_level_str = str(rank_level)
+            if rank_level <= 0 < player.highest_rank_level:
+                rank_level = player.highest_rank_level
+                rank_level_str = '+' + str(player.highest_rank_level)
+            row.append(rank_level_str)
+            rank_level_sum += rank_level if rank_level > 0 else 6  # TODO get avg level in mode
+
+            row.append(','.join(map(str, player.pre_made_team)))
+            row.append(player.name)
+
+            table.append(row)
+
+        avg_rank = rank_sum / team_size
+        avg_rank_level = rank_level_sum / team_size
+        table.append([] * len(headers))
+        table.append(['Avg', avg_rank, avg_rank_level, '', ''])
+
+        print(tabulate(table,
+                       headers=headers,
+                       tablefmt='pretty',
+                       colalign=('left', 'right', 'right', 'center', 'left')))
 
 
 def watch_log_file():

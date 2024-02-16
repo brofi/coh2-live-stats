@@ -4,7 +4,7 @@ from faction import Faction
 from team import Team
 
 
-@dataclass
+@dataclass(eq=False)
 class Player:
     # Log data
     id: int
@@ -37,3 +37,8 @@ class Player:
         player_id = int(s.pop(0))
         name = ' '.join(s)
         return Player(player_id, name, relic_id, team, faction)
+
+    def __eq__(self, other):
+        if not isinstance(other, Player):
+            return NotImplemented
+        return self.relic_id == other.relic_id

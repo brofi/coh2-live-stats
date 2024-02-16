@@ -1,9 +1,8 @@
 import time
 from pathlib import Path
 
-from tabulate import tabulate
-
 import requests
+from tabulate import tabulate
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
@@ -12,13 +11,20 @@ from team import Team
 
 logfile = Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log')
 request_url = "https://coh2-api.reliclink.com/community/leaderboard/GetPersonalStat?title=coh2&profile_ids=[{}]"
+current_players = []
+players_changed = False
 
 
 def get_players():
+    global current_players
+    global players_changed
+    players_changed = False
     players = get_players_from_log()
-    if players:
+    if players and players != current_players:
         init_players_from_api(players)
-    return players
+        current_players = players
+        players_changed = True
+    return current_players
 
 
 def get_players_from_log():
@@ -187,7 +193,10 @@ def watch_log_file():
     observer.start()
     try:
         while True:
-            time.sleep(1)
+            time.sleep(5)
+            # Force CoH2 to write out its collected log
+            with open(logfile):
+                pass
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
@@ -197,8 +206,9 @@ class LogFileEventHandler(FileSystemEventHandler):
     def on_modified(self, event: FileSystemEvent) -> None:
         if event.is_directory or event.src_path != str(logfile):
             return
-
-        print_players(get_players())
+        players = get_players()
+        if players_changed:
+            print_players(players)
 
     def on_deleted(self, event: FileSystemEvent) -> None:
         super().on_deleted(event)

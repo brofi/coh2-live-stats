@@ -4,8 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="Use tabulate to print players">
-      <change afterPath="$PROJECT_DIR$/team.py" afterDir="false" />
+    <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="Fall back to the highest rank for teams">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/player.py" afterDir="false" />
@@ -46,7 +45,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+    "settings.editor.selected.configurable": "coverage"
   }
 }]]></component>
   <component name="RunManager">
@@ -201,8 +200,35 @@
       <option name="project" value="LOCAL" />
       <updated>1708046631536</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="Print team ranks">
+      <option name="closed" value="true" />
+      <created>1708069882811</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1708069882811</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Fall back to the highest rank for teams">
+      <option name="closed" value="true" />
+      <created>1708072559479</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1708072559479</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ID_ORDER">
+      <list>
+        <option value="Default.Root" />
+        <option value="Default.Author" />
+        <option value="Default.Date" />
+        <option value="Default.Subject" />
+        <option value="Space.CommitStatus" />
+      </list>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="init" />
@@ -217,14 +243,8 @@
     <MESSAGE value="Use watchdog to watch for log file changes" />
     <MESSAGE value="Multiple possible pre-made teams" />
     <MESSAGE value="Use tabulate to print players" />
-    <option name="LAST_COMMIT_MESSAGE" value="Use tabulate to print players" />
-  </component>
-  <component name="XDebuggerManager">
-    <watches-manager>
-      <configuration name="PythonConfigurationType">
-        <watch expression="t.id" />
-        <watch expression="d['statgroup_id']" />
-      </configuration>
-    </watches-manager>
+    <MESSAGE value="Print team ranks" />
+    <MESSAGE value="Fall back to the highest rank for teams" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fall back to the highest rank for teams" />
   </component>
 </project>

@@ -4,10 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="Fall back to the highest rank for teams">
+    <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="Avoid querying player data if no new players are found">
+      <change afterPath="$PROJECT_DIR$/COPYING" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/faction.py" beforeDir="false" afterPath="$PROJECT_DIR$/faction.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/player.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/team.py" beforeDir="false" afterPath="$PROJECT_DIR$/team.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,6 +34,9 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 0
 }</component>
@@ -45,7 +53,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
-    "settings.editor.selected.configurable": "coverage"
+    "settings.editor.selected.configurable": "copyright.profiles"
   }
 }]]></component>
   <component name="RunManager">
@@ -216,7 +224,15 @@
       <option name="project" value="LOCAL" />
       <updated>1708072559479</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="Avoid querying player data if no new players are found">
+      <option name="closed" value="true" />
+      <created>1708110882620</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1708110882620</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -228,6 +244,47 @@
         <option value="Default.Subject" />
         <option value="Space.CommitStatus" />
       </list>
+    </option>
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="OPEN_GENERIC_TABS">
+      <map>
+        <entry key="5eae0a9f-f4fb-4fdb-872f-7f0029018432" value="TOOL_WINDOW" />
+      </map>
+    </option>
+    <option name="TAB_STATES">
+      <map>
+        <entry key="5eae0a9f-f4fb-4fdb-872f-7f0029018432">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="HEAD" />
+                      </list>
+                    </value>
+                  </entry>
+                  <entry key="roots">
+                    <value>
+                      <list>
+                        <option value="$PROJECT_DIR$" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+              <option name="SHOW_ONLY_AFFECTED_CHANGES" value="true" />
+            </State>
+          </value>
+        </entry>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
     </option>
   </component>
   <component name="VcsManagerConfiguration">
@@ -245,6 +302,7 @@
     <MESSAGE value="Use tabulate to print players" />
     <MESSAGE value="Print team ranks" />
     <MESSAGE value="Fall back to the highest rank for teams" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fall back to the highest rank for teams" />
+    <MESSAGE value="Avoid querying player data if no new players are found" />
+    <option name="LAST_COMMIT_MESSAGE" value="Avoid querying player data if no new players are found" />
   </component>
 </project>

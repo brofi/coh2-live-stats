@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "coh2livestats"
+version = "0.0.1"
+dependencies = [
+    "requests",
+    "tabulate",
+    "watchdog",
+]
+# requires-python = ">=3.8"
+authors = [
+    { name = "Andreas Becker", email = "brofi.archlinux@gmail.com" },
+]
+description = "Shows player stats of a currently or last played or viewed CoH2 game"
+readme = "README.md"
+license = { file = "COPYING" }
+keywords = ["CoH2", "Company of Heroes 2"]
+classifiers = [
+    "Environment :: Console",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Operating System :: Microsoft :: Windows",
+    "Topic :: Games/Entertainment :: Real Time Strategy"
+]

@@ -14,8 +14,8 @@
 
 from dataclasses import dataclass, field
 
-from faction import Faction
-from team import Team
+from .faction import Faction
+from .team import Team
 
 
 @dataclass(eq=False)

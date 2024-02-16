@@ -20,8 +20,12 @@ from tabulate import tabulate
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
-from player import Player
-from team import Team
+# Either use these relative imports and run the project as a module from IDE Run/Debug Config (same as python -m
+# module) or use absolute imports (e.g. from coh2_live_stats.player import Player) and run it as a script,
+# but then the package needs to be installed.
+# See: Solution 1/3 in https://stackoverflow.com/a/28154841
+from .player import Player
+from .team import Team
 
 logfile = Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log')
 request_url = "https://coh2-api.reliclink.com/community/leaderboard/GetPersonalStat?title=coh2&profile_ids=[{}]"
@@ -228,6 +232,10 @@ class LogFileEventHandler(FileSystemEventHandler):
         super().on_deleted(event)
 
 
-if __name__ == '__main__':
+def run():
     print_players(get_players())
     watch_log_file()
+
+
+if __name__ == '__main__':
+    run()

@@ -1,2 +1,5 @@
+# virtual environment
+venv/
+# setuptools build
 dist/
 src/coh2_live_stats.egg-info/

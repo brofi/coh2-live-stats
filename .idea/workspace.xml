@@ -5,7 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="Change project structure">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/CoH2LiveStats.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/CoH2LiveStats.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/__main__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/__main__.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,14 +48,15 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Python.__main__.executor": "Debug",
+    "Python.__main__2.executor": "Debug",
     "Python.coh2_live_stats.executor": "Debug",
     "Python.main.executor": "Debug",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/andy/PycharmProjects/CoH2LiveStats/src/coh2_live_stats/__main__.py",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+    "last_opened_file_path": "C:/Users/andy/PycharmProjects/CoH2LiveStats",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
   <component name="RecentsManager">
@@ -59,7 +66,30 @@
       <recent name="C:\Users\andy\PycharmProjects\CoH2LiveStats\CoH2LiveStats" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.coh2_live_stats">
+    <configuration name="__main__" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="CoH2LiveStats" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="SDK_NAME" value="Python 3.12 (CoH2LiveStats)" />
+      <option name="WORKING_DIRECTORY" value="C:\Users\andy\PycharmProjects\CoH2LiveStats" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/coh2_live_stats/__main__.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="coh2_live_stats" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="CoH2LiveStats" />
       <option name="ENV_FILES" value="" />
@@ -82,6 +112,10 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <list>
+      <item itemvalue="Python.coh2_live_stats" />
+      <item itemvalue="Python.__main__" />
+    </list>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>

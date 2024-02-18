@@ -10,7 +10,7 @@ dependencies = [
     "tabulate",
     "watchdog",
 ]
-# requires-python = ">=3.8"
+requires-python = ">=3.9"
 authors = [
     { name = "Andreas Becker", email = "brofi.archlinux@gmail.com" },
 ]

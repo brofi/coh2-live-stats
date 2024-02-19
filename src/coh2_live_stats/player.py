@@ -28,6 +28,7 @@ class Player:
     faction: Faction
 
     # CoH2 API data
+    country: str = ''
     rank: int = -1
     rank_level: int = -1
     highest_rank: int = -1

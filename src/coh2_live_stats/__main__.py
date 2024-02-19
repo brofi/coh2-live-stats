@@ -12,6 +12,7 @@
 #  You should have received a copy of the GNU General Public License along with Foobar. If not,
 #  see <https://www.gnu.org/licenses/>.
 
+import json
 import time
 from pathlib import Path
 
@@ -78,6 +79,8 @@ def init_players_from_api(players):
                 player.highest_rank_level = d['highestranklevel']
                 break
 
+        player.country = get_country(player.relic_id, groups)
+
         for g in groups:
             t = Team(g['id'])
             for m in g['members']:
@@ -112,6 +115,13 @@ def init_players_from_api(players):
                 player.pre_made_teams.append(team)
 
 
+def get_country(relic_id, stat_groups):
+    for g in stat_groups:
+        for m in g['members']:
+            if m['profile_id'] == relic_id:
+                return m['country']
+
+
 # game mode: 1v1: 0, 2v2: 1, 3v3: 2, 4v4: 3
 def get_leaderboard_id(game_mode, player):
     if player.faction.id == 4:
@@ -144,8 +154,11 @@ def print_players(players):
         print('Not enough players.')
         return
 
+    with open(Path.cwd().joinpath('res', 'countries.json')) as f:
+        countries = json.load(f)
+
     team_size = len(players) / 2
-    headers = ['Fac', 'Rank', 'Lvl', 'Team', 'T_Rank', 'T_Lvl', 'Name']
+    headers = ['Fac', 'Rank', 'Lvl', 'Team', 'T_Rank', 'T_Lvl', 'Country', 'Name']
 
     # TODO if team 1 add row, if team 0 expand row
     for team in range(2):
@@ -189,6 +202,10 @@ def print_players(players):
             row.append(','.join(map(str, [chr(pre_made_teams.index(t.id) + 65) for t in player.pre_made_teams])))
             row.append(','.join(team_ranks))
             row.append(','.join(team_rank_levels))
+            for c in countries:
+                if c['alpha-2'] == player.country.upper():
+                    row.append(c['name'])
+                    break
             row.append(player.name)
 
             table.append(row)
@@ -202,7 +219,7 @@ def print_players(players):
         print(tabulate(table,
                        headers=headers,
                        tablefmt='pretty',
-                       colalign=('left', 'right', 'right', 'center', 'right', 'right', 'left')))
+                       colalign=('left', 'right', 'right', 'center', 'right', 'right', 'left', 'left')))
 
 
 def watch_log_file():

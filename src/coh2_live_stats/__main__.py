@@ -12,6 +12,8 @@
 #  You should have received a copy of the GNU General Public License along with Foobar. If not,
 #  see <https://www.gnu.org/licenses/>.
 
+import os
+import threading
 import time
 from pathlib import Path
 
@@ -40,7 +42,10 @@ def get_players():
     players_changed = False
     players = get_players_from_log()
     if players and players != current_players:
-        init_players_from_api(players)
+        thread = threading.Thread(target=init_players_from_api, args=(players,))
+        clear()
+        progress(thread)
+        clear()
         current_players = players
         players_changed = True
     return current_players
@@ -65,7 +70,6 @@ def get_players_from_log():
 
 
 def init_players_from_api(players):
-    print('Getting player data fom CoH2 API...')
     for player in players:
         leaderboard_id = get_leaderboard_id((len(players) // 2) - 1, player)
         r = requests.get(request_url.format(player.relic_id))
@@ -159,7 +163,6 @@ def print_players(players):
 
     # TODO if team 1 add row, if team 0 expand row
     for team in range(2):
-        print()
         table = []
         rank_sum = 0
         rank_level_sum = 0
@@ -230,6 +233,20 @@ def watch_log_file():
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
+
+
+def progress(thread):
+    thread.start()
+    while thread.is_alive():
+        for c in '/—\\|':
+            time.sleep(0.25)
+            print(f'\r{c}', end='', flush=True)
+    print('\r ', flush=True)
+    thread.join()
+
+
+def clear():
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 
 class LogFileEventHandler(FileSystemEventHandler):

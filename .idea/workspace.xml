@@ -4,10 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="Shorten country names">
-      <change afterPath="$PROJECT_DIR$/src/coh2_live_stats/countries.py" afterDir="false" />
+    <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="Use country python set">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/countries.json" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/__main__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/__main__.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -42,21 +40,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.__main__.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.__main__2.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.coh2_live_stats.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.main.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.pyinstaller_run.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/andy/PycharmProjects/CoH2LiveStats&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PythonContentEntriesConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.__main__.executor": "Debug",
+    "Python.__main__2.executor": "Debug",
+    "Python.coh2_live_stats.executor": "Debug",
+    "Python.main.executor": "Debug",
+    "Python.pyinstaller_run.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/Users/andy/PycharmProjects/CoH2LiveStats",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PythonContentEntriesConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\andy\PycharmProjects\CoH2LiveStats\src\coh2_live_stats" />
@@ -367,7 +365,15 @@
       <option name="project" value="LOCAL" />
       <updated>1708339071546</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL-00027" summary="Use country python set">
+      <option name="closed" value="true" />
+      <created>1708342774258</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1708342774258</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -444,6 +450,7 @@
     <MESSAGE value="PyInstaller config" />
     <MESSAGE value="Add player country" />
     <MESSAGE value="Shorten country names" />
-    <option name="LAST_COMMIT_MESSAGE" value="Shorten country names" />
+    <MESSAGE value="Use country python set" />
+    <option name="LAST_COMMIT_MESSAGE" value="Use country python set" />
   </component>
 </project>

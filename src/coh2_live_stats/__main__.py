@@ -45,7 +45,6 @@ def get_players():
         thread = threading.Thread(target=init_players_from_api, args=(players,))
         clear()
         progress(thread)
-        clear()
         current_players = players
         players_changed = True
     return current_players
@@ -251,12 +250,16 @@ def progress(thread):
         for c in '/—\\|':
             time.sleep(0.25)
             print(f'\r{c}', end='', flush=True)
-    print('\r ', flush=True)
+    print('\b', end='')
     thread.join()
 
 
 def clear():
-    os.system('cls' if os.name == 'nt' else 'clear')
+    if os.name == 'nt':
+        _ = os.system('cls')
+        print('\b', end='')
+    else:
+        _ = os.system('clear')
 
 
 class LogFileEventHandler(FileSystemEventHandler):

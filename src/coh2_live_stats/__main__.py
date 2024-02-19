@@ -12,7 +12,6 @@
 #  You should have received a copy of the GNU General Public License along with Foobar. If not,
 #  see <https://www.gnu.org/licenses/>.
 
-import json
 import time
 from pathlib import Path
 
@@ -25,6 +24,7 @@ from watchdog.observers import Observer
 # use these absolute imports and run it as a script, but then the package needs to be installed.
 # See: Solution 1/3 in https://stackoverflow.com/a/28154841.
 # Since the creation of a virtual environment this somehow works without the project being installed.
+from coh2_live_stats.countries import country_set
 from coh2_live_stats.player import Player
 from coh2_live_stats.team import Team
 
@@ -154,9 +154,6 @@ def print_players(players):
         print('Not enough players.')
         return
 
-    with open(Path.cwd().joinpath('res', 'countries.json')) as f:
-        countries = json.load(f)
-
     team_size = len(players) / 2
     headers = ['Fac', 'Rank', 'Lvl', 'Team', 'T_Rank', 'T_Lvl', 'Country', 'Name']
 
@@ -202,10 +199,8 @@ def print_players(players):
             row.append(','.join(map(str, [chr(pre_made_teams.index(t.id) + 65) for t in player.pre_made_teams])))
             row.append(','.join(team_ranks))
             row.append(','.join(team_rank_levels))
-            for c in countries:
-                if c['alpha-2'] == player.country.upper():
-                    row.append(c['name'])
-                    break
+            country = country_set[player.country]
+            row.append(country['name'] if country else 'unknown')
             row.append(player.name)
 
             table.append(row)

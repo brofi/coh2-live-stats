@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 
 import requests
-from tabulate import tabulate
+from prettytable import PrettyTable
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
@@ -153,26 +153,39 @@ def is_team_allies(player):
     return not is_team_axis(player)
 
 
+table_field_names = ['Fac', 'Rank', 'Lvl', 'Team', 'T_Rank', 'T_Lvl', 'Country', 'Name']
+
+
+def pretty_player_table():
+    table = PrettyTable()
+    table.border = False
+    table.preserve_internal_border = True
+    table.field_names = table_field_names
+    align = ['l', 'r', 'r', 'c', 'r', 'r', 'l', 'l']
+    assert len(align) == len(table_field_names)
+    for ai, a in enumerate(align):
+        table.align[table.field_names[ai]] = a
+    return table
+
+
 def print_players(players):
     if len(players) <= 1:
         print('Not enough players.')
         return
 
-    team_size = len(players) / 2
-    headers = ['Fac', 'Rank', 'Lvl', 'Team', 'T_Rank', 'T_Lvl', 'Country', 'Name']
-
-    # TODO if team 1 add row, if team 0 expand row
+    table = pretty_player_table()
     for team in range(2):
-        table = []
         rank_sum = 0
         rank_level_sum = 0
 
+        team_players = [p for p in players if p.team == team]
+
         pre_made_teams = []
-        for player in (p for p in players if p.team == team):
+        for player in team_players:
             pre_made_teams.extend(t.id for t in player.pre_made_teams if t.id not in pre_made_teams)
         pre_made_teams.sort()
 
-        for player in (p for p in players if p.team == team):
+        for tpi, player in enumerate(team_players):
             row = [player.faction.short]
 
             rank = player.rank
@@ -193,11 +206,11 @@ def print_players(players):
 
             team_ranks = [str(t.rank) for t in player.pre_made_teams]
             team_rank_levels = [str(t.rank_level) for t in player.pre_made_teams]
-            for i, t in enumerate(player.pre_made_teams):
+            for ti, t in enumerate(player.pre_made_teams):
                 if t.rank <= 0 < t.highest_rank:
-                    team_ranks[i] = '+' + str(t.highest_rank)
+                    team_ranks[ti] = '+' + str(t.highest_rank)
                 if t.rank_level <= 0 < t.highest_rank_level:
-                    team_rank_levels[i] = '+' + str(t.highest_rank_level)
+                    team_rank_levels[ti] = '+' + str(t.highest_rank_level)
 
             row.append(','.join(map(str, [chr(pre_made_teams.index(t.id) + 65) for t in player.pre_made_teams])))
             row.append(','.join(team_ranks))
@@ -206,18 +219,15 @@ def print_players(players):
             row.append(country['name'] if country else 'unknown')
             row.append(player.name)
 
-            table.append(row)
+            table.add_row(row, divider=True if tpi == len(team_players) - 1 else False)
 
+        team_size = len(players) / 2
         avg_rank = rank_sum / team_size
         avg_rank_level = rank_level_sum / team_size
-        table.append([] * len(headers))
         avg_row = ['Avg', avg_rank, avg_rank_level]
-        table.append(avg_row + ([] * (len(headers) - len(avg_row))))
+        table.add_row(avg_row + ([''] * (len(table.field_names) - len(avg_row))), divider=True)
 
-        print(tabulate(table,
-                       headers=headers,
-                       tablefmt='pretty',
-                       colalign=('left', 'right', 'right', 'center', 'right', 'right', 'left', 'left')))
+    print(table)
 
 
 def watch_log_file():

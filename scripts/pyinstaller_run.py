@@ -13,6 +13,7 @@
 #  see <https://www.gnu.org/licenses/>.
 import os
 from pathlib import Path
+import shutil
 
 import PyInstaller.__main__
 
@@ -36,4 +37,7 @@ PyInstaller.__main__.run([
 
 # Move license next to executable
 app_path = dist_path.joinpath(app_name)
-os.replace(app_path.joinpath(contents_dir_name, license_file_name), app_path.joinpath(license_file_name))
+os.replace(app_path.joinpath(contents_dir_name, license_file_name), app_path.joinpath(license_file_name + '.txt'))
+
+# Create distribution archive
+res = shutil.make_archive(str(app_path), 'zip', dist_path, app_name)

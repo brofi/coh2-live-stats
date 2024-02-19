@@ -130,7 +130,7 @@
     "country-code": "064"
   },
   {
-    "name": "Bolivia (Plurinational State of)",
+    "name": "Bolivia",
     "alpha-2": "BO",
     "country-code": "068"
   },
@@ -525,7 +525,7 @@
     "country-code": "360"
   },
   {
-    "name": "Iran (Islamic Republic of)",
+    "name": "Iran",
     "alpha-2": "IR",
     "country-code": "364"
   },
@@ -590,12 +590,12 @@
     "country-code": "296"
   },
   {
-    "name": "Korea (Democratic People's Republic of)",
+    "name": "North Korea",
     "alpha-2": "KP",
     "country-code": "408"
   },
   {
-    "name": "Korea, Republic of",
+    "name": "South Korea",
     "alpha-2": "KR",
     "country-code": "410"
   },
@@ -720,12 +720,12 @@
     "country-code": "484"
   },
   {
-    "name": "Micronesia (Federated States of)",
+    "name": "Micronesia",
     "alpha-2": "FM",
     "country-code": "583"
   },
   {
-    "name": "Moldova, Republic of",
+    "name": "Moldova",
     "alpha-2": "MD",
     "country-code": "498"
   },
@@ -850,7 +850,7 @@
     "country-code": "585"
   },
   {
-    "name": "Palestine, State of",
+    "name": "Palestine",
     "alpha-2": "PS",
     "country-code": "275"
   },
@@ -915,7 +915,7 @@
     "country-code": "642"
   },
   {
-    "name": "Russian Federation",
+    "name": "Russia",
     "alpha-2": "RU",
     "country-code": "643"
   },
@@ -1085,7 +1085,7 @@
     "country-code": "760"
   },
   {
-    "name": "Taiwan, Province of China",
+    "name": "Taiwan",
     "alpha-2": "TW",
     "country-code": "158"
   },
@@ -1095,7 +1095,7 @@
     "country-code": "762"
   },
   {
-    "name": "Tanzania, United Republic of",
+    "name": "Tanzania",
     "alpha-2": "TZ",
     "country-code": "834"
   },
@@ -1170,12 +1170,12 @@
     "country-code": "784"
   },
   {
-    "name": "United Kingdom of Great Britain and Northern Ireland",
+    "name": "United Kingdom",
     "alpha-2": "GB",
     "country-code": "826"
   },
   {
-    "name": "United States of America",
+    "name": "United States",
     "alpha-2": "US",
     "country-code": "840"
   },
@@ -1200,12 +1200,12 @@
     "country-code": "548"
   },
   {
-    "name": "Venezuela (Bolivarian Republic of)",
+    "name": "Venezuela",
     "alpha-2": "VE",
     "country-code": "862"
   },
   {
-    "name": "Viet Nam",
+    "name": "Vietnam",
     "alpha-2": "VN",
     "country-code": "704"
   },

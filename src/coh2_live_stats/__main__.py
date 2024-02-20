@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 
 import requests
-from prettytable import PrettyTable
+from prettytable.colortable import ColorTable, Theme
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
@@ -163,7 +163,8 @@ col_name = 'Name'
 
 
 def pretty_player_table():
-    table = PrettyTable()
+    darker_borders = Theme(vertical_color="90", horizontal_color="90", junction_color="90")
+    table = ColorTable(theme=darker_borders)
     table.border = False
     table.preserve_internal_border = True
     table.field_names = [col_faction, col_rank, col_level, col_team, col_team_rank, col_team_level, col_country,

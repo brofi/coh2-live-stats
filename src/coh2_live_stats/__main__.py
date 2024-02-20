@@ -236,11 +236,12 @@ def print_players(players):
 
             table.add_row(row, divider=True if tpi == len(team_players) - 1 else False)
 
-        team_size = len(players) / 2
-        avg_rank = rank_sum / team_size
-        avg_rank_level = rank_level_sum / team_size
-        avg_row = [colorize(90, 'Avg'), avg_rank, avg_rank_level]
-        table.add_row(avg_row + ([''] * (len(table.field_names) - len(avg_row))), divider=True)
+        if len(players) > 2:
+            team_size = len(players) / 2
+            avg_rank = rank_sum / team_size
+            avg_rank_level = rank_level_sum / team_size
+            avg_row = [colorize(90, 'Avg'), avg_rank, avg_rank_level]
+            table.add_row(avg_row + ([''] * (len(table.field_names) - len(avg_row))), divider=True)
 
     if not pre_made_teams[0] and not pre_made_teams[1]:
         for col in (col_team, col_team_rank, col_team_level):

@@ -15,6 +15,7 @@
 import os
 import threading
 import time
+from functools import partial
 from pathlib import Path
 
 import requests
@@ -167,13 +168,18 @@ def pretty_player_table():
     table = ColorTable(theme=darker_borders)
     table.border = False
     table.preserve_internal_border = True
-    table.field_names = [col_faction, col_rank, col_level, col_team, col_team_rank, col_team_level, col_country,
-                         col_name]
+    table.field_names = map(partial(colorize, 90),
+                            [col_faction, col_rank, col_level, col_team, col_team_rank, col_team_level, col_country,
+                             col_name])
     align = ['l', 'r', 'r', 'c', 'r', 'r', 'l', 'l']
     assert len(align) == len(table.field_names)
     for ai, a in enumerate(align):
         table.align[table.field_names[ai]] = a
     return table
+
+
+def colorize(c, s):
+    return Theme.format_code(str(c)) + s + RESET_CODE
 
 
 def print_players(players):
@@ -234,7 +240,7 @@ def print_players(players):
         team_size = len(players) / 2
         avg_rank = rank_sum / team_size
         avg_rank_level = rank_level_sum / team_size
-        avg_row = ['Avg', avg_rank, avg_rank_level]
+        avg_row = [colorize(90, 'Avg'), avg_rank, avg_rank_level]
         table.add_row(avg_row + ([''] * (len(table.field_names) - len(avg_row))), divider=True)
 
     if not pre_made_teams[0] and not pre_made_teams[1]:

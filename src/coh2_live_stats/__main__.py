@@ -152,16 +152,24 @@ def is_team_allies(player):
     return not is_team_axis(player)
 
 
-table_field_names = ['Fac', 'Rank', 'Lvl', 'Team', 'T_Rank', 'T_Lvl', 'Country', 'Name']
+col_faction = 'Fac'
+col_rank = 'Rank'
+col_level = 'Lvl'
+col_team = 'Team'
+col_team_rank = 'T_Rank'
+col_team_level = 'T_Lvl'
+col_country = 'Country'
+col_name = 'Name'
 
 
 def pretty_player_table():
     table = PrettyTable()
     table.border = False
     table.preserve_internal_border = True
-    table.field_names = table_field_names
+    table.field_names = [col_faction, col_rank, col_level, col_team, col_team_rank, col_team_level, col_country,
+                         col_name]
     align = ['l', 'r', 'r', 'c', 'r', 'r', 'l', 'l']
-    assert len(align) == len(table_field_names)
+    assert len(align) == len(table.field_names)
     for ai, a in enumerate(align):
         table.align[table.field_names[ai]] = a
     return table
@@ -172,18 +180,19 @@ def print_players(players):
         print('Not enough players.')
         return
 
+    pre_made_teams = [[], []]
+    for player in players:
+        pre_made_teams[player.team].extend(
+            t.id for t in player.pre_made_teams if t.id not in pre_made_teams[player.team])
+
     table = pretty_player_table()
     for team in range(2):
+        pre_made_teams[team].sort()
+
         rank_sum = 0
         rank_level_sum = 0
 
         team_players = [p for p in players if p.team == team]
-
-        pre_made_teams = []
-        for player in team_players:
-            pre_made_teams.extend(t.id for t in player.pre_made_teams if t.id not in pre_made_teams)
-        pre_made_teams.sort()
-
         for tpi, player in enumerate(team_players):
             row = [player.faction.short]
 
@@ -211,7 +220,8 @@ def print_players(players):
                 if t.rank_level <= 0 < t.highest_rank_level:
                     team_rank_levels[ti] = '+' + str(t.highest_rank_level)
 
-            row.append(','.join(map(str, [chr(pre_made_teams.index(t.id) + 65) for t in player.pre_made_teams])))
+            row.append(
+                ','.join(map(str, [chr(pre_made_teams[player.team].index(t.id) + 65) for t in player.pre_made_teams])))
             row.append(','.join(team_ranks))
             row.append(','.join(team_rank_levels))
             country = country_set[player.country]
@@ -226,6 +236,9 @@ def print_players(players):
         avg_row = ['Avg', avg_rank, avg_rank_level]
         table.add_row(avg_row + ([''] * (len(table.field_names) - len(avg_row))), divider=True)
 
+    if not pre_made_teams[0] and not pre_made_teams[1]:
+        for col in (col_team, col_team_rank, col_team_level):
+            table.del_column(col)
     print(table)
 
 

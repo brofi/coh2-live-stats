@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 
 import requests
-from prettytable.colortable import ColorTable, Theme
+from prettytable.colortable import ColorTable, Theme, RESET_CODE
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
@@ -195,7 +195,7 @@ def print_players(players):
 
         team_players = [p for p in players if p.team == team]
         for tpi, player in enumerate(team_players):
-            row = [player.faction.short]
+            row = [Theme.format_code('31' if is_team_axis(player) else '34') + player.faction.short + RESET_CODE]
 
             rank = player.rank
             rank_str = str(rank)

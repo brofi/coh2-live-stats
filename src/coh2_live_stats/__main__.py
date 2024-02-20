@@ -98,25 +98,26 @@ def init_players_from_api(players):
             player.teams.append(t)
 
     # Derive player data
-    for player in players:
-        pre_made_teams = []
-        max_team_size = -1
-        for team in player.teams:
-            if len(team.members) > 1:
-                isvalid = True
-                for member in team.members:
-                    if member not in [p.relic_id for p in players if p.team == player.team]:
-                        isvalid = False
-                        break
-                if isvalid:
-                    team_size = len(team.members)
-                    if team_size > max_team_size:
-                        max_team_size = team_size
-                    pre_made_teams.append(team)
-        pre_made_teams.sort(key=lambda x: x.id)
-        for team in pre_made_teams:
-            if len(team.members) >= max_team_size:
-                player.pre_made_teams.append(team)
+    if len(players) > 2:
+        for player in players:
+            pre_made_teams = []
+            max_team_size = -1
+            for team in player.teams:
+                if len(team.members) > 1:
+                    isvalid = True
+                    for member in team.members:
+                        if member not in [p.relic_id for p in players if p.team == player.team]:
+                            isvalid = False
+                            break
+                    if isvalid:
+                        team_size = len(team.members)
+                        if team_size > max_team_size:
+                            max_team_size = team_size
+                        pre_made_teams.append(team)
+            pre_made_teams.sort(key=lambda x: x.id)
+            for team in pre_made_teams:
+                if len(team.members) >= max_team_size:
+                    player.pre_made_teams.append(team)
 
 
 def get_country(relic_id, stat_groups):

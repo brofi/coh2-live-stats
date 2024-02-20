@@ -168,9 +168,8 @@ def pretty_player_table():
     table = ColorTable(theme=darker_borders)
     table.border = False
     table.preserve_internal_border = True
-    table.field_names = map(partial(colorize, 90),
-                            [col_faction, col_rank, col_level, col_team, col_team_rank, col_team_level, col_country,
-                             col_name])
+    table.field_names = [col_faction, col_rank, col_level, col_team, col_team_rank, col_team_level, col_country,
+                         col_name]
     align = ['l', 'r', 'r', 'c', 'r', 'r', 'l', 'l']
     assert len(align) == len(table.field_names)
     for ai, a in enumerate(align):
@@ -246,7 +245,11 @@ def print_players(players):
     if not pre_made_teams[0] and not pre_made_teams[1]:
         for col in (col_team, col_team_rank, col_team_level):
             table.del_column(col)
-    print(table)
+
+    # Colorize fields last so column indices can still be used. If passing field names via `get_string(fields={})`
+    # validation will fail.
+    table.field_names = map(partial(colorize, 90), table.field_names)
+    print(table.get_string())
 
 
 def watch_log_file():

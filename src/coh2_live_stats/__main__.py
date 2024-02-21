@@ -47,11 +47,10 @@ async def get_players():
         #  but then don't close in finally?
         http_aclient = httpx.AsyncClient()
         url = 'https://coh2-api.reliclink.com/community/leaderboard/GetPersonalStat'
-        game_mode = (len(players) // 2) - 1
         progress_indicator = asyncio.create_task(progress_start())
         r = None
         try:
-            r = await asyncio.gather(*(get_player_from_api(http_aclient, url, p, game_mode) for p in players))
+            r = await asyncio.gather(*(get_player_from_api(http_aclient, url, p) for p in players))
         except httpx.RequestError as e:
             print(f"An error occurred while requesting {e.request.url!r}.")
         except httpx.HTTPStatusError as e:
@@ -63,6 +62,7 @@ async def get_players():
             await progress_stop()
 
         if r:
+            game_mode = (len(players) // 2) - 1
             players = [init_player_from_json(p, game_mode, j) for (p, j) in zip(players, r)]
             derive_pre_made_teams(players)
 
@@ -100,7 +100,7 @@ async def progress_stop():
     print('\b', end='')
 
 
-async def get_player_from_api(client, url, player, game_mode):
+async def get_player_from_api(client, url, player):
     params = {'title': 'coh2', 'profile_ids': f'[{player.relic_id}]'}
     r = await client.get(url, params=params, timeout=60)
     r.raise_for_status()

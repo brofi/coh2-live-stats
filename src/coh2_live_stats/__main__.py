@@ -11,14 +11,13 @@
 #
 #  You should have received a copy of the GNU General Public License along with Foobar. If not,
 #  see <https://www.gnu.org/licenses/>.
-
+import asyncio
 import os
-import threading
 import time
 from functools import partial
 from pathlib import Path
 
-import requests
+import httpx
 from prettytable.colortable import ColorTable, Theme, RESET_CODE
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
@@ -37,17 +36,38 @@ current_players = []
 players_changed = False
 
 
-def get_players():
+async def get_players():
     global current_players
     global players_changed
     players_changed = False
     players = get_players_from_log()
     if players and players != current_players:
-        thread = threading.Thread(target=init_players_from_api, args=(players,))
         clear()
-        progress(thread)
-        current_players = players
-        players_changed = True
+        # TODO maybe reuse for watcher
+        #  but then don't close in finally?
+        http_aclient = httpx.AsyncClient()
+        url = 'https://coh2-api.reliclink.com/community/leaderboard/GetPersonalStat'
+        game_mode = (len(players) // 2) - 1
+        progress_indicator = asyncio.create_task(progress_start())
+        r = None
+        try:
+            r = await asyncio.gather(*(get_player_from_api(http_aclient, url, p, game_mode) for p in players))
+        except httpx.RequestError as e:
+            print(f"An error occurred while requesting {e.request.url!r}.")
+        except httpx.HTTPStatusError as e:
+            print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
+        finally:
+            await http_aclient.aclose()
+            progress_indicator.cancel()
+            # TODO in case of error we don't delete the correct char
+            await progress_stop()
+
+        if r:
+            players = [init_player_from_json(p, game_mode, j) for (p, j) in zip(players, r)]
+            derive_pre_made_teams(players)
+
+            current_players = players
+            players_changed = True
     return current_players
 
 
@@ -69,72 +89,73 @@ def get_players_from_log():
     return []
 
 
-def init_players_from_api(players):
-    for player in players:
-        leaderboard_id = get_leaderboard_id((len(players) // 2) - 1, player)
-        r = requests.get(request_url.format(player.relic_id))
-        stats = r.json()['leaderboardStats']
-        groups = r.json()['statGroups']
-        for d in stats:
-            if d['leaderboard_id'] == leaderboard_id:
-                player.rank = d['rank']
-                player.rank_level = d['ranklevel']
-                player.highest_rank = d['highestrank']
-                player.highest_rank_level = d['highestranklevel']
-                break
-
-        player.country = get_country(player.relic_id, groups)
-
-        for g in groups:
-            t = Team(g['id'])
-            for m in g['members']:
-                t.members.append(m['profile_id'])
-            for d in stats:
-                if d['statgroup_id'] == t.id and d['leaderboard_id'] == get_team_leaderboard_id(g['type'], player):
-                    t.rank = d['rank']
-                    t.rank_level = d['ranklevel']
-                    t.highest_rank = d['highestrank']
-                    t.highest_rank_level = d['highestranklevel']
-            player.teams.append(t)
-
-    # Derive player data
-    if len(players) > 2:
-        for player in players:
-            pre_made_teams = []
-            max_team_size = -1
-            for team in player.teams:
-                if len(team.members) > 1:
-                    isvalid = True
-                    for member in team.members:
-                        if member not in [p.relic_id for p in players if p.team == player.team]:
-                            isvalid = False
-                            break
-                    if isvalid:
-                        team_size = len(team.members)
-                        if team_size > max_team_size:
-                            max_team_size = team_size
-                        pre_made_teams.append(team)
-            pre_made_teams.sort(key=lambda x: x.id)
-            for team in pre_made_teams:
-                if len(team.members) >= max_team_size:
-                    player.pre_made_teams.append(team)
+async def progress_start():
+    while True:
+        for c in '/—\\|':
+            print(f'\r{c}', end='', flush=True)
+            await asyncio.sleep(0.25)
 
 
-def get_country(relic_id, stat_groups):
-    for g in stat_groups:
-        for m in g['members']:
-            if m['profile_id'] == relic_id:
-                return m['country']
+async def progress_stop():
+    print('\b', end='')
+
+
+async def get_player_from_api(client, url, player, game_mode):
+    params = {'title': 'coh2', 'profile_ids': f'[{player.relic_id}]'}
+    r = await client.get(url, params=params, timeout=60)
+    r.raise_for_status()
+    return r.json()
+
+
+def init_player_from_json(player: Player, game_mode: int, json):
+    set_player_stats_from_json(player, game_mode, json)
+    set_country_from_json(player, json)
+    set_teams_from_json(player, json)
+    return player
+
+
+def set_player_stats_from_json(player: Player, game_mode: int, json):
+    leaderboard_id = get_leaderboard_id(game_mode, player)
+    for s in json['leaderboardStats']:
+        if s['leaderboard_id'] == leaderboard_id:
+            player.rank = s['rank']
+            player.rank_level = s['ranklevel']
+            player.highest_rank = s['highestrank']
+            player.highest_rank_level = s['highestranklevel']
+            return
 
 
 # game mode: 1v1: 0, 2v2: 1, 3v3: 2, 4v4: 3
-def get_leaderboard_id(game_mode, player):
+def get_leaderboard_id(game_mode: int, player):
     if player.faction.id == 4:
         lid = 51 + game_mode
     else:
         # leaderboard_id 0..3 -> AI Games
         lid = 4 + (game_mode * 4) + player.faction.id
     return lid
+
+
+def set_country_from_json(player: Player, json):
+    for g in json['statGroups']:
+        for m in g['members']:
+            if m['profile_id'] == player.relic_id:
+                player.country = m['country']
+                return
+
+
+def set_teams_from_json(player: Player, json):
+    # TODO we gather all teams but only init those with the correct type
+    for g in json['statGroups']:
+        t = Team(g['id'])
+        for m in g['members']:
+            t.members.append(m['profile_id'])
+        for s in json['leaderboardStats']:
+            if s['statgroup_id'] == t.id and s['leaderboard_id'] == get_team_leaderboard_id(g['type'], player):
+                t.rank = s['rank']
+                t.rank_level = s['ranklevel']
+                t.highest_rank = s['highestrank']
+                t.highest_rank_level = s['highestranklevel']
+        player.teams.append(t)
 
 
 def get_team_leaderboard_id(num_team_members, player):
@@ -146,40 +167,37 @@ def get_team_leaderboard_id(num_team_members, player):
     return leaderboard_id
 
 
-def is_team_axis(player):
-    return player.faction.id == 0 or player.faction.id == 2
+def derive_pre_made_teams(players):
+    if len(players) <= 2:
+        return
+
+    for player in players:
+        pre_made_teams = []
+        max_team_size = -1
+        for team in player.teams:
+            if len(team.members) > 1:
+                isvalid = True
+                for member in team.members:
+                    if member not in [p.relic_id for p in players if p.team == player.team]:
+                        isvalid = False
+                        break
+                if isvalid:
+                    team_size = len(team.members)
+                    if team_size > max_team_size:
+                        max_team_size = team_size
+                    pre_made_teams.append(team)
+        pre_made_teams.sort(key=lambda x: x.id)
+        for team in pre_made_teams:
+            if len(team.members) >= max_team_size:
+                player.pre_made_teams.append(team)
 
 
-def is_team_allies(player):
-    return not is_team_axis(player)
-
-
-col_faction = 'Fac'
-col_rank = 'Rank'
-col_level = 'Lvl'
-col_team = 'Team'
-col_team_rank = 'T_Rank'
-col_team_level = 'T_Lvl'
-col_country = 'Country'
-col_name = 'Name'
-
-
-def pretty_player_table():
-    darker_borders = Theme(vertical_color="90", horizontal_color="90", junction_color="90")
-    table = ColorTable(theme=darker_borders)
-    table.border = False
-    table.preserve_internal_border = True
-    table.field_names = [col_faction, col_rank, col_level, col_team, col_team_rank, col_team_level, col_country,
-                         col_name]
-    align = ['l', 'r', 'r', 'c', 'r', 'r', 'l', 'l']
-    assert len(align) == len(table.field_names)
-    for ai, a in enumerate(align):
-        table.align[table.field_names[ai]] = a
-    return table
-
-
-def colorize(c, s):
-    return Theme.format_code(str(c)) + s + RESET_CODE
+def clear():
+    if os.name == 'nt':
+        _ = os.system('cls')
+        print('\b', end='')
+    else:
+        _ = os.system('clear')
 
 
 def print_players(players):
@@ -254,10 +272,47 @@ def print_players(players):
     print(table.get_string())
 
 
+col_faction = 'Fac'
+col_rank = 'Rank'
+col_level = 'Lvl'
+col_team = 'Team'
+col_team_rank = 'T_Rank'
+col_team_level = 'T_Lvl'
+col_country = 'Country'
+col_name = 'Name'
+
+
+def pretty_player_table():
+    darker_borders = Theme(vertical_color="90", horizontal_color="90", junction_color="90")
+    table = ColorTable(theme=darker_borders)
+    table.border = False
+    table.preserve_internal_border = True
+    table.field_names = [col_faction, col_rank, col_level, col_team, col_team_rank, col_team_level, col_country,
+                         col_name]
+    align = ['l', 'r', 'r', 'c', 'r', 'r', 'l', 'l']
+    assert len(align) == len(table.field_names)
+    for ai, a in enumerate(align):
+        table.align[table.field_names[ai]] = a
+    return table
+
+
+def is_team_axis(player):
+    return player.faction.id == 0 or player.faction.id == 2
+
+
+def is_team_allies(player):
+    return not is_team_axis(player)
+
+
+def colorize(c, s):
+    return Theme.format_code(str(c)) + s + RESET_CODE
+
+
 def watch_log_file():
     observer = Observer()
     observer.schedule(LogFileEventHandler(), str(logfile.parent))
     observer.start()
+    # TODO maybe just hold it open
     try:
         while True:
             time.sleep(5)
@@ -269,29 +324,11 @@ def watch_log_file():
     observer.join()
 
 
-def progress(thread):
-    thread.start()
-    while thread.is_alive():
-        for c in '/—\\|':
-            time.sleep(0.25)
-            print(f'\r{c}', end='', flush=True)
-    print('\b', end='')
-    thread.join()
-
-
-def clear():
-    if os.name == 'nt':
-        _ = os.system('cls')
-        print('\b', end='')
-    else:
-        _ = os.system('clear')
-
-
 class LogFileEventHandler(FileSystemEventHandler):
     def on_modified(self, event: FileSystemEvent) -> None:
         if event.is_directory or event.src_path != str(logfile):
             return
-        players = get_players()
+        players = asyncio.run(get_players())
         if players_changed:
             print_players(players)
 
@@ -299,10 +336,11 @@ class LogFileEventHandler(FileSystemEventHandler):
         super().on_deleted(event)
 
 
-def run():
-    print_players(get_players())
+async def main():
+    players = await get_players()
+    print_players(players)
     watch_log_file()
 
 
 if __name__ == '__main__':
-    run()
+    asyncio.run(main())

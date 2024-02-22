@@ -17,7 +17,7 @@ import time
 from functools import partial
 from pathlib import Path
 
-import httpx
+from httpx import AsyncClient, RequestError, HTTPStatusError
 from prettytable.colortable import ColorTable, Theme, RESET_CODE
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
@@ -31,7 +31,8 @@ from coh2_live_stats.player import Player
 from coh2_live_stats.team import Team
 
 logfile = Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log')
-request_url = "https://coh2-api.reliclink.com/community/leaderboard/GetPersonalStat?title=coh2&profile_ids=[{}]"
+url = 'https://coh2-api.reliclink.com/community/leaderboard/GetPersonalStat'
+http_client: AsyncClient
 current_players = []
 players_changed = False
 
@@ -43,20 +44,15 @@ async def get_players():
     players = get_players_from_log()
     if players and players != current_players:
         clear()
-        # TODO maybe reuse for watcher
-        #  but then don't close in finally?
-        http_aclient = httpx.AsyncClient()
-        url = 'https://coh2-api.reliclink.com/community/leaderboard/GetPersonalStat'
         progress_indicator = asyncio.create_task(progress_start())
         r = None
         try:
-            r = await asyncio.gather(*(get_player_from_api(http_aclient, url, p) for p in players))
-        except httpx.RequestError as e:
+            r = await asyncio.gather(*(get_player_from_api(p) for p in players))
+        except RequestError as e:
             print(f"An error occurred while requesting {e.request.url!r}.")
-        except httpx.HTTPStatusError as e:
+        except HTTPStatusError as e:
             print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
         finally:
-            await http_aclient.aclose()
             progress_indicator.cancel()
             # TODO in case of error we don't delete the correct char
             await progress_stop()
@@ -100,9 +96,9 @@ async def progress_stop():
     print('\b', end='')
 
 
-async def get_player_from_api(client, url, player):
+async def get_player_from_api(player):
     params = {'title': 'coh2', 'profile_ids': f'[{player.relic_id}]'}
-    r = await client.get(url, params=params, timeout=60)
+    r = await http_client.get(url, params=params, timeout=60)
     r.raise_for_status()
     return r.json()
 
@@ -341,9 +337,12 @@ class LogFileEventHandler(FileSystemEventHandler):
 
 
 async def main():
+    global http_client
+    http_client = AsyncClient()
     players = await get_players()
     print_players(players)
     await watch_log_file()
+    await http_client.aclose()
 
 
 if __name__ == '__main__':

@@ -12,8 +12,8 @@
 #  You should have received a copy of the GNU General Public License along with Foobar. If not,
 #  see <https://www.gnu.org/licenses/>.
 import asyncio
+import concurrent.futures
 import os
-import time
 from functools import partial
 from pathlib import Path
 
@@ -304,22 +304,6 @@ def colorize(c, s):
     return Theme.format_code(str(c)) + s + RESET_CODE
 
 
-async def watch_log_file():
-    observer = Observer()
-    observer.schedule(LogFileEventHandler(asyncio.get_running_loop()), str(logfile.parent))
-    observer.start()
-    # TODO maybe just hold it open
-    try:
-        while True:
-            await asyncio.sleep(5)
-            # Force CoH2 to write out its collected log
-            with open(logfile):
-                pass
-    except KeyboardInterrupt:
-        observer.stop()
-    observer.join()
-
-
 class LogFileEventHandler(FileSystemEventHandler):
 
     def __init__(self, loop):
@@ -328,22 +312,52 @@ class LogFileEventHandler(FileSystemEventHandler):
     def on_modified(self, event: FileSystemEvent) -> None:
         if event.is_directory or event.src_path != str(logfile):
             return
-        players = asyncio.run_coroutine_threadsafe(get_players(), self.loop).result()
-        if players_changed:
-            print_players(players)
+
+        future_players: concurrent.futures.Future = asyncio.run_coroutine_threadsafe(get_players(), self.loop)
+        # Don't block for future result here, since the Observer thread might need to be stopped
+        future_players.add_done_callback(on_players_gathered)
 
     def on_deleted(self, event: FileSystemEvent) -> None:
         super().on_deleted(event)
 
 
+def on_players_gathered(future_players):
+    if players_changed:
+        try:
+            print_players(future_players.result())
+        except concurrent.futures.CancelledError:
+            pass
+
+
 async def main():
     global http_client
     http_client = AsyncClient()
-    players = await get_players()
-    print_players(players)
-    await watch_log_file()
-    await http_client.aclose()
+    observer = Observer()
+
+    try:
+        # Initial request
+        print_players(await get_players())
+        # Watch log files
+        observer.schedule(LogFileEventHandler(asyncio.get_running_loop()), str(logfile.parent))
+        observer.start()
+        while True:
+            await asyncio.sleep(5)
+            # TODO maybe just hold it open
+            # Force CoH2 to write out its collected log
+            with open(logfile):
+                pass
+    # In asyncio `Ctrl-C` cancels the main task, which raises a Cancelled Error
+    except asyncio.CancelledError:
+        observer.stop()
+        raise
+    finally:
+        if observer.is_alive():
+            observer.join()
+        await http_client.aclose()
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        pass

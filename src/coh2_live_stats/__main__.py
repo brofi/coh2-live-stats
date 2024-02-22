@@ -340,11 +340,9 @@ async def main():
         observer.schedule(LogFileEventHandler(asyncio.get_running_loop()), str(logfile.parent))
         observer.start()
         while True:
-            await asyncio.sleep(5)
-            # TODO maybe just hold it open
             # Force CoH2 to write out its collected log
-            with open(logfile):
-                pass
+            with open(logfile, mode="rb", buffering=0):
+                await asyncio.sleep(1)
     # In asyncio `Ctrl-C` cancels the main task, which raises a Cancelled Error
     except asyncio.CancelledError:
         observer.stop()

@@ -54,8 +54,7 @@ async def get_players():
             print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
         finally:
             progress_indicator.cancel()
-            # TODO in case of error we don't delete the correct char
-            await progress_stop()
+            progress_stop()
 
         if r:
             game_mode = (len(players) // 2) - 1
@@ -88,12 +87,12 @@ def get_players_from_log():
 async def progress_start():
     while True:
         for c in '/—\\|':
-            print(f'\r{c}', end='', flush=True)
+            print(f'\b{c}', end='', flush=True)
             await asyncio.sleep(0.25)
 
 
-async def progress_stop():
-    print('\b', end='')
+def progress_stop():
+    print('\b \b', end='')
 
 
 async def get_player_from_api(player):

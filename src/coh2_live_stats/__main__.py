@@ -308,14 +308,14 @@ def colorize(c, s):
     return Theme.format_code(str(c)) + s + RESET_CODE
 
 
-def watch_log_file():
+async def watch_log_file():
     observer = Observer()
-    observer.schedule(LogFileEventHandler(), str(logfile.parent))
+    observer.schedule(LogFileEventHandler(asyncio.get_running_loop()), str(logfile.parent))
     observer.start()
     # TODO maybe just hold it open
     try:
         while True:
-            time.sleep(5)
+            await asyncio.sleep(5)
             # Force CoH2 to write out its collected log
             with open(logfile):
                 pass
@@ -325,10 +325,14 @@ def watch_log_file():
 
 
 class LogFileEventHandler(FileSystemEventHandler):
+
+    def __init__(self, loop):
+        self.loop = loop
+
     def on_modified(self, event: FileSystemEvent) -> None:
         if event.is_directory or event.src_path != str(logfile):
             return
-        players = asyncio.run(get_players())
+        players = asyncio.run_coroutine_threadsafe(get_players(), self.loop).result()
         if players_changed:
             print_players(players)
 
@@ -339,7 +343,7 @@ class LogFileEventHandler(FileSystemEventHandler):
 async def main():
     players = await get_players()
     print_players(players)
-    watch_log_file()
+    await watch_log_file()
 
 
 if __name__ == '__main__':

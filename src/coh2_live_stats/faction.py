@@ -20,18 +20,19 @@ class Faction:
     id: int
     name: str
     short: str
+    color: int
 
     @staticmethod
     def from_log(faction_name):
         if faction_name == 'german':
-            return Faction(0, 'Wehrmacht', 'WM')
+            return Faction(0, 'Wehrmacht', 'WM', 31)
         elif faction_name == 'soviet':
-            return Faction(1, 'Soviet Union', 'SU')
+            return Faction(1, 'Soviet Union', 'SU', 31)
         elif faction_name == 'west_german':
-            return Faction(2, 'Oberkommando West', 'OKW')
+            return Faction(2, 'Oberkommando West', 'OKW', 36)
         elif faction_name == 'aef':
-            return Faction(3, 'US Forces', 'US')
+            return Faction(3, 'US Forces', 'US', 34)
         elif faction_name == 'british':
-            return Faction(4, 'British Forces', 'UK')
+            return Faction(4, 'British Forces', 'UK', 33)
         else:
             return None

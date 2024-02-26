@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AnalysisUIOptions">
+    <option name="ANALYZE_INJECTED_CODE" value="false" />
+  </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="Use country python set">
+    <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="Color enum">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/__main__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/__main__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/player.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,6 +36,9 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 0
 }</component>
@@ -39,21 +48,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.__main__.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.__main__2.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.coh2_live_stats.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.main.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.pyinstaller_run.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/andy/PycharmProjects/CoH2LiveStats&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PythonContentEntriesConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.__main__.executor": "Run",
+    "Python.__main__2.executor": "Debug",
+    "Python.coh2_live_stats.executor": "Debug",
+    "Python.main.executor": "Debug",
+    "Python.pyinstaller_run.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/Users/andy/PycharmProjects/playground",
+    "run.code.analysis.last.selected.profile": "aDefault",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PythonContentEntriesConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\andy\PycharmProjects\CoH2LiveStats\src\coh2_live_stats" />
@@ -61,7 +71,7 @@
       <recent name="C:\Users\andy\PycharmProjects\CoH2LiveStats\CoH2LiveStats" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.pyinstaller_run">
+  <component name="RunManager" selected="Python.coh2_live_stats">
     <configuration name="__main__" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="CoH2LiveStats" />
       <option name="ENV_FILES" value="" />
@@ -101,7 +111,7 @@
       <option name="SCRIPT_NAME" value="coh2_live_stats" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="EMULATE_TERMINAL" value="true" />
       <option name="MODULE_MODE" value="true" />
       <option name="REDIRECT_INPUT" value="false" />
       <option name="INPUT_FILE" value="" />
@@ -372,7 +382,119 @@
       <option name="project" value="LOCAL" />
       <updated>1708342774258</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="Use httpx + asyncio">
+      <option name="closed" value="true" />
+      <created>1708478532736</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1708478532736</updated>
+    </task>
+    <task id="LOCAL-00029" summary="Use httpx + asyncio">
+      <option name="closed" value="true" />
+      <created>1708478765500</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1708478765500</updated>
+    </task>
+    <task id="LOCAL-00030" summary="Remove unused parameter">
+      <option name="closed" value="true" />
+      <created>1708559405595</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1708559405595</updated>
+    </task>
+    <task id="LOCAL-00031" summary="Submit coroutine call in Observer Thread to the main event loop">
+      <option name="closed" value="true" />
+      <created>1708568955395</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1708568955395</updated>
+    </task>
+    <task id="LOCAL-00032" summary="Improve performance by reusing the HTTP client's underlying TCP connection">
+      <option name="closed" value="true" />
+      <created>1708569391235</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1708569391235</updated>
+    </task>
+    <task id="LOCAL-00033" summary="Improve performance by reusing the HTTP client's underlying TCP connection">
+      <option name="closed" value="true" />
+      <created>1708578294616</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1708578294616</updated>
+    </task>
+    <task id="LOCAL-00034" summary="Exit gracefully">
+      <option name="closed" value="true" />
+      <created>1708634906581</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1708634906581</updated>
+    </task>
+    <task id="LOCAL-00035" summary="Fix: Loading char not deleted">
+      <option name="closed" value="true" />
+      <created>1708639471431</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1708639471431</updated>
+    </task>
+    <task id="LOCAL-00036" summary="Do fake file operation unbuffered">
+      <option name="closed" value="true" />
+      <created>1708643159343</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1708643159343</updated>
+    </task>
+    <task id="LOCAL-00037" summary="Individual faction color">
+      <option name="closed" value="true" />
+      <created>1708857592628</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1708857592628</updated>
+    </task>
+    <task id="LOCAL-00038" summary="Rank estimates and min/max rank">
+      <option name="closed" value="true" />
+      <created>1708912927423</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1708912927423</updated>
+    </task>
+    <task id="LOCAL-00039" summary="Hold leaderboard state">
+      <option name="closed" value="true" />
+      <created>1708924612966</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1708924612966</updated>
+    </task>
+    <task id="LOCAL-00040" summary="Support AI games">
+      <option name="closed" value="true" />
+      <created>1708929842926</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1708929842926</updated>
+    </task>
+    <task id="LOCAL-00041" summary="Color enum">
+      <option name="closed" value="true" />
+      <created>1708931829617</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1708931829617</updated>
+    </task>
+    <option name="localTasksCounter" value="42" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -389,11 +511,37 @@
   <component name="Vcs.Log.Tabs.Properties">
     <option name="OPEN_GENERIC_TABS">
       <map>
+        <entry key="0113565d-3a85-41b7-93e8-434c48ac0de8" value="TOOL_WINDOW" />
         <entry key="5eae0a9f-f4fb-4fdb-872f-7f0029018432" value="TOOL_WINDOW" />
       </map>
     </option>
     <option name="TAB_STATES">
       <map>
+        <entry key="0113565d-3a85-41b7-93e8-434c48ac0de8">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="HEAD" />
+                      </list>
+                    </value>
+                  </entry>
+                  <entry key="roots">
+                    <value>
+                      <list>
+                        <option value="$PROJECT_DIR$" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+              <option name="SHOW_ONLY_AFFECTED_CHANGES" value="true" />
+            </State>
+          </value>
+        </entry>
         <entry key="5eae0a9f-f4fb-4fdb-872f-7f0029018432">
           <value>
             <State>
@@ -428,15 +576,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="init" />
-    <MESSAGE value="Print player information from log file" />
-    <MESSAGE value="Get player ranks from CoH2 API" />
-    <MESSAGE value="Format player ranks output" />
-    <MESSAGE value="Show faction shorthand" />
-    <MESSAGE value="Fall back to the highest rank if not ranked anymore" />
-    <MESSAGE value="Show (best) average ranks" />
-    <MESSAGE value="Detect pre-made teams" />
-    <MESSAGE value="Change fallback values" />
     <MESSAGE value="Use watchdog to watch for log file changes" />
     <MESSAGE value="Multiple possible pre-made teams" />
     <MESSAGE value="Use tabulate to print players" />
@@ -450,6 +589,26 @@
     <MESSAGE value="Add player country" />
     <MESSAGE value="Shorten country names" />
     <MESSAGE value="Use country python set" />
-    <option name="LAST_COMMIT_MESSAGE" value="Use country python set" />
+    <MESSAGE value="Use httpx + asyncio" />
+    <MESSAGE value="Remove unused parameter" />
+    <MESSAGE value="Submit coroutine call in Observer Thread to the main event loop" />
+    <MESSAGE value="Improve performance by reusing the HTTP client's underlying TCP connection" />
+    <MESSAGE value="Exit gracefully" />
+    <MESSAGE value="Fix: Loading char not deleted" />
+    <MESSAGE value="Do fake file operation unbuffered" />
+    <MESSAGE value="Individual faction color" />
+    <MESSAGE value="Rank estimates and min/max rank" />
+    <MESSAGE value="Hold leaderboard state" />
+    <MESSAGE value="Support AI games" />
+    <MESSAGE value="Color enum" />
+    <option name="LAST_COMMIT_MESSAGE" value="Color enum" />
+  </component>
+  <component name="XDebuggerManager">
+    <watches-manager>
+      <configuration name="PythonConfigurationType">
+        <watch expression="player.leaderboard_id" />
+        <watch expression="leaderboards" />
+      </configuration>
+    </watches-manager>
   </component>
 </project>

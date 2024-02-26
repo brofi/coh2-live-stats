@@ -153,6 +153,7 @@ async def get_player_from_api(player):
 def init_player(player: Player, game_mode: int, json):
     player.leaderboard_id = get_leaderboard_id(game_mode, player)
     set_player_stats_from_json(player, json)
+    set_rank_total(player)
     set_country_from_json(player, json)
     set_teams_from_json(player, json)
     return player
@@ -167,11 +168,6 @@ def set_player_stats_from_json(player: Player, json):
             player.rank = s['rank']
             player.rank_level = s['ranklevel']
             player.rank_total = s['ranktotal']
-            if player.rank_total <= 0:
-                for lb in leaderboards:
-                    if lb == player.leaderboard_id:
-                        player.rank_total = lb.rank_total
-                        break
             player.highest_rank = s['highestrank']
             player.highest_rank_level = s['highestranklevel']
             return
@@ -185,6 +181,14 @@ def get_leaderboard_id(game_mode: int, player):
         # leaderboard_id 0..3 -> AI Games
         lid = 4 + (game_mode * 4) + player.faction.id
     return lid
+
+
+def set_rank_total(player: Player):
+    if player.rank_total <= 0:
+        for lb in leaderboards:
+            if lb.id == player.leaderboard_id:
+                player.rank_total = lb.rank_total
+                break
 
 
 def set_country_from_json(player: Player, json):

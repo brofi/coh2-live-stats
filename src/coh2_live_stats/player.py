@@ -45,14 +45,16 @@ class Player:
     # (A,B,C).
     pre_made_teams: list[Team] = field(default_factory=list)
 
-    def estimate_rank(self, avg_team_rank=0):
+    def estimate_rank(self, avg_team_rank_factor=0):
         if (self.rank > 0 and self.rank_level > 0) or self.relic_id <= 0:
             return '', self.rank, self.rank_level
         if self.highest_rank > 0 and self.highest_rank_level > 0:
             return '+', self.highest_rank, self.highest_rank_level
-        if avg_team_rank > 0:
-            return '?', round(avg_team_rank), self._rank_level_from_rank(avg_team_rank)
-        return '?', round(self.rank_total / 2), self._rank_level_from_rank(self.rank_total / 2)
+        if avg_team_rank_factor > 0:
+            avg_rank = round(avg_team_rank_factor * self.rank_total)
+            return '?', avg_rank, self._rank_level_from_rank(avg_rank)
+        avg_rank = round(self.rank_total / 2)
+        return '?', avg_rank, self._rank_level_from_rank(avg_rank)
 
     def _rank_level_from_rank(self, rank):
         if rank <= 0 or self.rank_total <= 0:

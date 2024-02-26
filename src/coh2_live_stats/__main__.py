@@ -14,7 +14,6 @@
 import asyncio
 import concurrent.futures
 import os
-import sys
 from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
@@ -277,9 +276,9 @@ def print_players(players):
         for tpi, player in enumerate(team_players):
             row = [player.faction]
 
-            rank_estimate = player.estimate_rank(team_data[team].avg_rank)
-            is_high_lvl_player = 0 < rank_estimate[1] == team_data[team].max_rank
-            is_low_lvl_player = 0 < rank_estimate[1] == team_data[team].min_rank
+            rank_estimate = player.estimate_rank(team_data[team].avg_rank_factor)
+            is_high_lvl_player = player in team_data[team].high_level_players
+            is_low_lvl_player = player in team_data[team].low_level_players
             row.append((rank_estimate[0], rank_estimate[1], is_high_lvl_player, is_low_lvl_player))
             row.append((rank_estimate[0], rank_estimate[2], is_high_lvl_player, is_low_lvl_player))
 
@@ -302,11 +301,11 @@ def print_players(players):
             table.add_row(row, divider=True if tpi == len(team_players) - 1 else False)
 
         if len([p for p in team_players if p.relic_id > 0]) > 1:
-            avg_rank_prefix = '*' if team_data[team].avg_rank < team_data[abs(team - 1)].avg_rank else ''
-            avg_rank_level_prefix = '*' if team_data[team].avg_rank_level > team_data[
-                abs(team - 1)].avg_rank_level else ''
-            avg_row = ['Avg', (avg_rank_prefix, team_data[team].avg_rank, False, False),
-                       (avg_rank_level_prefix, team_data[team].avg_rank_level, False, False)] + [''] * 3 + [
+            avg_rank_prefix = '*' if team_data[team].avg_estimated_rank < team_data[abs(team - 1)].avg_estimated_rank else ''
+            avg_rank_level_prefix = '*' if team_data[team].avg_estimated_rank_level > team_data[
+                abs(team - 1)].avg_estimated_rank_level else ''
+            avg_row = ['Avg', (avg_rank_prefix, team_data[team].avg_estimated_rank, False, False),
+                       (avg_rank_level_prefix, team_data[team].avg_estimated_rank_level, False, False)] + [''] * 3 + [
                           ('', False, False)] * 2
             table.add_row(avg_row, divider=True)
 
@@ -325,12 +324,11 @@ def print_players(players):
 
 @dataclass
 class TeamData:
-    min_rank: int = -1
-    max_rank: int = sys.maxsize
-    min_rank_level: int = sys.maxsize
-    max_rank_level: int = -1
-    avg_rank: float = -1
-    avg_rank_level: float = -1
+    avg_estimated_rank: float = -1
+    avg_estimated_rank_level: float = -1
+    avg_rank_factor: float = -1
+    high_level_players: list[int] = field(default_factory=list)
+    low_level_players: list[int] = field(default_factory=list)
     pre_made_team_ids: list[int] = field(default_factory=list)
 
 
@@ -345,21 +343,17 @@ def get_team_data(players):
                 t.id for t in p.pre_made_teams if t.id not in data[p.team].pre_made_team_ids)
             data[p.team].pre_made_team_ids.sort()
 
-        ranks = [p.rank for p in team_players if p.rank > 0]
-        if ranks:
-            data[team].min_rank = max(ranks)
-            data[team].max_rank = min(ranks)
-            data[team].avg_rank = avg(ranks)
+        ranked_players = [p for p in team_players if p.rank > 0]
+        if ranked_players:
+            rank_factors = [p.rank / p.rank_total for p in ranked_players]
+            data[team].high_level_players = [p for p in ranked_players if p.rank / p.rank_total <= min(rank_factors)]
+            data[team].low_level_players = [p for p in ranked_players if p.rank / p.rank_total >= max(rank_factors)]
+            data[team].avg_rank_factor = avg(rank_factors)
 
-        rank_levels = [p.rank_level for p in team_players if p.rank_level > 0]
-        if rank_levels:
-            data[team].min_rank_level = min(rank_levels)
-            data[team].max_rank_level = max(rank_levels)
-
-        rank_estimates = [p.estimate_rank(data[team].avg_rank) for p in team_players]
+        rank_estimates = [p.estimate_rank(data[team].avg_rank_factor) for p in team_players]
         if rank_estimates:
-            data[team].avg_rank = avg([rank for (_, rank, _) in rank_estimates])
-            data[team].avg_rank_level = avg([level for (_, _, level) in rank_estimates])
+            data[team].avg_estimated_rank = avg([rank for (_, rank, _) in rank_estimates])
+            data[team].avg_estimated_rank_level = avg([level for (_, _, level) in rank_estimates])
 
     return data
 

@@ -78,7 +78,7 @@ class Player:
                 n = min(round(self.rank_total * (r / 100)), max(0, remain))
                 ranking.append(remain + n_top_200)
                 remain -= n
-            while rank <= ranking[lvl]:
+            while lvl < len(ranking) and rank <= ranking[lvl]:
                 lvl += 1
         return lvl
 

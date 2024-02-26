@@ -30,6 +30,9 @@ class Player:
     # CoH2 API data
     country: str = ''
     leaderboard_id: int = -1
+    wins: int = -1
+    losses: int = -1
+    drops: int = -1
     rank: int = -1
     rank_total: int = -1
     rank_level: int = -1

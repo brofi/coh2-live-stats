@@ -164,6 +164,9 @@ def set_player_stats_from_json(player: Player, json):
 
     for s in json['leaderboardStats']:
         if s['leaderboard_id'] == player.leaderboard_id:
+            player.wins = s['wins']
+            player.losses = s['losses']
+            player.drops = s['drops']
             player.rank = s['rank']
             player.rank_level = s['ranklevel']
             player.rank_total = s['ranktotal']
@@ -282,6 +285,10 @@ def print_players(players):
             row.append((rank_estimate[0], rank_estimate[1], is_high_lvl_player, is_low_lvl_player))
             row.append((rank_estimate[0], rank_estimate[2], is_high_lvl_player, is_low_lvl_player))
 
+            num_games = player.wins + player.losses
+            row.append(player.wins / num_games if num_games > 0 else '')
+            row.append(player.drops / num_games if num_games > 0 else '')
+
             team_ranks = [str(t.rank) for t in player.pre_made_teams]
             team_rank_levels = [str(t.rank_level) for t in player.pre_made_teams]
             for ti, t in enumerate(player.pre_made_teams):
@@ -289,7 +296,6 @@ def print_players(players):
                     team_ranks[ti] = '+' + str(t.highest_rank)
                 if t.rank_level <= 0 < t.highest_rank_level:
                     team_rank_levels[ti] = '+' + str(t.highest_rank_level)
-
             row.append(','.join(map(str, [chr(team_data[player.team].pre_made_team_ids.index(t.id) + 65) for t in
                                           player.pre_made_teams])))
             row.append(','.join(team_ranks))
@@ -301,11 +307,12 @@ def print_players(players):
             table.add_row(row, divider=True if tpi == len(team_players) - 1 else False)
 
         if len([p for p in team_players if p.relic_id > 0]) > 1:
-            avg_rank_prefix = '*' if team_data[team].avg_estimated_rank < team_data[abs(team - 1)].avg_estimated_rank else ''
+            avg_rank_prefix = '*' if team_data[team].avg_estimated_rank < team_data[
+                abs(team - 1)].avg_estimated_rank else ''
             avg_rank_level_prefix = '*' if team_data[team].avg_estimated_rank_level > team_data[
                 abs(team - 1)].avg_estimated_rank_level else ''
             avg_row = ['Avg', (avg_rank_prefix, team_data[team].avg_estimated_rank, False, False),
-                       (avg_rank_level_prefix, team_data[team].avg_estimated_rank_level, False, False)] + [''] * 3 + [
+                       (avg_rank_level_prefix, team_data[team].avg_estimated_rank_level, False, False)] + [''] * 5 + [
                           ('', False, False)] * 2
             table.add_row(avg_row, divider=True)
 
@@ -367,6 +374,8 @@ def avg(c):
 col_faction = 'Fac'
 col_rank = 'Rank'
 col_level = 'Lvl'
+col_win_ratio = 'W%'
+col_drop_ratio = 'D%'
 col_team = 'Team'
 col_team_rank = 'T_Rank'
 col_team_level = 'T_Lvl'
@@ -379,19 +388,31 @@ def pretty_player_table():
     table = ColorTable(theme=darker_borders)
     table.border = False
     table.preserve_internal_border = True
-    table.field_names = [col_faction, col_rank, col_level, col_team, col_team_rank, col_team_level, col_country,
-                         col_name]
-    table.float_format = '.2'
+    table.field_names = [col_faction, col_rank, col_level, col_win_ratio, col_drop_ratio, col_team, col_team_rank,
+                         col_team_level, col_country, col_name]
     table.custom_format[col_faction] = format_faction
     table.custom_format[col_rank] = partial(format_rank, 2)
     table.custom_format[col_level] = partial(format_rank, 1)
+    table.custom_format[col_win_ratio] = format_ratio
+    table.custom_format[col_drop_ratio] = format_ratio
     table.custom_format[col_country] = format_min_max
     table.custom_format[col_name] = format_min_max
-    align = ['l', 'r', 'r', 'c', 'r', 'r', 'l', 'l']
+    align = ['l', 'r', 'r', 'r', 'r', 'c', 'r', 'r', 'l', 'l']
     assert len(align) == len(table.field_names)
     for ai, a in enumerate(align):
         table.align[table.field_names[ai]] = a
     return table
+
+
+def format_ratio(f, v):
+    v_str = ''
+    if isinstance(v, float):
+        v_str = f'{v:.0%}'
+        if f == col_drop_ratio and v >= 0.1:
+            v_str = colorize(Color.RED, v_str)
+        elif f == col_win_ratio:
+            v_str = format_min_max(f, (v_str, v >= 0.6, v < 0.5))
+    return v_str
 
 
 def format_min_max(_, v: tuple[any, bool, bool]):

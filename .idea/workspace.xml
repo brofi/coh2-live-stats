@@ -7,9 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="Color enum">
+    <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="Use rank factor (rank / rank_total) to estimate rank">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/__main__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/__main__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/player.py" afterDir="false" />
     </list>
@@ -494,7 +493,47 @@
       <option name="project" value="LOCAL" />
       <updated>1708931829617</updated>
     </task>
-    <option name="localTasksCounter" value="42" />
+    <task id="LOCAL-00042" summary="Fix: wrong leaderboards collected">
+      <option name="closed" value="true" />
+      <created>1708937039410</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1708937039410</updated>
+    </task>
+    <task id="LOCAL-00043" summary="Fix: no player_total for a player who has never played random in that mode">
+      <option name="closed" value="true" />
+      <created>1708937160620</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1708937160620</updated>
+    </task>
+    <task id="LOCAL-00044" summary="Fix: no player_total for a team player who has never played random in the current mode">
+      <option name="closed" value="true" />
+      <created>1708937279501</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1708937279501</updated>
+    </task>
+    <task id="LOCAL-00045" summary="Fix: Level 14 estimate crash">
+      <option name="closed" value="true" />
+      <created>1708975575470</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1708975575470</updated>
+    </task>
+    <task id="LOCAL-00046" summary="Use rank factor (rank / rank_total) to estimate rank">
+      <option name="closed" value="true" />
+      <created>1708984173160</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1708984173160</updated>
+    </task>
+    <option name="localTasksCounter" value="47" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -511,38 +550,12 @@
   <component name="Vcs.Log.Tabs.Properties">
     <option name="OPEN_GENERIC_TABS">
       <map>
-        <entry key="0113565d-3a85-41b7-93e8-434c48ac0de8" value="TOOL_WINDOW" />
-        <entry key="5eae0a9f-f4fb-4fdb-872f-7f0029018432" value="TOOL_WINDOW" />
+        <entry key="80129e01-c993-471a-bd34-30e2c55fc2ab" value="TOOL_WINDOW" />
       </map>
     </option>
     <option name="TAB_STATES">
       <map>
-        <entry key="0113565d-3a85-41b7-93e8-434c48ac0de8">
-          <value>
-            <State>
-              <option name="FILTERS">
-                <map>
-                  <entry key="branch">
-                    <value>
-                      <list>
-                        <option value="HEAD" />
-                      </list>
-                    </value>
-                  </entry>
-                  <entry key="roots">
-                    <value>
-                      <list>
-                        <option value="$PROJECT_DIR$" />
-                      </list>
-                    </value>
-                  </entry>
-                </map>
-              </option>
-              <option name="SHOW_ONLY_AFFECTED_CHANGES" value="true" />
-            </State>
-          </value>
-        </entry>
-        <entry key="5eae0a9f-f4fb-4fdb-872f-7f0029018432">
+        <entry key="80129e01-c993-471a-bd34-30e2c55fc2ab">
           <value>
             <State>
               <option name="FILTERS">
@@ -576,11 +589,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Use watchdog to watch for log file changes" />
-    <MESSAGE value="Multiple possible pre-made teams" />
-    <MESSAGE value="Use tabulate to print players" />
-    <MESSAGE value="Print team ranks" />
-    <MESSAGE value="Fall back to the highest rank for teams" />
     <MESSAGE value="Avoid querying player data if no new players are found" />
     <MESSAGE value="Add project configuration and licence" />
     <MESSAGE value="Change project structure" />
@@ -601,7 +609,12 @@
     <MESSAGE value="Hold leaderboard state" />
     <MESSAGE value="Support AI games" />
     <MESSAGE value="Color enum" />
-    <option name="LAST_COMMIT_MESSAGE" value="Color enum" />
+    <MESSAGE value="Fix: wrong leaderboards collected" />
+    <MESSAGE value="Fix: no player_total for a player who has never played random in that mode" />
+    <MESSAGE value="Fix: no player_total for a team player who has never played random in the current mode" />
+    <MESSAGE value="Fix: Level 14 estimate crash" />
+    <MESSAGE value="Use rank factor (rank / rank_total) to estimate rank" />
+    <option name="LAST_COMMIT_MESSAGE" value="Use rank factor (rank / rank_total) to estimate rank" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>

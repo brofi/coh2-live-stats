@@ -14,6 +14,8 @@
 import asyncio
 import concurrent.futures
 import os
+import sys
+from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
 
@@ -27,11 +29,13 @@ from watchdog.observers import Observer
 # See: Solution 1/3 in https://stackoverflow.com/a/28154841.
 # Since the creation of a virtual environment this somehow works without the project being installed.
 from coh2_live_stats.countries import country_set
+from coh2_live_stats.faction import Faction
 from coh2_live_stats.player import Player
 from coh2_live_stats.team import Team
 
 logfile = Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log')
-url = 'https://coh2-api.reliclink.com/community/leaderboard/GetPersonalStat'
+url_leaderboard = 'https://coh2-api.reliclink.com/community/leaderboard/getleaderboard2'
+url_player = 'https://coh2-api.reliclink.com/community/leaderboard/GetPersonalStat'
 http_client: AsyncClient
 current_players = []
 players_changed = False
@@ -58,7 +62,7 @@ async def get_players():
 
         if r:
             game_mode = (len(players) // 2) - 1
-            players = [init_player_from_json(p, game_mode, j) for (p, j) in zip(players, r)]
+            players = [await init_player(p, game_mode, j) for (p, j) in zip(players, r)]
             derive_pre_made_teams(players)
 
             current_players = players
@@ -97,22 +101,30 @@ def progress_stop():
 
 async def get_player_from_api(player):
     params = {'title': 'coh2', 'profile_ids': f'[{player.relic_id}]'}
-    r = await http_client.get(url, params=params, timeout=60)
+    r = await http_client.get(url_player, params=params, timeout=60)
     r.raise_for_status()
     return r.json()
 
 
-def init_player_from_json(player: Player, game_mode: int, json):
-    set_player_stats_from_json(player, game_mode, json)
+async def get_rank_total_from_api(leaderboard_id):
+    params = {'title': 'coh2', 'count': 1, 'leaderboard_id': f'{leaderboard_id}'}
+    r = await http_client.get(url_leaderboard, params=params, timeout=60)
+    r.raise_for_status()
+    return r.json()['rankTotal']
+
+
+async def init_player(player: Player, game_mode: int, json):
+    player.leaderboard_id = get_leaderboard_id(game_mode, player)
+    player.rank_total = await get_rank_total_from_api(player.leaderboard_id)
+    set_player_stats_from_json(player, json)
     set_country_from_json(player, json)
     set_teams_from_json(player, json)
     return player
 
 
-def set_player_stats_from_json(player: Player, game_mode: int, json):
-    leaderboard_id = get_leaderboard_id(game_mode, player)
+def set_player_stats_from_json(player: Player, json):
     for s in json['leaderboardStats']:
-        if s['leaderboard_id'] == leaderboard_id:
+        if s['leaderboard_id'] == player.leaderboard_id:
             player.rank = s['rank']
             player.rank_level = s['ranklevel']
             player.highest_rank = s['highestrank']
@@ -163,7 +175,7 @@ def get_team_leaderboard_id(num_team_members, player):
 
 
 def derive_pre_made_teams(players):
-    if len(players) <= 2:
+    if len(players) < 4:
         return
 
     for player in players:
@@ -196,41 +208,26 @@ def clear():
 
 
 def print_players(players):
-    if len(players) <= 1:
+    if len(players) < 1:
+        print('No players found.')
+        return
+    # TODO print 1 player with AI
+    if len(players) < 2:
         print('Not enough players.')
         return
 
-    pre_made_teams = [[], []]
-    for player in players:
-        pre_made_teams[player.team].extend(
-            t.id for t in player.pre_made_teams if t.id not in pre_made_teams[player.team])
-
+    team_data = get_team_data(players)
     table = pretty_player_table()
     for team in range(2):
-        pre_made_teams[team].sort()
-
-        rank_sum = 0
-        rank_level_sum = 0
-
         team_players = [p for p in players if p.team == team]
         for tpi, player in enumerate(team_players):
-            row = [colorize(player.faction.color, player.faction.short)]
+            row = [player.faction]
 
-            rank = player.rank
-            rank_str = str(rank)
-            if rank <= 0 < player.highest_rank:
-                rank = player.highest_rank
-                rank_str = '+' + str(player.highest_rank)
-            row.append(rank_str)
-            rank_sum += rank if rank > 0 else 1500  # TODO get avg rank in mode
-
-            rank_level = player.rank_level
-            rank_level_str = str(rank_level)
-            if rank_level <= 0 < player.highest_rank_level:
-                rank_level = player.highest_rank_level
-                rank_level_str = '+' + str(player.highest_rank_level)
-            row.append(rank_level_str)
-            rank_level_sum += rank_level if rank_level > 0 else 6  # TODO get avg level in mode
+            rank_estimate = player.estimate_rank(team_data[team].avg_rank)
+            is_high_lvl_player = rank_estimate[1] == team_data[team].max_rank
+            is_low_lvl_player = rank_estimate[1] == team_data[team].min_rank
+            row.append((rank_estimate[0], rank_estimate[1], is_high_lvl_player, is_low_lvl_player))
+            row.append((rank_estimate[0], rank_estimate[2], is_high_lvl_player, is_low_lvl_player))
 
             team_ranks = [str(t.rank) for t in player.pre_made_teams]
             team_rank_levels = [str(t.rank_level) for t in player.pre_made_teams]
@@ -240,31 +237,81 @@ def print_players(players):
                 if t.rank_level <= 0 < t.highest_rank_level:
                     team_rank_levels[ti] = '+' + str(t.highest_rank_level)
 
-            row.append(
-                ','.join(map(str, [chr(pre_made_teams[player.team].index(t.id) + 65) for t in player.pre_made_teams])))
+            row.append(','.join(map(str, [chr(team_data[player.team].pre_made_team_ids.index(t.id) + 65) for t in
+                                          player.pre_made_teams])))
             row.append(','.join(team_ranks))
             row.append(','.join(team_rank_levels))
             country = country_set[player.country]
-            row.append(country['name'] if country else 'unknown')
-            row.append(player.name)
+            row.append((country['name'] if country else 'unknown', is_high_lvl_player, is_low_lvl_player))
+            row.append((player.name, is_high_lvl_player, is_low_lvl_player))
 
             table.add_row(row, divider=True if tpi == len(team_players) - 1 else False)
 
         if len(players) > 2:
-            team_size = len(players) / 2
-            avg_rank = rank_sum / team_size
-            avg_rank_level = rank_level_sum / team_size
-            avg_row = [colorize(90, 'Avg'), avg_rank, avg_rank_level]
-            table.add_row(avg_row + ([''] * (len(table.field_names) - len(avg_row))), divider=True)
+            avg_rank_prefix = '*' if team_data[team].avg_rank < team_data[abs(team - 1)].avg_rank else ''
+            avg_rank_level_prefix = '*' if team_data[team].avg_rank_level > team_data[
+                abs(team - 1)].avg_rank_level else ''
+            avg_row = ['Avg', (avg_rank_prefix, team_data[team].avg_rank, False, False),
+                       (avg_rank_level_prefix, team_data[team].avg_rank_level, False, False)] + [''] * 3 + [
+                          ('', False, False)] * 2
+            table.add_row(avg_row, divider=True)
 
-    if not pre_made_teams[0] and not pre_made_teams[1]:
+    if not team_data[0].pre_made_team_ids and not team_data[1].pre_made_team_ids:
         for col in (col_team, col_team_rank, col_team_level):
             table.del_column(col)
 
-    # Colorize fields last so column indices can still be used. If passing field names via `get_string(fields={})`
-    # validation will fail.
-    table.field_names = map(partial(colorize, 90), table.field_names)
-    print(table.get_string())
+    # Unfortunately there is no custom header format and altering field names directly would mess with everything
+    # that needs them (e.g. formatting).
+    table_lines = table.get_string().splitlines(True)
+    for h in table.field_names:
+        header = ' ' * table.padding_width + h + ' ' * table.padding_width
+        table_lines[0] = table_lines[0].replace(header, colorize(90, header))
+    print(''.join(table_lines))
+
+
+@dataclass
+class TeamData:
+    min_rank: int = -1
+    max_rank: int = sys.maxsize
+    min_rank_level: int = sys.maxsize
+    max_rank_level: int = -1
+    avg_rank: float = -1
+    avg_rank_level: float = -1
+    pre_made_team_ids: list[int] = field(default_factory=list)
+
+
+def get_team_data(players):
+    data = (TeamData(), TeamData())
+
+    for team in range(2):
+        team_players = [p for p in players if p.team == team]
+
+        for p in team_players:
+            data[p.team].pre_made_team_ids.extend(
+                t.id for t in p.pre_made_teams if t.id not in data[p.team].pre_made_team_ids)
+            data[p.team].pre_made_team_ids.sort()
+
+        ranks = [p.rank for p in team_players if p.rank > 0]
+        data[team].min_rank = max(ranks)
+        data[team].max_rank = min(ranks)
+
+        rank_levels = [p.rank_level for p in team_players if p.rank_level > 0]
+        data[team].min_rank_level = min(rank_levels)
+        data[team].max_rank_level = max(rank_levels)
+
+        data[team].avg_rank = avg(ranks)
+        rank_estimates = [p.estimate_rank(data[team].avg_rank) for p in team_players]
+
+        data[team].avg_rank = avg([rank for (_, rank, _) in rank_estimates])
+        data[team].avg_rank_level = avg([level for (_, _, level) in rank_estimates])
+
+    return data
+
+
+def avg(c):
+    if not c:
+        raise ValueError('Cannot calculate average of empty list.')
+    return sum(c) / len(c)
 
 
 col_faction = 'Fac'
@@ -284,11 +331,41 @@ def pretty_player_table():
     table.preserve_internal_border = True
     table.field_names = [col_faction, col_rank, col_level, col_team, col_team_rank, col_team_level, col_country,
                          col_name]
+    table.float_format = '.2'
+    table.custom_format[col_faction] = format_faction
+    table.custom_format[col_rank] = partial(format_rank, 2)
+    table.custom_format[col_level] = partial(format_rank, 1)
+    table.custom_format[col_country] = format_min_max
+    table.custom_format[col_name] = format_min_max
     align = ['l', 'r', 'r', 'c', 'r', 'r', 'l', 'l']
     assert len(align) == len(table.field_names)
     for ai, a in enumerate(align):
         table.align[table.field_names[ai]] = a
     return table
+
+
+def format_min_max(_, v: tuple[any, bool, bool]):
+    v_str = str(v[0])
+    if v[1]:
+        v_str = colorize(97, v_str)
+    if v[2]:
+        v_str = colorize(90, v_str)
+    return v_str
+
+
+def format_rank(precision, _, v: tuple[str, any, bool, bool]):
+    v_str = str(v)
+    if isinstance(v[1], float):
+        v_str = f'{v[0]}{v[1]:.{precision}f}'
+    elif isinstance(v[1], int):
+        v_str = f'{v[0]}{v[1]}'
+    return format_min_max(_, (v_str, v[2], v[3]))
+
+
+def format_faction(_, v):
+    if isinstance(v, Faction):
+        return colorize(v.color, v.short)
+    return colorize(90, str(v))
 
 
 def is_team_axis(player):

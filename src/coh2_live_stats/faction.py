@@ -14,25 +14,27 @@
 
 from dataclasses import dataclass
 
+from .color import Color
+
 
 @dataclass
 class Faction:
     id: int
     name: str
     short: str
-    color: int
+    color: Color
 
     @staticmethod
     def from_log(faction_name):
         if faction_name == 'german':
-            return Faction(0, 'Wehrmacht', 'WM', 31)
+            return Faction(0, 'Wehrmacht', 'WM', Color.RED)
         elif faction_name == 'soviet':
-            return Faction(1, 'Soviet Union', 'SU', 31)
+            return Faction(1, 'Soviet Union', 'SU', Color.RED)
         elif faction_name == 'west_german':
-            return Faction(2, 'Oberkommando West', 'OKW', 36)
+            return Faction(2, 'Oberkommando West', 'OKW', Color.CYAN)
         elif faction_name == 'aef':
-            return Faction(3, 'US Forces', 'US', 34)
+            return Faction(3, 'US Forces', 'US', Color.BLUE)
         elif faction_name == 'british':
-            return Faction(4, 'British Forces', 'UK', 33)
+            return Faction(4, 'British Forces', 'UK', Color.YELLOW)
         else:
             return None

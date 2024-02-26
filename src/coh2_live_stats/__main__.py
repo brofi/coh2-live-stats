@@ -28,6 +28,7 @@ from watchdog.observers import Observer
 # use these absolute imports and run it as a script, but then the package needs to be installed.
 # See: Solution 1/3 in https://stackoverflow.com/a/28154841.
 # Since the creation of a virtual environment this somehow works without the project being installed.
+from coh2_live_stats.color import Color
 from coh2_live_stats.countries import country_set
 from coh2_live_stats.faction import Faction
 from coh2_live_stats.leaderboard import Leaderboard
@@ -313,7 +314,7 @@ def print_players(players):
     table_lines = table.get_string().splitlines(True)
     for h in table.field_names:
         header = ' ' * table.padding_width + h + ' ' * table.padding_width
-        table_lines[0] = table_lines[0].replace(header, colorize(90, header))
+        table_lines[0] = table_lines[0].replace(header, colorize(Color.BRIGHT_BLACK, header))
     print(''.join(table_lines))
 
 
@@ -397,9 +398,9 @@ def pretty_player_table():
 def format_min_max(_, v: tuple[any, bool, bool]):
     v_str = str(v[0])
     if v[1]:
-        v_str = colorize(97, v_str)
+        v_str = colorize(Color.BRIGHT_WHITE, v_str)
     if v[2]:
-        v_str = colorize(90, v_str)
+        v_str = colorize(Color.BRIGHT_BLACK, v_str)
     return v_str
 
 
@@ -418,7 +419,7 @@ def format_rank(precision, _, v: tuple[str, any, bool, bool]):
 def format_faction(_, v):
     if isinstance(v, Faction):
         return colorize(v.color, v.short)
-    return colorize(90, str(v))
+    return colorize(Color.BRIGHT_BLACK, str(v))
 
 
 def is_team_axis(player):
@@ -429,8 +430,8 @@ def is_team_allies(player):
     return not is_team_axis(player)
 
 
-def colorize(c, s):
-    return Theme.format_code(str(c)) + s + RESET_CODE
+def colorize(c: Color, s):
+    return Theme.format_code(str(c.value)) + s + RESET_CODE
 
 
 class LogFileEventHandler(FileSystemEventHandler):

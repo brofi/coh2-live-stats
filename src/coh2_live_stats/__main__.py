@@ -30,15 +30,53 @@ from watchdog.observers import Observer
 # Since the creation of a virtual environment this somehow works without the project being installed.
 from coh2_live_stats.countries import country_set
 from coh2_live_stats.faction import Faction
+from coh2_live_stats.leaderboard import Leaderboard
 from coh2_live_stats.player import Player
 from coh2_live_stats.team import Team
 
+TIMEOUT = 60
+
 logfile = Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log')
+url_leaderboards = 'https://coh2-api.reliclink.com/community/leaderboard/getAvailableLeaderboards'
 url_leaderboard = 'https://coh2-api.reliclink.com/community/leaderboard/getleaderboard2'
 url_player = 'https://coh2-api.reliclink.com/community/leaderboard/GetPersonalStat'
 http_client: AsyncClient
 current_players = []
 players_changed = False
+leaderboards: [Leaderboard] = []
+
+
+async def init_leaderboards():
+    global leaderboards
+    progress_indicator = asyncio.create_task(progress_start())
+    try:
+        r1 = await get_leaderboards_from_api()
+        if r1:
+            r2 = await asyncio.gather(
+                *(get_leaderboard_from_api(lb['id']) for lb in r1['leaderboards'] if lb['isranked'] == 1))
+            if r2:
+                leaderboards = [Leaderboard(j1['id'], j1['name'], j2['rankTotal']) for (j1, j2) in
+                                zip(r1['leaderboards'], r2)]
+    except RequestError as e:
+        print(f"An error occurred while requesting {e.request.url!r}.")
+    except HTTPStatusError as e:
+        print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
+    finally:
+        progress_indicator.cancel()
+        progress_stop()
+
+
+async def get_leaderboards_from_api():
+    r = await http_client.get(url_leaderboards, params={'title': 'coh2'}, timeout=TIMEOUT)
+    r.raise_for_status()
+    return r.json()
+
+
+async def get_leaderboard_from_api(leaderboard_id):
+    params = {'title': 'coh2', 'count': 1, 'leaderboard_id': f'{leaderboard_id}'}
+    r = await http_client.get(url_leaderboard, params=params, timeout=TIMEOUT)
+    r.raise_for_status()
+    return r.json()
 
 
 async def get_players():
@@ -62,7 +100,7 @@ async def get_players():
 
         if r:
             game_mode = (len(players) // 2) - 1
-            players = [await init_player(p, game_mode, j) for (p, j) in zip(players, r)]
+            players = [init_player(p, game_mode, j) for (p, j) in zip(players, r)]
             derive_pre_made_teams(players)
 
             current_players = players
@@ -101,21 +139,13 @@ def progress_stop():
 
 async def get_player_from_api(player):
     params = {'title': 'coh2', 'profile_ids': f'[{player.relic_id}]'}
-    r = await http_client.get(url_player, params=params, timeout=60)
+    r = await http_client.get(url_player, params=params, timeout=TIMEOUT)
     r.raise_for_status()
     return r.json()
 
 
-async def get_rank_total_from_api(leaderboard_id):
-    params = {'title': 'coh2', 'count': 1, 'leaderboard_id': f'{leaderboard_id}'}
-    r = await http_client.get(url_leaderboard, params=params, timeout=60)
-    r.raise_for_status()
-    return r.json()['rankTotal']
-
-
-async def init_player(player: Player, game_mode: int, json):
+def init_player(player: Player, game_mode: int, json):
     player.leaderboard_id = get_leaderboard_id(game_mode, player)
-    player.rank_total = await get_rank_total_from_api(player.leaderboard_id)
     set_player_stats_from_json(player, json)
     set_country_from_json(player, json)
     set_teams_from_json(player, json)
@@ -127,6 +157,11 @@ def set_player_stats_from_json(player: Player, json):
         if s['leaderboard_id'] == player.leaderboard_id:
             player.rank = s['rank']
             player.rank_level = s['ranklevel']
+            player.rank_total = s['ranktotal']
+            if player.rank_total <= 0:
+                for lb in leaderboards:
+                    if lb == player.leaderboard_id:
+                        player.rank_total = lb.rank_total
             player.highest_rank = s['highestrank']
             player.highest_rank_level = s['highestranklevel']
             return
@@ -411,7 +446,8 @@ async def main():
     observer = Observer()
 
     try:
-        # Initial request
+        # Initial requests
+        await init_leaderboards()
         print_players(await get_players())
         # Watch log files
         observer.schedule(LogFileEventHandler(asyncio.get_running_loop()), str(logfile.parent))
@@ -433,5 +469,7 @@ async def main():
 if __name__ == '__main__':
     try:
         asyncio.run(main())
+    except asyncio.CancelledError:
+        pass
     except KeyboardInterrupt:
         pass

@@ -53,11 +53,12 @@ async def init_leaderboards():
     try:
         r1 = await get_leaderboards_from_api()
         if r1:
+            ranked_leaderboards = [lb for lb in r1['leaderboards'] if lb['isranked'] == 1]
             r2 = await asyncio.gather(
-                *(get_leaderboard_from_api(lb['id']) for lb in r1['leaderboards'] if lb['isranked'] == 1))
+                *(get_leaderboard_from_api(lb['id']) for lb in ranked_leaderboards))
             if r2:
-                leaderboards = [Leaderboard(j1['id'], j1['name'], j2['rankTotal']) for (j1, j2) in
-                                zip(r1['leaderboards'], r2)]
+                for i, lb in enumerate(ranked_leaderboards):
+                    leaderboards.append(Leaderboard(lb['id'], lb['name'], r2[i]['rankTotal']))
     except RequestError as e:
         print(f"An error occurred while requesting {e.request.url!r}.")
     except HTTPStatusError as e:

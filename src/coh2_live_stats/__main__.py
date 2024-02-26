@@ -114,9 +114,10 @@ def get_players_from_log():
     with open(logfile, encoding='utf-8') as f:
         lines = f.readlines()
     for line in lines:
-        player_line = line.partition('GAME -- Human Player:')[2]
-        if player_line:
-            player_lines.append(player_line.strip())
+        for sep in ['GAME -- Human Player:', 'GAME -- AI Player:']:
+            player_line = line.partition(sep)[2]
+            if player_line:
+                player_lines.append(player_line.strip())
 
     if player_lines:
         latest_match_player_count = int(player_lines[len(player_lines) - 1].split(' ')[0]) + 1
@@ -138,6 +139,9 @@ def progress_stop():
 
 
 async def get_player_from_api(player):
+    if player.relic_id <= 0:
+        return {}
+
     params = {'title': 'coh2', 'profile_ids': f'[{player.relic_id}]'}
     r = await http_client.get(url_player, params=params, timeout=TIMEOUT)
     r.raise_for_status()
@@ -153,6 +157,9 @@ def init_player(player: Player, game_mode: int, json):
 
 
 def set_player_stats_from_json(player: Player, json):
+    if not json:
+        return
+
     for s in json['leaderboardStats']:
         if s['leaderboard_id'] == player.leaderboard_id:
             player.rank = s['rank']
@@ -162,6 +169,7 @@ def set_player_stats_from_json(player: Player, json):
                 for lb in leaderboards:
                     if lb == player.leaderboard_id:
                         player.rank_total = lb.rank_total
+                        break
             player.highest_rank = s['highestrank']
             player.highest_rank_level = s['highestranklevel']
             return
@@ -178,6 +186,9 @@ def get_leaderboard_id(game_mode: int, player):
 
 
 def set_country_from_json(player: Player, json):
+    if not json:
+        return
+
     for g in json['statGroups']:
         for m in g['members']:
             if m['profile_id'] == player.relic_id:
@@ -186,6 +197,9 @@ def set_country_from_json(player: Player, json):
 
 
 def set_teams_from_json(player: Player, json):
+    if not json:
+        return
+
     # TODO we gather all teams but only init those with the correct type
     for g in json['statGroups']:
         t = Team(g['id'])
@@ -246,7 +260,6 @@ def print_players(players):
     if len(players) < 1:
         print('No players found.')
         return
-    # TODO print 1 player with AI
     if len(players) < 2:
         print('Not enough players.')
         return
@@ -259,8 +272,8 @@ def print_players(players):
             row = [player.faction]
 
             rank_estimate = player.estimate_rank(team_data[team].avg_rank)
-            is_high_lvl_player = rank_estimate[1] == team_data[team].max_rank
-            is_low_lvl_player = rank_estimate[1] == team_data[team].min_rank
+            is_high_lvl_player = 0 < rank_estimate[1] == team_data[team].max_rank
+            is_low_lvl_player = 0 < rank_estimate[1] == team_data[team].min_rank
             row.append((rank_estimate[0], rank_estimate[1], is_high_lvl_player, is_low_lvl_player))
             row.append((rank_estimate[0], rank_estimate[2], is_high_lvl_player, is_low_lvl_player))
 
@@ -276,13 +289,13 @@ def print_players(players):
                                           player.pre_made_teams])))
             row.append(','.join(team_ranks))
             row.append(','.join(team_rank_levels))
-            country = country_set[player.country]
-            row.append((country['name'] if country else 'unknown', is_high_lvl_player, is_low_lvl_player))
+            country: dict = country_set[player.country] if player.country else ''
+            row.append((country['name'] if country else '', is_high_lvl_player, is_low_lvl_player))
             row.append((player.name, is_high_lvl_player, is_low_lvl_player))
 
             table.add_row(row, divider=True if tpi == len(team_players) - 1 else False)
 
-        if len(players) > 2:
+        if len([p for p in team_players if p.relic_id > 0]) > 1:
             avg_rank_prefix = '*' if team_data[team].avg_rank < team_data[abs(team - 1)].avg_rank else ''
             avg_rank_level_prefix = '*' if team_data[team].avg_rank_level > team_data[
                 abs(team - 1)].avg_rank_level else ''
@@ -319,7 +332,7 @@ def get_team_data(players):
     data = (TeamData(), TeamData())
 
     for team in range(2):
-        team_players = [p for p in players if p.team == team]
+        team_players = [p for p in players if p.relic_id > 0 and p.team == team]
 
         for p in team_players:
             data[p.team].pre_made_team_ids.extend(
@@ -327,18 +340,20 @@ def get_team_data(players):
             data[p.team].pre_made_team_ids.sort()
 
         ranks = [p.rank for p in team_players if p.rank > 0]
-        data[team].min_rank = max(ranks)
-        data[team].max_rank = min(ranks)
+        if ranks:
+            data[team].min_rank = max(ranks)
+            data[team].max_rank = min(ranks)
+            data[team].avg_rank = avg(ranks)
 
         rank_levels = [p.rank_level for p in team_players if p.rank_level > 0]
-        data[team].min_rank_level = min(rank_levels)
-        data[team].max_rank_level = max(rank_levels)
+        if rank_levels:
+            data[team].min_rank_level = min(rank_levels)
+            data[team].max_rank_level = max(rank_levels)
 
-        data[team].avg_rank = avg(ranks)
         rank_estimates = [p.estimate_rank(data[team].avg_rank) for p in team_players]
-
-        data[team].avg_rank = avg([rank for (_, rank, _) in rank_estimates])
-        data[team].avg_rank_level = avg([level for (_, _, level) in rank_estimates])
+        if rank_estimates:
+            data[team].avg_rank = avg([rank for (_, rank, _) in rank_estimates])
+            data[team].avg_rank_level = avg([level for (_, _, level) in rank_estimates])
 
     return data
 
@@ -389,6 +404,9 @@ def format_min_max(_, v: tuple[any, bool, bool]):
 
 
 def format_rank(precision, _, v: tuple[str, any, bool, bool]):
+    if v[1] <= 0:
+        return ''
+
     v_str = str(v)
     if isinstance(v[1], float):
         v_str = f'{v[0]}{v[1]:.{precision}f}'

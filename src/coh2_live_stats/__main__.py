@@ -35,7 +35,7 @@ from coh2_live_stats.player import Player
 from coh2_live_stats.team import Team
 
 TIMEOUT = 60
-
+EXIT_STATUS = 0
 logfile = Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log')
 url_leaderboards = 'https://coh2-api.reliclink.com/community/leaderboard/getAvailableLeaderboards'
 url_leaderboard = 'https://coh2-api.reliclink.com/community/leaderboard/getleaderboard2'
@@ -58,10 +58,6 @@ async def init_leaderboards():
             if r2:
                 for i, lb in enumerate(ranked_leaderboards):
                     leaderboards.append(Leaderboard(lb['id'], lb['name'], r2[i]['rankTotal']))
-    except RequestError as e:
-        print(f"An error occurred while requesting {e.request.url!r}.")
-    except HTTPStatusError as e:
-        print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
     finally:
         progress_indicator.cancel()
         progress_stop()
@@ -90,10 +86,6 @@ async def get_players():
         r = None
         try:
             r = await asyncio.gather(*(get_player_from_api(p) for p in players))
-        except RequestError as e:
-            print(f"An error occurred while requesting {e.request.url!r}.")
-        except HTTPStatusError as e:
-            print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
         finally:
             progress_indicator.cancel()
             progress_stop()
@@ -479,6 +471,7 @@ def on_players_gathered(future_players):
 
 async def main():
     global http_client
+    global EXIT_STATUS
     http_client = AsyncClient()
     observer = Observer()
 
@@ -495,19 +488,28 @@ async def main():
                 await asyncio.sleep(1)
     except FileNotFoundError as e:
         print(f'No logfile: "{e.filename}"')
+        EXIT_STATUS = 1
+    except RequestError as e:
+        print(f"An error occurred while requesting {e.request.url!r}.")
+        EXIT_STATUS = 1
+    except HTTPStatusError as e:
+        print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
+        EXIT_STATUS = 1
     # In asyncio `Ctrl-C` cancels the main task, which raises a Cancelled Error
     except asyncio.CancelledError:
-        observer.stop()
         raise
     finally:
-        if observer.is_alive():
-            observer.join()
+        if observer:
+            observer.stop()
+            if observer.is_alive():
+                observer.join()
         await http_client.aclose()
 
 
 if __name__ == '__main__':
     try:
         asyncio.run(main())
+        exit(EXIT_STATUS)
     except asyncio.CancelledError:
         pass
     except KeyboardInterrupt:

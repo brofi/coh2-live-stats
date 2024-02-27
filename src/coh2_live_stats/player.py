@@ -48,6 +48,21 @@ class Player:
     # (A,B,C).
     pre_made_teams: list[Team] = field(default_factory=list)
 
+    def is_team_axis(self):
+        return self.faction.id == 0 or self.faction.id == 2
+
+    def is_team_allies(self):
+        return not self.is_team_axis()
+
+    # game mode: 1v1: 0, 2v2: 1, 3v3: 2, 4v4: 3
+    def get_leaderboard_id(self, game_mode: int):
+        if self.faction.id == 4:
+            lid = 51 + game_mode
+        else:
+            # leaderboard_id 0..3 -> AI Games
+            lid = 4 + (game_mode * 4) + self.faction.id
+        return lid
+
     def estimate_rank(self, avg_team_rank_factor=0):
         if (self.rank > 0 and self.rank_level > 0) or self.relic_id <= 0:
             return '', self.rank, self.rank_level

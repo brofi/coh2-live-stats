@@ -11,6 +11,7 @@
 #
 #  You should have received a copy of the GNU General Public License along with Foobar. If not,
 #  see <https://www.gnu.org/licenses/>.
+
 import asyncio
 import concurrent.futures
 import os
@@ -18,7 +19,7 @@ from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
 
-from httpx import AsyncClient, RequestError, HTTPStatusError
+from httpx import RequestError, HTTPStatusError
 from prettytable.colortable import ColorTable, Theme, RESET_CODE
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
@@ -27,77 +28,18 @@ from watchdog.observers import Observer
 # use these absolute imports and run it as a script, but then the package needs to be installed.
 # See: Solution 1/3 in https://stackoverflow.com/a/28154841.
 # Since the creation of a virtual environment this somehow works without the project being installed.
+from coh2_live_stats.coh2api import CoH2API
 from coh2_live_stats.color import Color
 from coh2_live_stats.countries import country_set
 from coh2_live_stats.faction import Faction
-from coh2_live_stats.leaderboard import Leaderboard
 from coh2_live_stats.player import Player
-from coh2_live_stats.team import Team
 
 TIMEOUT = 60
 EXIT_STATUS = 0
 logfile = Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log')
-url_leaderboards = 'https://coh2-api.reliclink.com/community/leaderboard/getAvailableLeaderboards'
-url_leaderboard = 'https://coh2-api.reliclink.com/community/leaderboard/getleaderboard2'
-url_player = 'https://coh2-api.reliclink.com/community/leaderboard/GetPersonalStat'
-http_client: AsyncClient
+api: CoH2API
 current_players = []
 players_changed = False
-leaderboards: [Leaderboard] = []
-
-
-async def init_leaderboards():
-    global leaderboards
-    progress_indicator = asyncio.create_task(progress_start())
-    try:
-        r1 = await get_leaderboards_from_api()
-        if r1:
-            ranked_leaderboards = [lb for lb in r1['leaderboards'] if lb['isranked'] == 1]
-            r2 = await asyncio.gather(
-                *(get_leaderboard_from_api(lb['id']) for lb in ranked_leaderboards))
-            if r2:
-                for i, lb in enumerate(ranked_leaderboards):
-                    leaderboards.append(Leaderboard(lb['id'], lb['name'], r2[i]['rankTotal']))
-    finally:
-        progress_indicator.cancel()
-        progress_stop()
-
-
-async def get_leaderboards_from_api():
-    r = await http_client.get(url_leaderboards, params={'title': 'coh2'}, timeout=TIMEOUT)
-    r.raise_for_status()
-    return r.json()
-
-
-async def get_leaderboard_from_api(leaderboard_id):
-    params = {'title': 'coh2', 'count': 1, 'leaderboard_id': f'{leaderboard_id}'}
-    r = await http_client.get(url_leaderboard, params=params, timeout=TIMEOUT)
-    r.raise_for_status()
-    return r.json()
-
-
-async def get_players():
-    global current_players
-    global players_changed
-    players_changed = False
-    players = get_players_from_log()
-    if players and players != current_players:
-        progress_indicator = asyncio.create_task(progress_start())
-        r = None
-        try:
-            r = await asyncio.gather(*(get_player_from_api(p) for p in players))
-        finally:
-            progress_indicator.cancel()
-            progress_stop()
-
-        if r:
-            game_mode = (len(players) // 2) - 1
-            players = [init_player(p, game_mode, j) for (p, j) in zip(players, r)]
-            derive_pre_made_teams(players)
-
-            current_players = players
-            players_changed = True
-    return current_players
 
 
 def get_players_from_log():
@@ -119,6 +61,32 @@ def get_players_from_log():
     return []
 
 
+async def init_leaderboards():
+    progress_indicator = asyncio.create_task(progress_start())
+    try:
+        await api.init_leaderboards()
+    finally:
+        progress_indicator.cancel()
+        progress_stop()
+
+
+async def get_players():
+    global current_players
+    global players_changed
+    players_changed = False
+    players = get_players_from_log()
+    if players and players != current_players:
+        progress_indicator = asyncio.create_task(progress_start())
+        try:
+            current_players = await api.get_players(players)
+            players_changed = True
+        finally:
+            progress_indicator.cancel()
+            progress_stop()
+
+    return current_players
+
+
 async def progress_start():
     while True:
         for c in '/—\\|':
@@ -128,123 +96,6 @@ async def progress_start():
 
 def progress_stop():
     print('\b \b', end='')
-
-
-async def get_player_from_api(player):
-    if player.relic_id <= 0:
-        return {}
-
-    params = {'title': 'coh2', 'profile_ids': f'[{player.relic_id}]'}
-    r = await http_client.get(url_player, params=params, timeout=TIMEOUT)
-    r.raise_for_status()
-    return r.json()
-
-
-def init_player(player: Player, game_mode: int, json):
-    player.leaderboard_id = get_leaderboard_id(game_mode, player)
-    set_player_stats_from_json(player, json)
-    set_rank_total(player)
-    set_country_from_json(player, json)
-    set_teams_from_json(player, json)
-    return player
-
-
-def set_player_stats_from_json(player: Player, json):
-    if not json:
-        return
-
-    for s in json['leaderboardStats']:
-        if s['leaderboard_id'] == player.leaderboard_id:
-            player.wins = s['wins']
-            player.losses = s['losses']
-            player.drops = s['drops']
-            player.rank = s['rank']
-            player.rank_level = s['ranklevel']
-            player.rank_total = s['ranktotal']
-            player.highest_rank = s['highestrank']
-            player.highest_rank_level = s['highestranklevel']
-            return
-
-
-# game mode: 1v1: 0, 2v2: 1, 3v3: 2, 4v4: 3
-def get_leaderboard_id(game_mode: int, player):
-    if player.faction.id == 4:
-        lid = 51 + game_mode
-    else:
-        # leaderboard_id 0..3 -> AI Games
-        lid = 4 + (game_mode * 4) + player.faction.id
-    return lid
-
-
-def set_rank_total(player: Player):
-    if player.rank_total <= 0:
-        for lb in leaderboards:
-            if lb.id == player.leaderboard_id:
-                player.rank_total = lb.rank_total
-                break
-
-
-def set_country_from_json(player: Player, json):
-    if not json:
-        return
-
-    for g in json['statGroups']:
-        for m in g['members']:
-            if m['profile_id'] == player.relic_id:
-                player.country = m['country']
-                return
-
-
-def set_teams_from_json(player: Player, json):
-    if not json:
-        return
-
-    # TODO we gather all teams but only init those with the correct type
-    for g in json['statGroups']:
-        t = Team(g['id'])
-        for m in g['members']:
-            t.members.append(m['profile_id'])
-        for s in json['leaderboardStats']:
-            if s['statgroup_id'] == t.id and s['leaderboard_id'] == get_team_leaderboard_id(g['type'], player):
-                t.rank = s['rank']
-                t.rank_level = s['ranklevel']
-                t.highest_rank = s['highestrank']
-                t.highest_rank_level = s['highestranklevel']
-        player.teams.append(t)
-
-
-def get_team_leaderboard_id(num_team_members, player):
-    leaderboard_id = -1
-    if num_team_members > 1:
-        leaderboard_id = 20 + (num_team_members - 2) * 2
-        if is_team_allies(player):
-            leaderboard_id += 1
-    return leaderboard_id
-
-
-def derive_pre_made_teams(players):
-    if len(players) < 4:
-        return
-
-    for player in players:
-        pre_made_teams = []
-        max_team_size = -1
-        for team in player.teams:
-            if len(team.members) > 1:
-                isvalid = True
-                for member in team.members:
-                    if member not in [p.relic_id for p in players if p.team == player.team]:
-                        isvalid = False
-                        break
-                if isvalid:
-                    team_size = len(team.members)
-                    if team_size > max_team_size:
-                        max_team_size = team_size
-                    pre_made_teams.append(team)
-        pre_made_teams.sort(key=lambda x: x.id)
-        for team in pre_made_teams:
-            if len(team.members) >= max_team_size:
-                player.pre_made_teams.append(team)
 
 
 def clear():
@@ -435,14 +286,6 @@ def format_faction(_, v):
     return colorize(Color.BRIGHT_BLACK, str(v))
 
 
-def is_team_axis(player):
-    return player.faction.id == 0 or player.faction.id == 2
-
-
-def is_team_allies(player):
-    return not is_team_axis(player)
-
-
 def colorize(c: Color, s):
     return Theme.format_code(str(c.value)) + s + RESET_CODE
 
@@ -470,9 +313,10 @@ def on_players_gathered(future_players):
 
 
 async def main():
-    global http_client
+    global api
     global EXIT_STATUS
-    http_client = AsyncClient()
+
+    api = CoH2API()
     observer = Observer()
 
     try:
@@ -503,7 +347,7 @@ async def main():
             observer.stop()
             if observer.is_alive():
                 observer.join()
-        await http_client.aclose()
+        await api.close()
 
 
 if __name__ == '__main__':

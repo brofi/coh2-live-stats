@@ -17,9 +17,9 @@ from functools import partial
 
 from prettytable.colortable import Theme, ColorTable
 
-from .color import Color
-from .countries import country_set
-from .faction import Faction
+from .data.color import Color
+from .data.countries import country_set
+from .data.faction import Faction
 from .util import avg, clear, colorize
 
 _COL_FACTION = 'Fac'

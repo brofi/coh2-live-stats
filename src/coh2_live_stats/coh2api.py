@@ -16,9 +16,9 @@ import asyncio
 
 from httpx import AsyncClient
 
-from .leaderboard import Leaderboard
-from .player import Player
-from .team import Team
+from .data.leaderboard import Leaderboard
+from .data.player import Player
+from .data.team import Team
 
 
 class CoH2API:

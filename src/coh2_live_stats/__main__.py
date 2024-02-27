@@ -25,8 +25,8 @@ from watchdog.observers import Observer
 # See: Solution 1/3 in https://stackoverflow.com/a/28154841.
 # Since the creation of a virtual environment this somehow works without the project being installed.
 from coh2_live_stats.coh2api import CoH2API
+from coh2_live_stats.data.player import Player
 from coh2_live_stats.output import print_players
-from coh2_live_stats.player import Player
 from coh2_live_stats.util import progress_start, progress_stop
 
 API_TIMEOUT = 30

@@ -7,12 +7,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="Improved error handling">
-      <change afterPath="$PROJECT_DIR$/src/coh2_live_stats/coh2api.py" afterDir="false" />
+    <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="Refactor: Move output to separate module">
+      <change afterPath="$PROJECT_DIR$/src/coh2_live_stats/data/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/__main__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/__main__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/leaderboard.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/leaderboard.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/player.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/coh2api.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/coh2api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/color.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/data/color.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/countries.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/data/countries.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/faction.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/data/faction.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/leaderboard.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/data/leaderboard.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/output.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/output.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/data/player.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/team.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/data/team.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/util.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,30 +56,31 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.__main__.executor&quot;: &quot;Run&quot;,
-    &quot;Python.__main__2.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.coh2_live_stats.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.main.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.pyinstaller_run.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/andy/PycharmProjects/playground&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PythonContentEntriesConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.__main__.executor": "Run",
+    "Python.__main__2.executor": "Debug",
+    "Python.coh2_live_stats.executor": "Debug",
+    "Python.main.executor": "Debug",
+    "Python.pyinstaller_run.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/Users/andy/PycharmProjects/playground",
+    "run.code.analysis.last.selected.profile": "aDefault",
+    "settings.editor.selected.configurable": "Errors"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\andy\PycharmProjects\CoH2LiveStats\src\coh2_live_stats\data" />
       <recent name="C:\Users\andy\PycharmProjects\CoH2LiveStats\src\coh2_live_stats" />
       <recent name="C:\Users\andy\PycharmProjects\CoH2LiveStats\src" />
       <recent name="C:\Users\andy\PycharmProjects\CoH2LiveStats\CoH2LiveStats" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.coh2_live_stats">
+  <component name="RunManager" selected="Python.pyinstaller_run">
     <configuration name="__main__" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="CoH2LiveStats" />
       <option name="ENV_FILES" value="" />
@@ -166,22 +174,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1707876779747</updated>
-    </task>
-    <task id="LOCAL-00002" summary="Print player information from log file">
-      <option name="closed" value="true" />
-      <created>1707887142304</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1707887142304</updated>
-    </task>
-    <task id="LOCAL-00003" summary="Get player ranks from CoH2 API">
-      <option name="closed" value="true" />
-      <created>1707899813756</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1707899813756</updated>
     </task>
     <task id="LOCAL-00004" summary="Format player ranks output">
       <option name="closed" value="true" />
@@ -559,7 +551,23 @@
       <option name="project" value="LOCAL" />
       <updated>1709012904314</updated>
     </task>
-    <option name="localTasksCounter" value="51" />
+    <task id="LOCAL-00051" summary="Refactor: Move API requests to separate module">
+      <option name="closed" value="true" />
+      <created>1709025762442</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1709025762442</updated>
+    </task>
+    <task id="LOCAL-00052" summary="Refactor: Move output to separate module">
+      <option name="closed" value="true" />
+      <created>1709028869990</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1709028869990</updated>
+    </task>
+    <option name="localTasksCounter" value="53" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -615,8 +623,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="PyInstaller config" />
-    <MESSAGE value="Add player country" />
     <MESSAGE value="Shorten country names" />
     <MESSAGE value="Use country python set" />
     <MESSAGE value="Use httpx + asyncio" />
@@ -640,7 +646,9 @@
     <MESSAGE value="Catch file not found" />
     <MESSAGE value="Avoid possible double print" />
     <MESSAGE value="Improved error handling" />
-    <option name="LAST_COMMIT_MESSAGE" value="Improved error handling" />
+    <MESSAGE value="Refactor: Move API requests to separate module" />
+    <MESSAGE value="Refactor: Move output to separate module" />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor: Move output to separate module" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>

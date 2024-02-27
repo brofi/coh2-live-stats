@@ -11,39 +11,3 @@
 #
 #  You should have received a copy of the GNU General Public License along with Foobar. If not,
 #  see <https://www.gnu.org/licenses/>.
-
-import asyncio
-import os
-
-from prettytable.colortable import Theme, RESET_CODE
-
-from .data.color import Color
-
-
-def avg(c):
-    if not c:
-        raise ValueError('Cannot calculate average of empty list.')
-    return sum(c) / len(c)
-
-
-def clear():
-    if os.name == 'nt':
-        _ = os.system('cls')
-        print('\b', end='')
-    else:
-        _ = os.system('clear')
-
-
-def colorize(c: Color, s):
-    return Theme.format_code(str(c.value)) + s + RESET_CODE
-
-
-async def progress_start():
-    while True:
-        for c in '/—\\|':
-            print(f'\b{c}', end='', flush=True)
-            await asyncio.sleep(0.25)
-
-
-def progress_stop():
-    print('\b \b', end='')

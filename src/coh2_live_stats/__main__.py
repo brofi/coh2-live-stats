@@ -467,9 +467,6 @@ class LogFileEventHandler(FileSystemEventHandler):
         # Don't block for future result here, since the Observer thread might need to be stopped
         future_players.add_done_callback(on_players_gathered)
 
-    def on_deleted(self, event: FileSystemEvent) -> None:
-        super().on_deleted(event)
-
 
 def on_players_gathered(future_players):
     if players_changed:
@@ -495,6 +492,8 @@ async def main():
             # Force CoH2 to write out its collected log
             with open(logfile, mode="rb", buffering=0):
                 await asyncio.sleep(1)
+    except FileNotFoundError as e:
+        print(f'No logfile: "{e.filename}"')
     # In asyncio `Ctrl-C` cancels the main task, which raises a Cancelled Error
     except asyncio.CancelledError:
         observer.stop()

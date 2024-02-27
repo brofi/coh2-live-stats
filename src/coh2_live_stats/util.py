@@ -15,6 +15,7 @@
 import asyncio
 import os
 
+import winsound
 from prettytable.colortable import Theme, RESET_CODE
 
 from .data.color import Color
@@ -47,3 +48,12 @@ async def progress_start():
 
 def progress_stop():
     print('\b \b', end='')
+
+
+def play_sound(soundfile: str):
+    try:
+        winsound.PlaySound(None, 0)  # Stop currently playing waveform sound
+        winsound.PlaySound(soundfile, winsound.SND_FILENAME | winsound.SND_NODEFAULT | winsound.SND_ASYNC)
+    except RuntimeError:
+        return False
+    return True

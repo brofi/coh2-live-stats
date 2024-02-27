@@ -27,11 +27,12 @@ from watchdog.observers import Observer
 from coh2_live_stats.coh2api import CoH2API
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.output import print_players
-from coh2_live_stats.util import progress_start, progress_stop
+from coh2_live_stats.util import progress_start, progress_stop, play_sound
 
 API_TIMEOUT = 30
 EXIT_STATUS = 0
 logfile = Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log')
+soundfile = Path().cwd().joinpath('res', 'notify.wav')
 api: CoH2API
 current_players = []
 players_changed = False
@@ -72,6 +73,8 @@ class LogFileEventHandler(FileSystemEventHandler):
 
 def on_players_gathered(future_players):
     if players_changed:
+        if not play_sound(str(soundfile)):
+            print('Match found!')
         try:
             print_players(future_players.result())
         except concurrent.futures.CancelledError:

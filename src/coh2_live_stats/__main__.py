@@ -86,7 +86,6 @@ async def get_players():
     players_changed = False
     players = get_players_from_log()
     if players and players != current_players:
-        clear()
         progress_indicator = asyncio.create_task(progress_start())
         r = None
         try:
@@ -265,6 +264,8 @@ def clear():
 
 
 def print_players(players):
+    clear()
+
     if len(players) < 1:
         print('No players found.')
         return

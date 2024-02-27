@@ -14,6 +14,8 @@
 
 import asyncio
 import concurrent.futures
+from hashlib import file_digest
+from io import BytesIO
 from pathlib import Path
 
 from httpx import RequestError, HTTPStatusError
@@ -60,15 +62,24 @@ def get_players_from_log():
 class LogFileEventHandler(FileSystemEventHandler):
 
     def __init__(self, loop):
+        self.last_hash = None
         self.loop = loop
 
     def on_modified(self, event: FileSystemEvent) -> None:
         if event.is_directory or event.src_path != str(logfile):
             return
 
-        future_players: concurrent.futures.Future = asyncio.run_coroutine_threadsafe(get_players(), self.loop)
-        # Don't block for future result here, since the Observer thread might need to be stopped
-        future_players.add_done_callback(on_players_gathered)
+        f: BytesIO
+        with open(event.src_path, 'rb', buffering=0) as f:
+            h = file_digest(f, 'sha256').hexdigest()
+
+        # Getting multiple modified events on every other file write, so make sure the file contents have really
+        # changed. See: https://github.com/gorakhargosh/watchdog/issues/346
+        if self.last_hash != h:
+            future_players: concurrent.futures.Future = asyncio.run_coroutine_threadsafe(get_players(), self.loop)
+            # Don't block for future result here, since the Observer thread might need to be stopped
+            future_players.add_done_callback(on_players_gathered)
+            self.last_hash = h
 
 
 def on_players_gathered(future_players):

@@ -14,13 +14,9 @@
 
 import asyncio
 import concurrent.futures
-import os
-from dataclasses import dataclass, field
-from functools import partial
 from pathlib import Path
 
 from httpx import RequestError, HTTPStatusError
-from prettytable.colortable import ColorTable, Theme, RESET_CODE
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
@@ -29,12 +25,11 @@ from watchdog.observers import Observer
 # See: Solution 1/3 in https://stackoverflow.com/a/28154841.
 # Since the creation of a virtual environment this somehow works without the project being installed.
 from coh2_live_stats.coh2api import CoH2API
-from coh2_live_stats.color import Color
-from coh2_live_stats.countries import country_set
-from coh2_live_stats.faction import Faction
+from coh2_live_stats.output import print_players
 from coh2_live_stats.player import Player
+from coh2_live_stats.util import progress_start, progress_stop
 
-TIMEOUT = 60
+API_TIMEOUT = 30
 EXIT_STATUS = 0
 logfile = Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log')
 api: CoH2API
@@ -59,6 +54,28 @@ def get_players_from_log():
         player_lines = player_lines[len(player_lines) - latest_match_player_count:]
         return [Player.from_log(player_line) for player_line in player_lines]
     return []
+
+
+class LogFileEventHandler(FileSystemEventHandler):
+
+    def __init__(self, loop):
+        self.loop = loop
+
+    def on_modified(self, event: FileSystemEvent) -> None:
+        if event.is_directory or event.src_path != str(logfile):
+            return
+
+        future_players: concurrent.futures.Future = asyncio.run_coroutine_threadsafe(get_players(), self.loop)
+        # Don't block for future result here, since the Observer thread might need to be stopped
+        future_players.add_done_callback(on_players_gathered)
+
+
+def on_players_gathered(future_players):
+    if players_changed:
+        try:
+            print_players(future_players.result())
+        except concurrent.futures.CancelledError:
+            pass
 
 
 async def init_leaderboards():
@@ -87,236 +104,11 @@ async def get_players():
     return current_players
 
 
-async def progress_start():
-    while True:
-        for c in '/—\\|':
-            print(f'\b{c}', end='', flush=True)
-            await asyncio.sleep(0.25)
-
-
-def progress_stop():
-    print('\b \b', end='')
-
-
-def clear():
-    if os.name == 'nt':
-        _ = os.system('cls')
-        print('\b', end='')
-    else:
-        _ = os.system('clear')
-
-
-def print_players(players):
-    clear()
-
-    if len(players) < 1:
-        print('No players found.')
-        return
-    if len(players) < 2:
-        print('Not enough players.')
-        return
-
-    team_data = get_team_data(players)
-    table = pretty_player_table()
-    for team in range(2):
-        team_players = [p for p in players if p.team == team]
-        for tpi, player in enumerate(team_players):
-            row = [player.faction]
-
-            rank_estimate = player.estimate_rank(team_data[team].avg_rank_factor)
-            is_high_lvl_player = player in team_data[team].high_level_players
-            is_low_lvl_player = player in team_data[team].low_level_players
-            row.append((rank_estimate[0], rank_estimate[1], is_high_lvl_player, is_low_lvl_player))
-            row.append((rank_estimate[0], rank_estimate[2], is_high_lvl_player, is_low_lvl_player))
-
-            num_games = player.wins + player.losses
-            row.append(player.wins / num_games if num_games > 0 else '')
-            row.append(player.drops / num_games if num_games > 0 else '')
-
-            team_ranks = [str(t.rank) for t in player.pre_made_teams]
-            team_rank_levels = [str(t.rank_level) for t in player.pre_made_teams]
-            for ti, t in enumerate(player.pre_made_teams):
-                if t.rank <= 0 < t.highest_rank:
-                    team_ranks[ti] = '+' + str(t.highest_rank)
-                if t.rank_level <= 0 < t.highest_rank_level:
-                    team_rank_levels[ti] = '+' + str(t.highest_rank_level)
-            row.append(','.join(map(str, [chr(team_data[player.team].pre_made_team_ids.index(t.id) + 65) for t in
-                                          player.pre_made_teams])))
-            row.append(','.join(team_ranks))
-            row.append(','.join(team_rank_levels))
-            country: dict = country_set[player.country] if player.country else ''
-            row.append((country['name'] if country else '', is_high_lvl_player, is_low_lvl_player))
-            row.append((player.name, is_high_lvl_player, is_low_lvl_player))
-
-            table.add_row(row, divider=True if tpi == len(team_players) - 1 else False)
-
-        if len([p for p in team_players if p.relic_id > 0]) > 1:
-            avg_rank_prefix = '*' if team_data[team].avg_estimated_rank < team_data[
-                abs(team - 1)].avg_estimated_rank else ''
-            avg_rank_level_prefix = '*' if team_data[team].avg_estimated_rank_level > team_data[
-                abs(team - 1)].avg_estimated_rank_level else ''
-            avg_row = ['Avg', (avg_rank_prefix, team_data[team].avg_estimated_rank, False, False),
-                       (avg_rank_level_prefix, team_data[team].avg_estimated_rank_level, False, False)] + [''] * 5 + [
-                          ('', False, False)] * 2
-            table.add_row(avg_row, divider=True)
-
-    if not team_data[0].pre_made_team_ids and not team_data[1].pre_made_team_ids:
-        for col in (col_team, col_team_rank, col_team_level):
-            table.del_column(col)
-
-    # Unfortunately there is no custom header format and altering field names directly would mess with everything
-    # that needs them (e.g. formatting).
-    table_lines = table.get_string().splitlines(True)
-    for h in table.field_names:
-        header = ' ' * table.padding_width + h + ' ' * table.padding_width
-        table_lines[0] = table_lines[0].replace(header, colorize(Color.BRIGHT_BLACK, header))
-    print(''.join(table_lines))
-
-
-@dataclass
-class TeamData:
-    avg_estimated_rank: float = -1
-    avg_estimated_rank_level: float = -1
-    avg_rank_factor: float = -1
-    high_level_players: list[int] = field(default_factory=list)
-    low_level_players: list[int] = field(default_factory=list)
-    pre_made_team_ids: list[int] = field(default_factory=list)
-
-
-def get_team_data(players):
-    data = (TeamData(), TeamData())
-
-    for team in range(2):
-        team_players = [p for p in players if p.relic_id > 0 and p.team == team]
-
-        for p in team_players:
-            data[p.team].pre_made_team_ids.extend(
-                t.id for t in p.pre_made_teams if t.id not in data[p.team].pre_made_team_ids)
-            data[p.team].pre_made_team_ids.sort()
-
-        ranked_players = [p for p in team_players if p.rank > 0]
-        if ranked_players:
-            rank_factors = [p.rank / p.rank_total for p in ranked_players]
-            data[team].high_level_players = [p for p in ranked_players if p.rank / p.rank_total <= min(rank_factors)]
-            data[team].low_level_players = [p for p in ranked_players if p.rank / p.rank_total >= max(rank_factors)]
-            data[team].avg_rank_factor = avg(rank_factors)
-
-        rank_estimates = [p.estimate_rank(data[team].avg_rank_factor) for p in team_players]
-        if rank_estimates:
-            data[team].avg_estimated_rank = avg([rank for (_, rank, _) in rank_estimates])
-            data[team].avg_estimated_rank_level = avg([level for (_, _, level) in rank_estimates])
-
-    return data
-
-
-def avg(c):
-    if not c:
-        raise ValueError('Cannot calculate average of empty list.')
-    return sum(c) / len(c)
-
-
-col_faction = 'Fac'
-col_rank = 'Rank'
-col_level = 'Lvl'
-col_win_ratio = 'W%'
-col_drop_ratio = 'D%'
-col_team = 'Team'
-col_team_rank = 'T_Rank'
-col_team_level = 'T_Lvl'
-col_country = 'Country'
-col_name = 'Name'
-
-
-def pretty_player_table():
-    darker_borders = Theme(vertical_color="90", horizontal_color="90", junction_color="90")
-    table = ColorTable(theme=darker_borders)
-    table.border = False
-    table.preserve_internal_border = True
-    table.field_names = [col_faction, col_rank, col_level, col_win_ratio, col_drop_ratio, col_team, col_team_rank,
-                         col_team_level, col_country, col_name]
-    table.custom_format[col_faction] = format_faction
-    table.custom_format[col_rank] = partial(format_rank, 2)
-    table.custom_format[col_level] = partial(format_rank, 1)
-    table.custom_format[col_win_ratio] = format_ratio
-    table.custom_format[col_drop_ratio] = format_ratio
-    table.custom_format[col_country] = format_min_max
-    table.custom_format[col_name] = format_min_max
-    align = ['l', 'r', 'r', 'r', 'r', 'c', 'r', 'r', 'l', 'l']
-    assert len(align) == len(table.field_names)
-    for ai, a in enumerate(align):
-        table.align[table.field_names[ai]] = a
-    return table
-
-
-def format_ratio(f, v):
-    v_str = ''
-    if isinstance(v, float):
-        v_str = f'{v:.0%}'
-        if f == col_drop_ratio and v >= 0.1:
-            v_str = colorize(Color.RED, v_str)
-        elif f == col_win_ratio:
-            v_str = format_min_max(f, (v_str, v >= 0.6, v < 0.5))
-    return v_str
-
-
-def format_min_max(_, v: tuple[any, bool, bool]):
-    v_str = str(v[0])
-    if v[1]:
-        v_str = colorize(Color.BRIGHT_WHITE, v_str)
-    if v[2]:
-        v_str = colorize(Color.BRIGHT_BLACK, v_str)
-    return v_str
-
-
-def format_rank(precision, _, v: tuple[str, any, bool, bool]):
-    if v[1] <= 0:
-        return ''
-
-    v_str = str(v)
-    if isinstance(v[1], float):
-        v_str = f'{v[0]}{v[1]:.{precision}f}'
-    elif isinstance(v[1], int):
-        v_str = f'{v[0]}{v[1]}'
-    return format_min_max(_, (v_str, v[2], v[3]))
-
-
-def format_faction(_, v):
-    if isinstance(v, Faction):
-        return colorize(v.color, v.short)
-    return colorize(Color.BRIGHT_BLACK, str(v))
-
-
-def colorize(c: Color, s):
-    return Theme.format_code(str(c.value)) + s + RESET_CODE
-
-
-class LogFileEventHandler(FileSystemEventHandler):
-
-    def __init__(self, loop):
-        self.loop = loop
-
-    def on_modified(self, event: FileSystemEvent) -> None:
-        if event.is_directory or event.src_path != str(logfile):
-            return
-
-        future_players: concurrent.futures.Future = asyncio.run_coroutine_threadsafe(get_players(), self.loop)
-        # Don't block for future result here, since the Observer thread might need to be stopped
-        future_players.add_done_callback(on_players_gathered)
-
-
-def on_players_gathered(future_players):
-    if players_changed:
-        try:
-            print_players(future_players.result())
-        except concurrent.futures.CancelledError:
-            pass
-
-
 async def main():
     global api
     global EXIT_STATUS
 
-    api = CoH2API()
+    api = CoH2API(API_TIMEOUT)
     observer = Observer()
 
     try:

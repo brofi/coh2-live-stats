@@ -96,7 +96,6 @@ class CoH2API:
             for m in g['members']:
                 t.members.append(m['profile_id'])
             for s in json['leaderboardStats']:
-
                 if s['statgroup_id'] == t.id and s['leaderboard_id'] == self._get_team_leaderboard_id(g['type'],
                                                                                                       player):
                     t.rank = s['rank']

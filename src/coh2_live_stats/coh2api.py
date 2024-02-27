@@ -85,33 +85,22 @@ class CoH2API:
                     player.country = m['country']
                     return
 
-    def _set_teams_from_json(self, player: Player, json):
+    @staticmethod
+    def _set_teams_from_json(player: Player, json):
         if not json:
             return
 
-        # TODO we gather all teams but only init those with the correct type.
-        #  Maybe get both allied/axis rank, or only get teams for faction
         for g in json['statGroups']:
             t = Team(g['id'])
             for m in g['members']:
                 t.members.append(m['profile_id'])
             for s in json['leaderboardStats']:
-                if s['statgroup_id'] == t.id and s['leaderboard_id'] == self._get_team_leaderboard_id(g['type'],
-                                                                                                      player):
+                if s['statgroup_id'] == t.id and s['leaderboard_id'] == player.get_team_leaderboard_id(g['type']):
                     t.rank = s['rank']
                     t.rank_level = s['ranklevel']
                     t.highest_rank = s['highestrank']
                     t.highest_rank_level = s['highestranklevel']
             player.teams.append(t)
-
-    @staticmethod
-    def _get_team_leaderboard_id(num_team_members, player):
-        leaderboard_id = -1
-        if num_team_members > 1:
-            leaderboard_id = 20 + (num_team_members - 2) * 2
-            if player.is_team_allies():
-                leaderboard_id += 1
-        return leaderboard_id
 
     @staticmethod
     def _derive_pre_made_teams(players):

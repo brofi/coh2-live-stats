@@ -63,6 +63,14 @@ class Player:
             lid = 4 + (game_mode * 4) + self.faction.id
         return lid
 
+    def get_team_leaderboard_id(self, num_team_members: int):
+        leaderboard_id = -1
+        if num_team_members > 1:
+            leaderboard_id = 20 + (num_team_members - 2) * 2
+            if self.is_team_allies():
+                leaderboard_id += 1
+        return leaderboard_id
+
     def estimate_rank(self, avg_team_rank_factor=0):
         if (self.rank > 0 and self.rank_level > 0) or self.relic_id <= 0:
             return '', self.rank, self.rank_level

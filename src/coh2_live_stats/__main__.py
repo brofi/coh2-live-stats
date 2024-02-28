@@ -158,7 +158,7 @@ async def main():
         await api.close()
 
 
-if __name__ == '__main__':
+def run():
     try:
         asyncio.run(main())
         exit(EXIT_STATUS)
@@ -166,3 +166,7 @@ if __name__ == '__main__':
         pass
     except KeyboardInterrupt:
         pass
+
+
+if __name__ == '__main__':
+    run()

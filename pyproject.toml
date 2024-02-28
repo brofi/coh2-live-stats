@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "coh2_live_stats"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
     "httpx",
     "prettytable",
@@ -28,4 +28,4 @@ classifiers = [
     "Topic :: Games/Entertainment :: Real Time Strategy"
 ]
 [project.scripts]
-coh2livestats = "coh2_live_stats.__main__:main"
+coh2livestats = "coh2_live_stats.__main__:run"

@@ -34,7 +34,7 @@ from coh2_live_stats.util import progress_start, progress_stop, play_sound
 
 API_TIMEOUT = 30
 EXIT_STATUS = 0
-res = Path(__file__).parents[2].joinpath('res')
+res = Path(__file__).with_name('res')
 logfile = Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log')
 soundfile = res.joinpath('notify.wav')
 api: CoH2API

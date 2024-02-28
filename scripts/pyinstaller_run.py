@@ -30,6 +30,8 @@ contents_dir_name = 'lib'
 content_root = Path(__file__).parents[1]
 dist_path = content_root.joinpath('dist')
 build_path = content_root.joinpath('build')
+module_path = content_root.joinpath('src', 'coh2_live_stats')
+res_path = module_path.joinpath('res')
 version_file = build_path.joinpath('file_version_info.txt')
 
 # see: https://learn.microsoft.com/en-us/windows/win32/menurc/vs-versioninfo
@@ -62,6 +64,11 @@ version_info = VSVersionInfo(
     ]
 )
 
+try:
+    os.mkdir(build_path)
+except FileExistsError:
+    pass
+
 with open(version_file, 'w') as f:
     f.write(str(version_info))
 
@@ -72,10 +79,11 @@ PyInstaller.__main__.run([
     '--specpath', str(content_root),
     '--name', app_name,
     '--contents-directory', contents_dir_name,
-    '--add-data', '{}:.'.format(license_file_name),
-    '--icon', str(content_root.joinpath('res', 'coh2_live_stats.ico')),
+    '--add-data', f'{license_file_name}:.',
+    '--add-data', f'{res_path.joinpath('notify.wav')}:./res',
+    '--icon', str(res_path.joinpath('coh2_live_stats.ico')),
     '--version-file', str(version_file),
-    str(content_root.joinpath('src', 'coh2_live_stats', '__main__.py'))
+    str(module_path.joinpath('__main__.py'))
 ])
 
 # Move license next to executable

@@ -11,27 +11,70 @@
 #
 #  You should have received a copy of the GNU General Public License along with Foobar. If not,
 #  see <https://www.gnu.org/licenses/>.
+
 import os
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 import PyInstaller.__main__
+# noinspection PyUnresolvedReferences
+from PyInstaller.utils.win32.versioninfo import StringFileInfo, StringTable, StringStruct, VarFileInfo, VarStruct
+from PyInstaller.utils.win32.versioninfo import VSVersionInfo, FixedFileInfo
+
+from coh2_live_stats.version import __version__, __version_info__
 
 license_file_name = 'COPYING'
 app_name = 'CoH2LiveStats'
+exec_name = f'{app_name}.exe'
 contents_dir_name = 'lib'
-content_root = Path().cwd().parent
+content_root = Path(__file__).parents[1]
 dist_path = content_root.joinpath('dist')
+build_path = content_root.joinpath('build')
+version_file = build_path.joinpath('file_version_info.txt')
+
+# see: https://learn.microsoft.com/en-us/windows/win32/menurc/vs-versioninfo
+version_info = VSVersionInfo(
+    # see: https://learn.microsoft.com/en-us/windows/win32/api/VerRsrc/ns-verrsrc-vs_fixedfileinfo
+    ffi=FixedFileInfo(
+        filevers=__version_info__ + (0,),
+        prodvers=__version_info__ + (0,),
+        date=(0, 0)
+    ),
+    kids=[
+        # see: https://learn.microsoft.com/en-us/windows/win32/menurc/stringfileinfo
+        StringFileInfo(
+            [
+                # see (szKey, Children): https://learn.microsoft.com/en-us/windows/win32/menurc/stringtable
+                StringTable(
+                    '040904b0',  # Change with Translation (1200_10 = 04b0_16)
+                    # see (szKey, Value): https://learn.microsoft.com/en-us/windows/win32/menurc/string-str
+                    [StringStruct('CompanyName', ''),
+                     StringStruct('FileDescription', app_name),
+                     StringStruct('FileVersion', __version__),
+                     StringStruct('InternalName', exec_name),
+                     StringStruct('LegalCopyright', 'Copyright (C) 2024 Andreas Becker.'),
+                     StringStruct('OriginalFilename', exec_name),
+                     StringStruct('ProductName', app_name),
+                     StringStruct('ProductVersion', __version__)])
+            ]),
+        # see: https://learn.microsoft.com/en-us/windows/win32/menurc/varfileinfo-block
+        VarFileInfo([VarStruct('Translation', [0x0409, 1200])])
+    ]
+)
+
+with open(version_file, 'w') as f:
+    f.write(str(version_info))
 
 PyInstaller.__main__.run([
     '--distpath', str(dist_path),
-    '--workpath', str(content_root.joinpath('build')),
+    '--workpath', str(build_path),
     '--noconfirm',
     '--specpath', str(content_root),
     '--name', app_name,
     '--contents-directory', contents_dir_name,
     '--add-data', '{}:.'.format(license_file_name),
     '--icon', str(content_root.joinpath('res', 'coh2_live_stats.ico')),
+    '--version-file', str(version_file),
     str(content_root.joinpath('src', 'coh2_live_stats', '__main__.py'))
 ])
 

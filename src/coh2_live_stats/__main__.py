@@ -30,14 +30,15 @@ from watchdog.observers import Observer
 from coh2_live_stats.coh2api import CoH2API
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.output import print_players
+from coh2_live_stats.settings import Settings
 from coh2_live_stats.util import progress_start, progress_stop, play_sound
 
 API_TIMEOUT = 30
 EXIT_STATUS = 0
 res = Path(__file__).with_name('res')
-logfile = Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log')
 soundfile = res.joinpath('notify.wav')
 api: CoH2API
+settings: Settings
 current_players = []
 players_changed = False
 
@@ -45,7 +46,7 @@ players_changed = False
 def get_players_from_log():
     player_lines = []
     # Get human player lines from log
-    with open(logfile, encoding='utf-8') as f:
+    with open(settings.get_logfile_path(), encoding='utf-8') as f:
         lines = f.readlines()
     for line in lines:
         for sep in ['GAME -- Human Player:', 'GAME -- AI Player:']:
@@ -68,7 +69,7 @@ class LogFileEventHandler(FileSystemEventHandler):
         self.loop = loop
 
     def on_modified(self, event: FileSystemEvent) -> None:
-        if event.is_directory or event.src_path != str(logfile):
+        if event.is_directory or event.src_path != str(settings.get_logfile_path()):
             return
 
         f: BytesIO
@@ -122,9 +123,11 @@ async def get_players():
 
 async def main():
     global api
+    global settings
     global EXIT_STATUS
 
     api = CoH2API(API_TIMEOUT)
+    settings = Settings()
     observer = Observer()
 
     try:
@@ -132,11 +135,11 @@ async def main():
         await init_leaderboards()
         print_players(await get_players())
         # Watch log files
-        observer.schedule(LogFileEventHandler(asyncio.get_running_loop()), str(logfile.parent))
+        observer.schedule(LogFileEventHandler(asyncio.get_running_loop()), str(settings.get_logfile_path().parent))
         observer.start()
         while True:
             # Force CoH2 to write out its collected log
-            with open(logfile, mode="rb", buffering=0):
+            with open(settings.get_logfile_path(), mode="rb", buffering=0):
                 await asyncio.sleep(1)
     except FileNotFoundError as e:
         print(f'No logfile: "{e.filename}"')

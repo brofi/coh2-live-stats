@@ -1,0 +1,15 @@
+# Configuration file for CoH2LiveStats.
+#
+# Valid configuration file paths in order of detection:
+#   * %USERPROFILE%\CONFIG
+#   * PARENT_FOLDER_OF_EXECUTABLE\CONFIG
+# with CONFIG in:
+#   * _coh2livestats.toml
+#   * .coh2livestats.toml
+#   * coh2livestats.toml
+#   * _coh2_live_stats.toml
+#   * .coh2_live_stats.toml
+#   * coh2_live_stats.toml
+
+# Path to observed Company of Heroes 2 log file. Supports OS environment variables.
+# logfile = '%USERPROFILE%\Documents\My Games\Company of Heroes 2\warnings.log'

@@ -23,8 +23,9 @@ from PyInstaller.utils.win32.versioninfo import VSVersionInfo, FixedFileInfo
 
 from coh2_live_stats.version import __version__, __version_info__
 
-license_file_name = 'COPYING'
 app_name = 'CoH2LiveStats'
+config_file_name = '_coh2livestats.toml'
+license_file_name = 'COPYING'
 exec_name = f'{app_name}.exe'
 contents_dir_name = 'lib'
 content_root = Path(__file__).parents[1]
@@ -80,15 +81,17 @@ PyInstaller.__main__.run([
     '--name', app_name,
     '--contents-directory', contents_dir_name,
     '--add-data', f'{license_file_name}:.',
+    '--add-data', f'{module_path.joinpath(config_file_name)}:.',
     '--add-data', f'{res_path.joinpath('notify.wav')}:./res',
     '--icon', str(res_path.joinpath('coh2_live_stats.ico')),
     '--version-file', str(version_file),
     str(module_path.joinpath('__main__.py'))
 ])
 
-# Move license next to executable
+# Move license and config next to executable
 app_path = dist_path.joinpath(app_name)
 os.replace(app_path.joinpath(contents_dir_name, license_file_name), app_path.joinpath(license_file_name + '.txt'))
+os.replace(app_path.joinpath(contents_dir_name, config_file_name), app_path.joinpath(config_file_name))
 
 # Create distribution archive
 res = shutil.make_archive(str(app_path), 'zip', dist_path, app_name)

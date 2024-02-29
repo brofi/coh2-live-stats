@@ -35,8 +35,10 @@ class Settings:
                 with open(c, 'rb') as f:
                     config = load(f)
                     break
-            except TOMLDecodeError:
-                print(f'Invalid TOML file: {c}')
+            except TOMLDecodeError as e:
+                print('Error: Invalid TOML')
+                print(f'\tFile: {c}')
+                print(f'\tCause: {e.args[0]}')
             except FileNotFoundError:
                 pass
         return self._set_defaults(config)

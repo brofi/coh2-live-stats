@@ -10,6 +10,43 @@
 #   * _coh2_live_stats.toml
 #   * .coh2_live_stats.toml
 #   * coh2_live_stats.toml
+#
+# Valid colors:
+#   * black, red, green, yellow, blue, magenta, cyan, white
+#   * bright_black, bright_red, bright_green, bright_yellow, bright_blue, bright_magenta, bright_cyan, bright_white
 
 # Path to observed Company of Heroes 2 log file. Supports OS environment variables.
 # logfile = '%USERPROFILE%\Documents\My Games\Company of Heroes 2\warnings.log'
+
+# Output table options.
+#[table]
+# Wether to use color at all.
+#color = true
+# Draw a border around the output table. Can cause issues with CJK characters.
+#border = false
+
+# Output table color options.
+#[table.colors]
+#border = 'bright_black'
+#label = 'bright_black'
+
+# Player-specific color options.
+#[table.colors.player]
+#high_drop_rate = 'red'
+# Color for highest ranked player and high winrate.
+#high = 'bright_white'
+# Color for lowest ranked player and low winrate.
+#low = 'bright_black'
+
+# Faction colors.
+#[table.colors.faction]
+# Wehrmacht
+#wm = 'red'
+# Soviet Union
+#su = 'red'
+# Oberkommando West
+#okw = 'cyan'
+# US Forces
+#us = 'blue'
+# British Forces
+#uk = 'yellow'

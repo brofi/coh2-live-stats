@@ -17,10 +17,13 @@ from os.path import expandvars
 from pathlib import Path
 from tomllib import load, TOMLDecodeError
 
+from .data.color import Color
+
 
 class Settings:
     def __init__(self):
         self._config = self._get_config()
+        self._validate()
 
     def _get_config(self):
         config = {}
@@ -33,13 +36,16 @@ class Settings:
                     config = load(f)
                     break
             except TOMLDecodeError:
-                print(f'Failed to parse configuration file: {c}')
+                print(f'Invalid TOML file: {c}')
             except FileNotFoundError:
                 pass
         return self._set_defaults(config)
 
     def get_logfile_path(self):
         return Path(expandvars(self.get('logfile')))
+
+    def get_as_color(self, key: str):
+        return Color[self.get(key).upper()]
 
     def get(self, key: str):
         val = self._config
@@ -49,8 +55,56 @@ class Settings:
             val = val.get(k)
         return val
 
+    def _validate(self):
+        try:
+            self._validate_file('logfile')
+            self._validate_bool('table.color')
+            self._validate_bool('table.border')
+            self._validate_color('table.colors.border')
+            self._validate_color('table.colors.label')
+            self._validate_color('table.colors.player.high_drop_rate')
+            self._validate_color('table.colors.player.high')
+            self._validate_color('table.colors.player.low')
+        except TOMLDecodeError as e:
+            print(f'Failed to validate config values:')
+            raise e
+
+    def _validate_file(self, key):
+        value = self.get(key)
+        if not Path(expandvars(str(value))).is_file():
+            raise TOMLDecodeError(f'Not a file for key {key!r} with value: {value!r}')
+
+    def _validate_bool(self, key):
+        value = self.get(key)
+        if not type(value) is bool:
+            raise TOMLDecodeError(f'Not a boolean for key {key!r} with value: {value!r}')
+
+    def _validate_color(self, key):
+        value = self.get(key)
+        try:
+            Color[str(value).upper()]
+        except KeyError:
+            raise TOMLDecodeError(f'Not a color for key {key!r} with value: {value!r}')
+
     @staticmethod
     def _set_defaults(config):
         logfile = str(Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log'))
         config.setdefault('logfile', logfile)
+
+        sec = config.setdefault('table', {})
+        sec.setdefault('color', True)
+        sec.setdefault('border', False)
+        sec_color = sec.setdefault('colors', {})
+        sec_color.setdefault('border', Color.BRIGHT_BLACK.name)
+        sec_color.setdefault('label', Color.BRIGHT_BLACK.name)
+        sec = sec_color.setdefault('player', {})
+        sec.setdefault('high_drop_rate', Color.RED.name)
+        sec.setdefault('high', Color.BRIGHT_WHITE.name)
+        sec.setdefault('low', Color.BRIGHT_BLACK.name)
+        sec = sec_color.setdefault('faction', {})
+        sec.setdefault('wm', Color.RED.name)
+        sec.setdefault('su', Color.RED.name)
+        sec.setdefault('okw', Color.CYAN.name)
+        sec.setdefault('us', Color.BLUE.name)
+        sec.setdefault('uk', Color.YELLOW.name)
         return config

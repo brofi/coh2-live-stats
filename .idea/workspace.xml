@@ -7,19 +7,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="Refactor: Move output to separate module">
-      <change afterPath="$PROJECT_DIR$/src/coh2_live_stats/data/__init__.py" afterDir="false" />
+    <list default="true" id="a085b12a-db50-43c5-88a3-86662f1b3896" name="Changes" comment="Configurable logfile">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/__main__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/__main__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/coh2api.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/coh2api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/color.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/data/color.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/countries.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/data/countries.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/faction.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/data/faction.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/leaderboard.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/data/leaderboard.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/_coh2livestats.toml" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/_coh2livestats.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/data/faction.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/data/faction.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/output.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/output.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/data/player.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/team.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/data/team.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/util.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/coh2_live_stats/version.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/coh2_live_stats/version.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,24 +59,29 @@
     "Python.coh2_live_stats.executor": "Debug",
     "Python.main.executor": "Debug",
     "Python.pyinstaller_run.executor": "Run",
+    "Python.sound.executor": "Debug",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/andy/PycharmProjects/playground",
+    "last_opened_file_path": "C:/Users/andy/PycharmProjects/CoH2LiveStats",
     "run.code.analysis.last.selected.profile": "aDefault",
     "settings.editor.selected.configurable": "Errors"
   }
 }]]></component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\andy\PycharmProjects\CoH2LiveStats" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\andy\PycharmProjects\CoH2LiveStats\src\coh2_live_stats\data" />
       <recent name="C:\Users\andy\PycharmProjects\CoH2LiveStats\src\coh2_live_stats" />
+      <recent name="C:\Users\andy\PycharmProjects\CoH2LiveStats" />
+      <recent name="C:\Users\andy\PycharmProjects\CoH2LiveStats\src\coh2_live_stats\data" />
       <recent name="C:\Users\andy\PycharmProjects\CoH2LiveStats\src" />
       <recent name="C:\Users\andy\PycharmProjects\CoH2LiveStats\CoH2LiveStats" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.pyinstaller_run">
+  <component name="RunManager" selected="Python.coh2_live_stats">
     <configuration name="__main__" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="CoH2LiveStats" />
       <option name="ENV_FILES" value="" />
@@ -148,14 +149,38 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="sound" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="CoH2LiveStats" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/coh2_live_stats" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/coh2_live_stats/sound.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <list>
       <item itemvalue="Python.__main__" />
       <item itemvalue="Python.coh2_live_stats" />
+      <item itemvalue="Python.sound" />
       <item itemvalue="Python.pyinstaller_run" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.pyinstaller_run" />
+        <item itemvalue="Python.sound" />
       </list>
     </recent_temporary>
   </component>
@@ -174,110 +199,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1707876779747</updated>
-    </task>
-    <task id="LOCAL-00004" summary="Format player ranks output">
-      <option name="closed" value="true" />
-      <created>1707906632145</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1707906632145</updated>
-    </task>
-    <task id="LOCAL-00005" summary="Show faction shorthand">
-      <option name="closed" value="true" />
-      <created>1707909350357</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1707909350357</updated>
-    </task>
-    <task id="LOCAL-00006" summary="Fall back to the highest rank if not ranked anymore">
-      <option name="closed" value="true" />
-      <created>1707911709876</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1707911709876</updated>
-    </task>
-    <task id="LOCAL-00007" summary="Show (best) average ranks">
-      <option name="closed" value="true" />
-      <created>1707917709531</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1707917709531</updated>
-    </task>
-    <task id="LOCAL-00008" summary="Show (best) average ranks">
-      <option name="closed" value="true" />
-      <created>1707917988384</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1707917988384</updated>
-    </task>
-    <task id="LOCAL-00009" summary="Detect pre-made teams">
-      <option name="closed" value="true" />
-      <created>1707969373336</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1707969373336</updated>
-    </task>
-    <task id="LOCAL-00010" summary="Change fallback values">
-      <option name="closed" value="true" />
-      <created>1707970542593</created>
-      <option name="number" value="00010" />
-      <option name="presentableId" value="LOCAL-00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1707970542593</updated>
-    </task>
-    <task id="LOCAL-00011" summary="Use watchdog to watch for log file changes">
-      <option name="closed" value="true" />
-      <created>1708030915404</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1708030915404</updated>
-    </task>
-    <task id="LOCAL-00012" summary="Use watchdog to watch for log file changes">
-      <option name="closed" value="true" />
-      <created>1708035940045</created>
-      <option name="number" value="00012" />
-      <option name="presentableId" value="LOCAL-00012" />
-      <option name="project" value="LOCAL" />
-      <updated>1708035940045</updated>
-    </task>
-    <task id="LOCAL-00013" summary="Multiple possible pre-made teams">
-      <option name="closed" value="true" />
-      <created>1708038868214</created>
-      <option name="number" value="00013" />
-      <option name="presentableId" value="LOCAL-00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1708038868214</updated>
-    </task>
-    <task id="LOCAL-00014" summary="Use tabulate to print players">
-      <option name="closed" value="true" />
-      <created>1708046631536</created>
-      <option name="number" value="00014" />
-      <option name="presentableId" value="LOCAL-00014" />
-      <option name="project" value="LOCAL" />
-      <updated>1708046631536</updated>
-    </task>
-    <task id="LOCAL-00015" summary="Print team ranks">
-      <option name="closed" value="true" />
-      <created>1708069882811</created>
-      <option name="number" value="00015" />
-      <option name="presentableId" value="LOCAL-00015" />
-      <option name="project" value="LOCAL" />
-      <updated>1708069882811</updated>
-    </task>
-    <task id="LOCAL-00016" summary="Fall back to the highest rank for teams">
-      <option name="closed" value="true" />
-      <created>1708072559479</created>
-      <option name="number" value="00016" />
-      <option name="presentableId" value="LOCAL-00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1708072559479</updated>
     </task>
     <task id="LOCAL-00017" summary="Avoid querying player data if no new players are found">
       <option name="closed" value="true" />
@@ -567,7 +488,111 @@
       <option name="project" value="LOCAL" />
       <updated>1709028869990</updated>
     </task>
-    <option name="localTasksCounter" value="53" />
+    <task id="LOCAL-00053" summary="Refactor: Move model to data submodule">
+      <option name="closed" value="true" />
+      <created>1709029572734</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1709029572734</updated>
+    </task>
+    <task id="LOCAL-00054" summary="Play sound if match is found (players have changed)">
+      <option name="closed" value="true" />
+      <created>1709065314432</created>
+      <option name="number" value="00054" />
+      <option name="presentableId" value="LOCAL-00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1709065314433</updated>
+    </task>
+    <task id="LOCAL-00055" summary="Add sound">
+      <option name="closed" value="true" />
+      <created>1709069473723</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1709069473723</updated>
+    </task>
+    <task id="LOCAL-00056" summary="Fix: multiple modified events">
+      <option name="closed" value="true" />
+      <created>1709069550661</created>
+      <option name="number" value="00056" />
+      <option name="presentableId" value="LOCAL-00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1709069550661</updated>
+    </task>
+    <task id="LOCAL-00057" summary="Refactor">
+      <option name="closed" value="true" />
+      <created>1709074971697</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1709074971697</updated>
+    </task>
+    <task id="LOCAL-00058" summary="Fix: exit not defined in built executable">
+      <option name="closed" value="true" />
+      <created>1709077300142</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1709077300142</updated>
+    </task>
+    <task id="LOCAL-00059" summary="Fix soundfile path">
+      <option name="closed" value="true" />
+      <created>1709078690199</created>
+      <option name="number" value="00059" />
+      <option name="presentableId" value="LOCAL-00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1709078690199</updated>
+    </task>
+    <task id="LOCAL-00060" summary="Version and Windows version info">
+      <option name="closed" value="true" />
+      <created>1709097639365</created>
+      <option name="number" value="00060" />
+      <option name="presentableId" value="LOCAL-00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1709097639365</updated>
+    </task>
+    <task id="LOCAL-00061" summary="Fix paths for pyinstaller build">
+      <option name="closed" value="true" />
+      <created>1709103289167</created>
+      <option name="number" value="00061" />
+      <option name="presentableId" value="LOCAL-00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1709103289167</updated>
+    </task>
+    <task id="LOCAL-00062" summary="Fix paths for pyinstaller build">
+      <option name="closed" value="true" />
+      <created>1709103624003</created>
+      <option name="number" value="00062" />
+      <option name="presentableId" value="LOCAL-00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1709103624003</updated>
+    </task>
+    <task id="LOCAL-00063" summary="Fix entry point for setuptools">
+      <option name="closed" value="true" />
+      <created>1709105000422</created>
+      <option name="number" value="00063" />
+      <option name="presentableId" value="LOCAL-00063" />
+      <option name="project" value="LOCAL" />
+      <updated>1709105000422</updated>
+    </task>
+    <task id="LOCAL-00064" summary="Include sound file in setuptools build">
+      <option name="closed" value="true" />
+      <created>1709106002808</created>
+      <option name="number" value="00064" />
+      <option name="presentableId" value="LOCAL-00064" />
+      <option name="project" value="LOCAL" />
+      <updated>1709106002808</updated>
+    </task>
+    <task id="LOCAL-00065" summary="Configurable logfile">
+      <option name="closed" value="true" />
+      <created>1709168064771</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1709168064772</updated>
+    </task>
+    <option name="localTasksCounter" value="66" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -623,18 +648,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Shorten country names" />
-    <MESSAGE value="Use country python set" />
-    <MESSAGE value="Use httpx + asyncio" />
-    <MESSAGE value="Remove unused parameter" />
-    <MESSAGE value="Submit coroutine call in Observer Thread to the main event loop" />
-    <MESSAGE value="Improve performance by reusing the HTTP client's underlying TCP connection" />
-    <MESSAGE value="Exit gracefully" />
-    <MESSAGE value="Fix: Loading char not deleted" />
-    <MESSAGE value="Do fake file operation unbuffered" />
-    <MESSAGE value="Individual faction color" />
-    <MESSAGE value="Rank estimates and min/max rank" />
-    <MESSAGE value="Hold leaderboard state" />
     <MESSAGE value="Support AI games" />
     <MESSAGE value="Color enum" />
     <MESSAGE value="Fix: wrong leaderboards collected" />
@@ -648,14 +661,18 @@
     <MESSAGE value="Improved error handling" />
     <MESSAGE value="Refactor: Move API requests to separate module" />
     <MESSAGE value="Refactor: Move output to separate module" />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor: Move output to separate module" />
-  </component>
-  <component name="XDebuggerManager">
-    <watches-manager>
-      <configuration name="PythonConfigurationType">
-        <watch expression="player.leaderboard_id" />
-        <watch expression="leaderboards" />
-      </configuration>
-    </watches-manager>
+    <MESSAGE value="Refactor: Move model to data submodule" />
+    <MESSAGE value="Play sound if match is found (players have changed)" />
+    <MESSAGE value="Add sound" />
+    <MESSAGE value="Fix: multiple modified events" />
+    <MESSAGE value="Refactor" />
+    <MESSAGE value="Fix: exit not defined in built executable" />
+    <MESSAGE value="Fix soundfile path" />
+    <MESSAGE value="Version and Windows version info" />
+    <MESSAGE value="Fix paths for pyinstaller build" />
+    <MESSAGE value="Fix entry point for setuptools" />
+    <MESSAGE value="Include sound file in setuptools build" />
+    <MESSAGE value="Configurable logfile" />
+    <option name="LAST_COMMIT_MESSAGE" value="Configurable logfile" />
   </component>
 </project>

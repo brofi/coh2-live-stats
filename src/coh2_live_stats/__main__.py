@@ -18,6 +18,7 @@ from hashlib import file_digest
 from io import BytesIO
 from pathlib import Path
 from sys import exit
+from tomllib import TOMLDecodeError
 
 from httpx import RequestError, HTTPStatusError
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
@@ -29,7 +30,7 @@ from watchdog.observers import Observer
 # Since the creation of a virtual environment this somehow works without the project being installed.
 from coh2_live_stats.coh2api import CoH2API
 from coh2_live_stats.data.player import Player
-from coh2_live_stats.output import print_players
+from coh2_live_stats.output import Output
 from coh2_live_stats.settings import Settings
 from coh2_live_stats.util import progress_start, progress_stop, play_sound
 
@@ -39,6 +40,7 @@ res = Path(__file__).with_name('res')
 soundfile = res.joinpath('notify.wav')
 api: CoH2API
 settings: Settings
+output: Output
 current_players = []
 players_changed = False
 
@@ -90,7 +92,7 @@ def on_players_gathered(future_players):
         if not play_sound(str(soundfile)):
             print('Match found!')
         try:
-            print_players(future_players.result())
+            output.print_players(future_players.result())
         except concurrent.futures.CancelledError:
             pass
 
@@ -124,16 +126,18 @@ async def get_players():
 async def main():
     global api
     global settings
+    global output
     global EXIT_STATUS
 
     api = CoH2API(API_TIMEOUT)
-    settings = Settings()
     observer = Observer()
 
     try:
+        settings = Settings()
+        output = Output(settings)
         # Initial requests
         await init_leaderboards()
-        print_players(await get_players())
+        output.print_players(await get_players())
         # Watch log files
         observer.schedule(LogFileEventHandler(asyncio.get_running_loop()), str(settings.get_logfile_path().parent))
         observer.start()
@@ -141,6 +145,9 @@ async def main():
             # Force CoH2 to write out its collected log
             with open(settings.get_logfile_path(), mode="rb", buffering=0):
                 await asyncio.sleep(1)
+    except TOMLDecodeError as e:
+        print(e.args[0])
+        EXIT_STATUS = 1
     except FileNotFoundError as e:
         print(f'No logfile: "{e.filename}"')
         EXIT_STATUS = 1

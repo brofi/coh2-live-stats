@@ -114,6 +114,6 @@ class Settings:
 
         sec = config.setdefault('notification', {})
         sec.setdefault('sound', True)
-        wavfile = str(Path(__file__).with_name('res').joinpath('notify.wav'))
+        wavfile = str(Path(getattr(sys, '_MEIPASS', str(Path(__file__).parent))).joinpath('res').joinpath('notify.wav'))
         sec.setdefault('wavfile', wavfile)
         return config

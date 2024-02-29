@@ -16,7 +16,6 @@ import asyncio
 import concurrent.futures
 from hashlib import file_digest
 from io import BytesIO
-from pathlib import Path
 from sys import exit
 from tomllib import TOMLDecodeError
 

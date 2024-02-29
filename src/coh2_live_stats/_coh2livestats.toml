@@ -18,6 +18,12 @@
 # Path to observed Company of Heroes 2 log file. Supports OS environment variables.
 # logfile = '%USERPROFILE%\Documents\My Games\Company of Heroes 2\warnings.log'
 
+#[notification]
+# Whether to play a notification sound.
+#sound = true
+# Custom waveform audio file for notification sound.
+#wavfile = ''
+
 # Output table options.
 #[table]
 # Wether to use color at all.

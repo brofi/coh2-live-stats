@@ -41,8 +41,8 @@ class Settings:
                 pass
         return self._set_defaults(config)
 
-    def get_logfile_path(self):
-        return Path(expandvars(self.get('logfile')))
+    def get_as_path(self, key: str):
+        return Path(expandvars(self.get(key)))
 
     def get_as_color(self, key: str):
         return Color[self.get(key).upper()]
@@ -58,6 +58,8 @@ class Settings:
     def _validate(self):
         try:
             self._validate_file('logfile')
+            self._validate_file('notification.wavfile')
+            self._validate_bool('notification.sound')
             self._validate_bool('table.color')
             self._validate_bool('table.border')
             self._validate_colors(self.get('table.colors'), 'table.colors')
@@ -109,4 +111,9 @@ class Settings:
         sec.setdefault('okw', Color.CYAN.name)
         sec.setdefault('us', Color.BLUE.name)
         sec.setdefault('uk', Color.YELLOW.name)
+
+        sec = config.setdefault('notification', {})
+        sec.setdefault('sound', True)
+        wavfile = str(Path(__file__).with_name('res').joinpath('notify.wav'))
+        sec.setdefault('wavfile', wavfile)
         return config

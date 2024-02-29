@@ -36,8 +36,6 @@ from coh2_live_stats.util import progress_start, progress_stop, play_sound
 
 API_TIMEOUT = 30
 EXIT_STATUS = 0
-res = Path(__file__).with_name('res')
-soundfile = res.joinpath('notify.wav')
 api: CoH2API
 settings: Settings
 output: Output
@@ -48,7 +46,7 @@ players_changed = False
 def get_players_from_log():
     player_lines = []
     # Get human player lines from log
-    with open(settings.get_logfile_path(), encoding='utf-8') as f:
+    with open(settings.get_as_path('logfile'), encoding='utf-8') as f:
         lines = f.readlines()
     for line in lines:
         for sep in ['GAME -- Human Player:', 'GAME -- AI Player:']:
@@ -71,7 +69,7 @@ class LogFileEventHandler(FileSystemEventHandler):
         self.loop = loop
 
     def on_modified(self, event: FileSystemEvent) -> None:
-        if event.is_directory or event.src_path != str(settings.get_logfile_path()):
+        if event.is_directory or event.src_path != str(settings.get_as_path('logfile')):
             return
 
         f: BytesIO
@@ -89,7 +87,7 @@ class LogFileEventHandler(FileSystemEventHandler):
 
 def on_players_gathered(future_players):
     if players_changed:
-        if not play_sound(str(soundfile)):
+        if not settings.get('notification.sound') or not play_sound(str(settings.get_as_path('notification.wavfile'))):
             print('Match found!')
         try:
             output.print_players(future_players.result())
@@ -139,11 +137,11 @@ async def main():
         await init_leaderboards()
         output.print_players(await get_players())
         # Watch log files
-        observer.schedule(LogFileEventHandler(asyncio.get_running_loop()), str(settings.get_logfile_path().parent))
+        observer.schedule(LogFileEventHandler(asyncio.get_running_loop()), str(settings.get_as_path('logfile').parent))
         observer.start()
         while True:
             # Force CoH2 to write out its collected log
-            with open(settings.get_logfile_path(), mode="rb", buffering=0):
+            with open(settings.get_as_path('logfile'), mode="rb", buffering=0):
                 await asyncio.sleep(1)
     except TOMLDecodeError as e:
         print(e.args[0])

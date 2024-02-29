@@ -12,5 +12,5 @@
 #  You should have received a copy of the GNU General Public License along with Foobar. If not,
 #  see <https://www.gnu.org/licenses/>.
 
-__version_info__ = (1, 3, 2)
+__version_info__ = (1, 4, 0)
 __version__ = '.'.join(map(str, __version_info__))

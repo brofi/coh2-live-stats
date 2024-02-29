@@ -62,6 +62,8 @@ class Settings:
             self._validate_bool('notification.sound')
             self._validate_bool('table.color')
             self._validate_bool('table.border')
+            self._validate_bool('table.show_average')
+            self._validate_bool('table.always_show_team')
             self._validate_colors(self.get('table.colors'), 'table.colors')
 
         except TOMLDecodeError as e:
@@ -98,6 +100,8 @@ class Settings:
         sec = config.setdefault('table', {})
         sec.setdefault('color', True)
         sec.setdefault('border', False)
+        sec.setdefault('show_average', True)
+        sec.setdefault('always_show_team', False)
         sec_color = sec.setdefault('colors', {})
         sec_color.setdefault('border', Color.BRIGHT_BLACK.name)
         sec_color.setdefault('label', Color.BRIGHT_BLACK.name)

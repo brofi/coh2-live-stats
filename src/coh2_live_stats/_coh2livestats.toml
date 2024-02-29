@@ -30,6 +30,10 @@
 #color = true
 # Draw a border around the output table. Can cause issues with CJK characters.
 #border = false
+# Wether to show average team rank and level.
+#show_average = true
+# Wether to always show team columns, even if they are empty.
+#always_show_team = false
 
 # Output table color options.
 #[table.colors]

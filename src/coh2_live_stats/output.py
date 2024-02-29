@@ -148,17 +148,18 @@ class Output:
 
                 table.add_row(row, divider=True if tpi == len(team_players) - 1 else False)
 
-            if len([p for p in team_players if p.relic_id > 0]) > 1:
+            if self.settings.get('table.show_average') and len([p for p in team_players if p.relic_id > 0]) > 1:
                 avg_rank_prefix = '*' if team_data[team].avg_estimated_rank < team_data[
                     abs(team - 1)].avg_estimated_rank else ''
                 avg_rank_level_prefix = '*' if team_data[team].avg_estimated_rank_level > team_data[
                     abs(team - 1)].avg_estimated_rank_level else ''
                 avg_row = (['Avg', (avg_rank_prefix, team_data[team].avg_estimated_rank, False, False),
-                           (avg_rank_level_prefix, team_data[team].avg_estimated_rank_level, False, False)] +
+                            (avg_rank_level_prefix, team_data[team].avg_estimated_rank_level, False, False)] +
                            [''] * 5 + [('', False, False)] * 2)
                 table.add_row(avg_row, divider=True)
 
-        if not team_data[0].pre_made_team_ids and not team_data[1].pre_made_team_ids:
+        if (not self.settings.get('table.always_show_team')
+                and not team_data[0].pre_made_team_ids and not team_data[1].pre_made_team_ids):
             for col in (_COL_TEAM, _COL_TEAM_RANK, _COL_TEAM_LEVEL):
                 table.del_column(col)
 

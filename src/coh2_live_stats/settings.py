@@ -51,7 +51,7 @@ class Settings:
         val = self._config
         for k in key.split('.'):
             if k not in val:
-                raise KeyError(f'No setting named {k}.')
+                raise KeyError(f'No setting named {k!r}.')
             val = val.get(k)
         return val
 
@@ -60,11 +60,8 @@ class Settings:
             self._validate_file('logfile')
             self._validate_bool('table.color')
             self._validate_bool('table.border')
-            self._validate_color('table.colors.border')
-            self._validate_color('table.colors.label')
-            self._validate_color('table.colors.player.high_drop_rate')
-            self._validate_color('table.colors.player.high')
-            self._validate_color('table.colors.player.low')
+            self._validate_colors(self.get('table.colors'), 'table.colors')
+
         except TOMLDecodeError as e:
             print(f'Failed to validate config values:')
             raise e
@@ -79,12 +76,17 @@ class Settings:
         if not type(value) is bool:
             raise TOMLDecodeError(f'Not a boolean for key {key!r} with value: {value!r}')
 
-    def _validate_color(self, key):
-        value = self.get(key)
-        try:
-            Color[str(value).upper()]
-        except KeyError:
-            raise TOMLDecodeError(f'Not a color for key {key!r} with value: {value!r}')
+    def _validate_colors(self, d: dict, kk: str):
+        for k, v in d.items():
+            kk = f'{kk}.{k}'
+            if type(v) is dict:
+                self._validate_colors(v, kk)
+            else:
+                try:
+                    _ = Color[str(v).upper()]
+                except KeyError:
+                    raise TOMLDecodeError(f'Not a color for key {kk!r} with value: {v!r}')
+            kk = kk.removesuffix(f'.{k}')
 
     @staticmethod
     def _set_defaults(config):

@@ -166,10 +166,11 @@ class Output:
             # Unfortunately there is no custom header format and altering field names directly would mess with
             # everything that needs them (e.g. formatting).
             table_lines = table.get_string().splitlines(True)
+            i = int(self.settings.get('table.border'))
             for h in table.field_names:
                 header = ' ' * table.padding_width + h + ' ' * table.padding_width
                 color_header = colorize(self.settings.get_as_color('table.colors.label'), header)
-                table_lines[0] = table_lines[0].replace(header, color_header)
+                table_lines[i] = table_lines[i].replace(header, color_header)
             print(''.join(table_lines))
         else:
             print(table)

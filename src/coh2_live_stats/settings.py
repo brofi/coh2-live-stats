@@ -49,6 +49,26 @@ class Settings:
     def get_as_color(self, key: str):
         return Color[self.get(key).upper()]
 
+    def has_column(self, col: str):
+        columns = self.get('table.columns')
+        if columns:
+            return columns.get(col) is not None
+        return False
+
+    def get_column_index(self, col: str):
+        if self.has_column(col):
+            for i, k in enumerate(self.get('table.columns').keys()):
+                if k == col:
+                    return i
+        return -1
+
+    def get_safe(self, key: str):
+        try:
+            return self.get(key)
+        except KeyError:
+            pass
+        return None
+
     def get(self, key: str):
         val = self._config
         for k in key.split('.'):
@@ -62,6 +82,7 @@ class Settings:
             self._validate_file('logfile')
             self._validate_file('notification.wavfile')
             self._validate_bool('notification.sound')
+            self._validate_columns(self.get('table.columns'))
             self._validate_bool('table.color')
             self._validate_bool('table.border')
             self._validate_bool('table.show_average')
@@ -76,6 +97,24 @@ class Settings:
         value = self.get(key)
         if not Path(expandvars(str(value))).is_file():
             raise TOMLDecodeError(f'Not a file for key {key!r} with value: {value!r}')
+
+    def _validate_columns(self, columns: dict):
+        for k, col in columns.items():
+            self._validate_string(f'table.columns.{k}.label')
+            self._validate_align(f'table.columns.{k}.align')
+        labels = [col.get('label') for col in columns.values()]
+        if not len(labels) == len(set(labels)):
+            raise TOMLDecodeError('Column labels must be unique.')
+
+    def _validate_string(self, key):
+        value = self.get(key)
+        if not type(value) is str:
+            raise TOMLDecodeError(f'Not a string for key {key!r} with value: {value!r}')
+
+    def _validate_align(self, key):
+        value = self.get(key)
+        if len(value) > 1 or value not in ('l', 'c', 'r'):
+            raise TOMLDecodeError(f'Not an alignment value for key {key!r} with value: {value!r}')
 
     def _validate_bool(self, key):
         value = self.get(key)
@@ -99,12 +138,46 @@ class Settings:
         logfile = str(Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log'))
         config.setdefault('logfile', logfile)
 
-        sec = config.setdefault('table', {})
-        sec.setdefault('color', True)
-        sec.setdefault('border', False)
-        sec.setdefault('show_average', True)
-        sec.setdefault('always_show_team', False)
-        sec_color = sec.setdefault('colors', {})
+        sec_table = config.setdefault('table', {})
+        sec_table.setdefault('color', True)
+        sec_table.setdefault('border', False)
+        sec_table.setdefault('show_average', True)
+        sec_table.setdefault('always_show_team', False)
+
+        sec = sec_table.setdefault('columns', {})
+        if not sec:
+            col = sec.setdefault('faction', {})
+            col.setdefault('label', 'Fac')
+            col.setdefault('align', 'l')
+            col = sec.setdefault('rank', {})
+            col.setdefault('label', 'Rank')
+            col.setdefault('align', 'r')
+            col = sec.setdefault('level', {})
+            col.setdefault('label', 'Lvl')
+            col.setdefault('align', 'r')
+            col = sec.setdefault('win_ratio', {})
+            col.setdefault('label', 'W%')
+            col.setdefault('align', 'r')
+            col = sec.setdefault('drop_ratio', {})
+            col.setdefault('label', 'D%')
+            col.setdefault('align', 'r')
+            col = sec.setdefault('team', {})
+            col.setdefault('label', 'Team')
+            col.setdefault('align', 'c')
+            col = sec.setdefault('team_rank', {})
+            col.setdefault('label', 'T_Rank')
+            col.setdefault('align', 'r')
+            col = sec.setdefault('team_level', {})
+            col.setdefault('label', 'T_Level')
+            col.setdefault('align', 'r')
+            col = sec.setdefault('country', {})
+            col.setdefault('label', 'Country')
+            col.setdefault('align', 'l')
+            col = sec.setdefault('name', {})
+            col.setdefault('label', 'Name')
+            col.setdefault('align', 'l')
+
+        sec_color = sec_table.setdefault('colors', {})
         sec_color.setdefault('border', Color.BRIGHT_BLACK.name)
         sec_color.setdefault('label', Color.BRIGHT_BLACK.name)
         sec = sec_color.setdefault('player', {})

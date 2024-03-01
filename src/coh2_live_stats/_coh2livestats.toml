@@ -1,62 +1,88 @@
-# Configuration file for CoH2LiveStats.
+## Configuration file for CoH2LiveStats.
+##
+## Valid configuration file paths in order of detection:
+##   * %USERPROFILE%\CONFIG
+##   * PARENT_FOLDER_OF_EXECUTABLE\CONFIG
+## with CONFIG in:
+##   * _coh2livestats.toml
+##   * .coh2livestats.toml
+##   * coh2livestats.toml
+##   * _coh2_live_stats.toml
+##   * .coh2_live_stats.toml
+##   * coh2_live_stats.toml
 #
-# Valid configuration file paths in order of detection:
-#   * %USERPROFILE%\CONFIG
-#   * PARENT_FOLDER_OF_EXECUTABLE\CONFIG
-# with CONFIG in:
-#   * _coh2livestats.toml
-#   * .coh2livestats.toml
-#   * coh2livestats.toml
-#   * _coh2_live_stats.toml
-#   * .coh2_live_stats.toml
-#   * coh2_live_stats.toml
+## Valid colors (case-insensitive):
+##   * black, red, green, yellow, blue, magenta, cyan, white
+##   * bright_black, bright_red, bright_green, bright_yellow, bright_blue, bright_magenta, bright_cyan, bright_white
 #
-# Valid colors (case-insensitive):
-#   * black, red, green, yellow, blue, magenta, cyan, white
-#   * bright_black, bright_red, bright_green, bright_yellow, bright_blue, bright_magenta, bright_cyan, bright_white
-
-# Path to observed Company of Heroes 2 log file. Supports OS environment variables.
-# logfile = '%USERPROFILE%\Documents\My Games\Company of Heroes 2\warnings.log'
-
+## Path to observed Company of Heroes 2 log file. Supports OS environment variables.
+#logfile = '%USERPROFILE%\Documents\My Games\Company of Heroes 2\warnings.log'
+#
 #[notification]
-# Whether to play a notification sound.
+## Whether to play a notification sound.
 #sound = true
-# Custom waveform audio file for notification sound.
+## Custom waveform audio file for notification sound.
 #wavfile = ''
-
-# Output table options.
+#
+## Output table options.
 #[table]
-# Wether to use color at all.
+## Wether to use color at all.
 #color = true
-# Draw a border around the output table. Can cause issues with CJK characters.
+## Draw a border around the output table.
+## Recommended to have table.border = false and name column last, since CJK characters could distort table.
 #border = false
-# Wether to show average team rank and level.
+## Wether to show average team rank and level.
 #show_average = true
-# Wether to always show team columns, even if they are empty.
+## Wether to always show team columns, even if they are empty.
 #always_show_team = false
-
-# Output table color options.
+#
+## Columns to include in the output.
+## Rearrange to change column order, remove key/value to exclude a column or set value to change the label.
+#[table.columns]
+#faction.label = 'Fac'
+#faction.align = 'l'
+#rank.label = 'Rank'
+#rank.align = 'r'
+#level.label = 'Lvl'
+#level.align = 'r'
+#win_ratio.label = 'W%'
+#win_ratio.align = 'r'
+#drop_ratio.label = 'D%'
+#drop_ratio.align = 'r'
+#team.label = 'Team'
+#team.align = 'c'
+#team_rank.label = 'T_Rank'
+#team_rank.align = 'r'
+#team_level.label = 'T_Lvl'
+#team_level.align = 'r'
+#country.label = 'Country'
+#country.align = 'l'
+## Recommended to have table.border = false and name column last, since CJK characters could distort table.
+#name.label = 'Name'
+#name.align = 'l'
+#
+## Output table color options.
 #[table.colors]
 #border = 'bright_black'
 #label = 'bright_black'
-
-# Player-specific color options.
+#
+## Player-specific color options.
 #[table.colors.player]
 #high_drop_rate = 'red'
-# Color for highest ranked player and high winrate.
+## Color for highest ranked player and high winrate.
 #high = 'bright_white'
-# Color for lowest ranked player and low winrate.
+## Color for lowest ranked player and low winrate.
 #low = 'bright_black'
-
-# Faction colors.
+#
+## Faction colors.
 #[table.colors.faction]
-# Wehrmacht
+## Wehrmacht
 #wm = 'red'
-# Soviet Union
+## Soviet Union
 #su = 'red'
-# Oberkommando West
+## Oberkommando West
 #okw = 'cyan'
-# US Forces
+## US Forces
 #us = 'blue'
-# British Forces
+## British Forces
 #uk = 'yellow'

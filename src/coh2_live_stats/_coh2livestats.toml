@@ -19,7 +19,7 @@
 #logfile = '%USERPROFILE%\Documents\My Games\Company of Heroes 2\warnings.log'
 #
 #[notification]
-## Whether to play a notification sound.
+## Whether to play a notification sound when a new multiplayer match was found.
 #sound = true
 ## Custom waveform audio file for notification sound.
 #wavfile = ''

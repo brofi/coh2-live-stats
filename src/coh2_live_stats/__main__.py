@@ -38,27 +38,47 @@ EXIT_STATUS = 0
 api: CoH2API
 settings: Settings
 output: Output
-current_players = []
-players_changed = False
+last_player_line = 0
+new_match_found = False
+new_match_notified = True
 
 
-def get_players_from_log():
+def get_players_from_log(notify=True):
+    global last_player_line
+    global new_match_found
+    global new_match_notified
     player_lines = []
     # Get human player lines from log
     with open(settings.get_as_path('logfile'), encoding='utf-8') as f:
         lines = f.readlines()
-    for line in lines:
-        for sep in ['GAME -- Human Player:', 'GAME -- AI Player:']:
+    pl = 0
+    for i, line in enumerate(lines):
+        for sep in ['GAME -- Human Player: ', 'GAME -- AI Player: ']:
             player_line = line.partition(sep)[2]
             if player_line:
+                if player_line.split(' ')[0] == str(0):
+                    player_lines.clear()
                 player_lines.append(player_line.strip())
+                pl = i
 
-    if player_lines:
-        latest_match_player_count = int(player_lines[len(player_lines) - 1].split(' ')[0]) + 1
-        # Keep only player lines of latest match
-        player_lines = player_lines[len(player_lines) - latest_match_player_count:]
-        return [Player.from_log(player_line) for player_line in player_lines]
-    return []
+    new_match_found = pl != last_player_line
+    last_player_line = pl
+
+    if notify:
+        # If a multiplayer match is detected (no replay, no local AI game) and it's a new match -> notify.
+        # If a multiplayer match is detected, and it's not a new match, but we haven't played a sound before -> notify.
+        # The latter can happen if the playing status is written late.
+        if new_match_found:
+            new_match_notified = False
+        is_mp = 'Party::SetStatus - S_PLAYING' in lines[pl + 1] if pl < len(lines) - 1 else False
+        if not new_match_notified and is_mp:
+            if not settings.get('notification.sound') or not play_sound(
+                    str(settings.get_as_path('notification.wavfile'))):
+                print('New match found!')
+
+            new_match_notified = True
+
+    return [Player.from_log(player_line) for player_line in player_lines] if player_lines else []
 
 
 class LogFileEventHandler(FileSystemEventHandler):
@@ -85,9 +105,7 @@ class LogFileEventHandler(FileSystemEventHandler):
 
 
 def on_players_gathered(future_players):
-    if players_changed:
-        if not settings.get('notification.sound') or not play_sound(str(settings.get_as_path('notification.wavfile'))):
-            print('Match found!')
+    if new_match_found:
         try:
             output.print_players(future_players.result())
         except concurrent.futures.CancelledError:
@@ -103,21 +121,15 @@ async def init_leaderboards():
         progress_stop()
 
 
-async def get_players():
-    global current_players
-    global players_changed
-    players_changed = False
-    players = get_players_from_log()
-    if players and players != current_players:
+async def get_players(notify=True):
+    players = get_players_from_log(notify)
+    if new_match_found:
         progress_indicator = asyncio.create_task(progress_start())
         try:
-            current_players = await api.get_players(players)
-            players_changed = True
+            return await api.get_players(players)
         finally:
             progress_indicator.cancel()
             progress_stop()
-
-    return current_players
 
 
 async def main():
@@ -134,7 +146,7 @@ async def main():
         output = Output(settings)
         # Initial requests
         await init_leaderboards()
-        output.print_players(await get_players())
+        output.print_players(await get_players(notify=False))
         # Watch log files
         observer.schedule(LogFileEventHandler(asyncio.get_running_loop()), str(settings.get_as_path('logfile').parent))
         observer.start()

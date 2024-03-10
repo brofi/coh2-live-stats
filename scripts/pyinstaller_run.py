@@ -82,7 +82,9 @@ PyInstaller.__main__.run([
     '--contents-directory', contents_dir_name,
     '--add-data', f'{license_file_name}:.',
     '--add-data', f'{module_path.joinpath(config_file_name)}:.',
-    '--add-data', f'{res_path.joinpath('notify.wav')}:./res',
+    '--add-data', f'{res_path.joinpath('horn.wav')}:./res',
+    '--add-data', f'{res_path.joinpath('horn_subtle.wav')}:./res',
+    '--add-data', f'{res_path.joinpath('horn_epic.wav')}:./res',
     '--icon', str(res_path.joinpath('coh2_live_stats.ico')),
     '--version-file', str(version_file),
     str(module_path.joinpath('__main__.py'))

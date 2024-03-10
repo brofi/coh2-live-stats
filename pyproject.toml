@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "coh2_live_stats"
-version = "1.5.0"
+version = "1.6.0"
 dependencies = [
     "httpx",
     "prettytable",
@@ -32,4 +32,4 @@ coh2livestats = "coh2_live_stats.__main__:run"
 
 [tool.setuptools.package-data]
 coh2_live_stats = ["*.toml"]
-"coh2_live_stats.res" = ["notify.wav"]
+"coh2_live_stats.res" = ["*.wav"]

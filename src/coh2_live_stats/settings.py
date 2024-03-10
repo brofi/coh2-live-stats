@@ -49,6 +49,14 @@ class Settings:
     def get_as_color(self, key: str):
         return Color[self.get(key).upper()]
 
+    def get_notification_sound(self):
+        k = 'notification.sound'
+        v = self.get(k)
+        if v in ['horn', 'horn_subtle', 'horn_epic']:
+            return Path(getattr(sys, '_MEIPASS', str(Path(__file__).parent))).joinpath('res', f'{v}.wav')
+        else:
+            return self.get_as_path(k)
+
     def has_column(self, col: str):
         columns = self.get('table.columns')
         if columns:
@@ -80,8 +88,8 @@ class Settings:
     def _validate(self):
         try:
             self._validate_file('logfile')
-            self._validate_file('notification.wavfile')
-            self._validate_bool('notification.sound')
+            self._validate_bool('notification.play_sound')
+            self._validate_sound('notification.sound')
             self._validate_columns(self.get('table.columns'))
             self._validate_bool('table.color')
             self._validate_bool('table.border')
@@ -92,6 +100,10 @@ class Settings:
         except TOMLDecodeError as e:
             print(f'Failed to validate config values:')
             raise e
+
+    def _validate_sound(self, key):
+        if self.get(key) not in ['horn', 'horn_subtle', 'horn_epic']:
+            self._validate_file(key)
 
     def _validate_file(self, key):
         value = self.get(key)
@@ -192,7 +204,6 @@ class Settings:
         sec.setdefault('uk', Color.YELLOW.name)
 
         sec = config.setdefault('notification', {})
-        sec.setdefault('sound', True)
-        wavfile = str(Path(getattr(sys, '_MEIPASS', str(Path(__file__).parent))).joinpath('res').joinpath('notify.wav'))
-        sec.setdefault('wavfile', wavfile)
+        sec.setdefault('play_sound', True)
+        sec.setdefault('sound', 'horn')
         return config

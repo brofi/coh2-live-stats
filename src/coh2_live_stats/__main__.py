@@ -72,8 +72,7 @@ def get_players_from_log(notify=True):
             new_match_notified = False
         is_mp = 'Party::SetStatus - S_PLAYING' in lines[pl + 1] if pl < len(lines) - 1 else False
         if not new_match_notified and is_mp:
-            if not settings.get('notification.sound') or not play_sound(
-                    str(settings.get_as_path('notification.wavfile'))):
+            if not settings.get('notification.play_sound') or not play_sound(str(settings.get_notification_sound())):
                 print('New match found!')
 
             new_match_notified = True

@@ -20,9 +20,10 @@
 #
 #[notification]
 ## Whether to play a notification sound when a new multiplayer match was found.
-#sound = true
-## Custom waveform audio file for notification sound.
-#wavfile = ''
+#play_sound = true
+## Built-in notification sound name or full path to custom waveform audio file.
+## Valid built-in sound names (case-insensitive): horn, horn_subtle, horn_epic
+#sound = 'horn'
 #
 ## Output table options.
 #[table]

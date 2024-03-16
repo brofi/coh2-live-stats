@@ -109,7 +109,7 @@ class Output:
     def print_players(self, players):
         clear()
 
-        if len(players) < 1:
+        if not players:
             print('No players found.')
             return
         if len(players) < 2:

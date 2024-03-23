@@ -19,10 +19,10 @@ from typing import Any
 from prettytable import PrettyTable
 from prettytable.colortable import Theme, ColorTable
 
-from .data.color import Color
+from .data.column import Column
 from .data.countries import country_set
 from .data.faction import Faction
-from .settings import Settings
+from .settings import Settings, Keys
 from .util import avg, clear, colorize
 
 
@@ -70,41 +70,42 @@ class Output:
 
     def _pretty_player_table(self):
         table: PrettyTable
-        if self.settings.get('table.color'):
-            border_color = str(self.settings.get_as_color('table.colors.border').value)
+        if self.settings.get(Keys.Table.KEY_COLOR):
+            border_color = str(self.settings.get_as_color(Keys.Table.Colors.KEY_BORDER).value)
             border_theme = Theme(vertical_color=border_color, horizontal_color=border_color,
                                  junction_color=border_color)
             table = ColorTable(theme=border_theme)
         else:
             table = PrettyTable()
-        table.border = self.settings.get('table.border')
+        table.border = self.settings.get(Keys.Table.KEY_BORDER)
         table.preserve_internal_border = True
 
-        columns = self.settings.get('table.columns')
-        table.field_names = [col.get('label') for col in columns.values()]
-        self.set_format(table, 'faction', self._format_faction)
-        self.set_format(table, 'rank', partial(self._format_rank, 2))
-        self.set_format(table, 'level', partial(self._format_rank, 1))
-        self.set_format(table, 'win_ratio', self._format_ratio)
-        self.set_format(table, 'drop_ratio', self._format_ratio)
-        self.set_format(table, 'country', self._format_min_max)
-        self.set_format(table, 'name', self._format_min_max)
+        columns = self.settings.get(Keys.Table.Columns.KEY)
+        table.field_names = [col.get(Keys.Table.Columns.KEY_COLUMN_LABEL) for col in columns.values()]
+        self.set_format(table, Column.FACTION, self._format_faction)
+        self.set_format(table, Column.RANK, partial(self._format_rank, 2))
+        self.set_format(table, Column.LEVEL, partial(self._format_rank, 1))
+        self.set_format(table, Column.WIN_RATIO, self._format_ratio)
+        self.set_format(table, Column.DROP_RATIO, self._format_ratio)
+        self.set_format(table, Column.COUNTRY, self._format_min_max)
+        self.set_format(table, Column.NAME, self._format_min_max)
 
-        align = [col.get('align') for col in columns.values()]
+        align = [col.get(Keys.Table.Columns.KEY_COLUMN_ALIGN) for col in columns.values()]
         assert len(align) == len(table.field_names)
         for ai, a in enumerate(align):
             table.align[table.field_names[ai]] = a
 
         return table
 
-    def set_format(self, table: PrettyTable, column_name: str, formatter):
-        column = self.settings.get('table.columns').get(column_name)
-        if column:
-            table.custom_format[column.get('label')] = formatter
+    def set_format(self, table: PrettyTable, c: Column, formatter):
+        label = self.settings.get_safe(Keys.Table.Columns.key_label(c))
+        if label:
+            table.custom_format[label] = formatter
 
-    def set_column(self, row: list, column_name: str, value):
-        if self.settings.has_column(column_name):
-            row[self.settings.get_column_index(column_name)] = value
+    def set_column(self, row: list, c: Column, value):
+        idx = self.settings.get_column_index(c)
+        if idx >= 0:
+            row[idx] = value
 
     def print_players(self, players):
         clear()
@@ -115,26 +116,25 @@ class Output:
 
         team_data = _get_team_data(players)
         table = self._pretty_player_table()
-        self.settings.get('table.columns')
         for team in range(2):
             team_players = [p for p in players if p.team == team]
             for tpi, player in enumerate(team_players):
                 row = [''] * len(table.field_names)
 
-                self.set_column(row, 'faction', player.faction)
+                self.set_column(row, Column.FACTION, player.faction)
 
                 is_high_lvl_player = player in team_data[team].high_level_players
                 is_low_lvl_player = player in team_data[team].low_level_players
 
                 rank_estimate = player.estimate_rank(team_data[team].avg_rank_factor)
-                self.set_column(row, 'rank',
+                self.set_column(row, Column.RANK,
                                 (rank_estimate[0], rank_estimate[1], is_high_lvl_player, is_low_lvl_player))
-                self.set_column(row, 'level',
+                self.set_column(row, Column.LEVEL,
                                 (rank_estimate[0], rank_estimate[2], is_high_lvl_player, is_low_lvl_player))
 
                 num_games = player.wins + player.losses
-                self.set_column(row, 'win_ratio', player.wins / num_games if num_games > 0 else '')
-                self.set_column(row, 'drop_ratio', player.drops / num_games if num_games > 0 else '')
+                self.set_column(row, Column.WIN_RATIO, player.wins / num_games if num_games > 0 else '')
+                self.set_column(row, Column.DROP_RATIO, player.drops / num_games if num_games > 0 else '')
 
                 team_ranks = [str(t.rank) for t in player.pre_made_teams]
                 team_rank_levels = [str(t.rank_level) for t in player.pre_made_teams]
@@ -144,21 +144,22 @@ class Output:
                     if t.rank_level <= 0 < t.highest_rank_level:
                         team_rank_levels[ti] = '+' + str(t.highest_rank_level)
 
-                self.set_column(row, 'team', ','.join(map(str, [
+                self.set_column(row, Column.TEAM, ','.join(map(str, [
                     chr(team_data[player.team].pre_made_team_ids.index(t.id) + 65) for t in player.pre_made_teams])))
-                self.set_column(row, 'team_rank', ','.join(team_ranks))
-                self.set_column(row, 'team_level', ','.join(team_rank_levels))
+                self.set_column(row, Column.TEAM_RANK, ','.join(team_ranks))
+                self.set_column(row, Column.TEAM_LEVEL, ','.join(team_rank_levels))
 
                 country: dict = country_set[player.country] if player.country else ''
-                self.set_column(row, 'country',
+                self.set_column(row, Column.COUNTRY,
                                 (country['name'] if country else '', is_high_lvl_player, is_low_lvl_player))
 
-                self.set_column(row, 'name', (player.name, is_high_lvl_player, is_low_lvl_player))
+                self.set_column(row, Column.NAME, (player.name, is_high_lvl_player, is_low_lvl_player))
 
                 table.add_row(row, divider=True if tpi == len(team_players) - 1 else False)
 
-            if (self.settings.get('table.show_average')
-                    and (self.settings.has_column('rank') or self.settings.has_column('level'))
+            if (self.settings.get(Keys.Table.KEY_SHOW_AVERAGE)
+                    and (self.settings.has_key(Keys.Table.Columns.key(Column.RANK))
+                         or self.settings.has_key(Keys.Table.Columns.key(Column.LEVEL)))
                     and len([p for p in team_players if p.relic_id > 0]) > 1):
 
                 avg_rank_prefix = '*' if team_data[team].avg_estimated_rank < team_data[
@@ -167,35 +168,37 @@ class Output:
                     abs(team - 1)].avg_estimated_rank_level else ''
                 avg_row: list[Any] = [''] * len(table.field_names)
 
-                self.set_column(avg_row, 'rank',
+                self.set_column(avg_row, Column.RANK,
                                 (avg_rank_prefix, team_data[team].avg_estimated_rank, False, False))
-                self.set_column(avg_row, 'level',
+                self.set_column(avg_row, Column.LEVEL,
                                 (avg_rank_level_prefix, team_data[team].avg_estimated_rank_level, False, False))
 
-                if self.settings.get_column_index('rank') != 0 and self.settings.get_column_index('level') != 0:
+                if (self.settings.get_column_index(Column.RANK) != 0
+                        and self.settings.get_column_index(Column.LEVEL) != 0):
                     avg_row[0] = 'Avg'
 
-                for c in 'country', 'name':
+                for c in Column.COUNTRY, Column.NAME:
                     self.set_column(avg_row, c, ('', False, False))
 
                 table.add_row(avg_row, divider=True)
 
-        if (not self.settings.get('table.always_show_team')
+        if (not self.settings.get(Keys.Table.KEY_ALWAYS_SHOW_TEAM)
                 and not team_data[0].pre_made_team_ids and not team_data[1].pre_made_team_ids):
-            for col in (self.settings.get_safe('table.columns.team'), self.settings.get_safe('table.columns.team_rank'),
-                        self.settings.get_safe('table.columns.team_level')):
+            for col in (self.settings.get_safe(Keys.Table.Columns.key_label(Column.TEAM)),
+                        self.settings.get_safe(Keys.Table.Columns.key_label(Column.TEAM_RANK)),
+                        self.settings.get_safe(Keys.Table.Columns.key_label(Column.TEAM_LEVEL))):
                 if col:
-                    table.del_column(col.get('label'))
+                    table.del_column(col)
 
         if len(table.field_names) > 0:
-            if self.settings.get('table.color'):
+            if self.settings.get(Keys.Table.KEY_COLOR):
                 # Unfortunately there is no custom header format and altering field names directly would mess with
                 # everything that needs them (e.g. formatting).
                 table_lines = table.get_string().splitlines(True)
-                i = int(self.settings.get('table.border'))
+                i = int(self.settings.get(Keys.Table.KEY_BORDER))
                 for h in table.field_names:
                     header = ' ' * table.padding_width + h + ' ' * table.padding_width
-                    color_header = colorize(self.settings.get_as_color('table.colors.label'), header)
+                    color_header = colorize(self.settings.get_as_color(Keys.Table.Colors.KEY_LABEL), header)
                     table_lines[i] = table_lines[i].replace(header, color_header)
                 print(''.join(table_lines))
             else:
@@ -204,16 +207,10 @@ class Output:
             print('No table columns to print.')
 
     def _format_faction(self, _, v):
-        colored = self.settings.get('table.color')
+        colored = self.settings.get(Keys.Table.KEY_COLOR)
         if isinstance(v, Faction):
-            return colorize(self._get_faction_color(v), v.short) if colored else v.short
-        return colorize(self.settings.get_as_color('table.colors.label'), str(v)) if colored else str(v)
-
-    def _get_faction_color(self, faction: Faction):
-        for c in self.settings.get('table.colors.faction'):
-            if faction.short.lower() == c:
-                return self.settings.get_as_color(f'table.colors.faction.{c}')
-        return Color.WHITE
+            return colorize(self.settings.get_faction_color(v), v.name) if colored else v.name
+        return colorize(self.settings.get_as_color(Keys.Table.Colors.KEY_LABEL), str(v)) if colored else str(v)
 
     def _format_rank(self, precision, _, v: tuple[str, any, bool, bool]):
         if v[1] <= 0:
@@ -228,21 +225,21 @@ class Output:
 
     def _format_ratio(self, f, v):
         v_str = ''
-        colored = self.settings.get('table.color')
+        colored = self.settings.get(Keys.Table.KEY_COLOR)
         if isinstance(v, float):
             v_str = f'{v:.0%}'
-            if colored and f == self.settings.get_safe('table.columns.drop_ratio') and v >= 0.1:
-                v_str = colorize(self.settings.get_as_color('table.colors.player.high_drop_rate'), v_str)
-            elif f == self.settings.get_safe('table.columns.win_ratio'):
+            if colored and f == self.settings.get_safe(Keys.Table.Columns.key(Column.DROP_RATIO)) and v >= 0.1:
+                v_str = colorize(self.settings.get_as_color(Keys.Table.Colors.Player.KEY_HIGH_DROP_RATE), v_str)
+            elif f == self.settings.get_safe(Keys.Table.Columns.key(Column.WIN_RATIO)):
                 v_str = self._format_min_max(f, (v_str, v >= 0.6, v < 0.5))
         return v_str
 
     def _format_min_max(self, _, v: tuple[any, bool, bool]):
         v_str = str(v[0])
-        colored = self.settings.get('table.color')
+        colored = self.settings.get(Keys.Table.KEY_COLOR)
         if colored:
             if v[1]:
-                v_str = colorize(self.settings.get_as_color('table.colors.player.high'), v_str)
+                v_str = colorize(self.settings.get_as_color(Keys.Table.Colors.Player.KEY_HIGH), v_str)
             if v[2]:
-                v_str = colorize(self.settings.get_as_color('table.colors.player.low'), v_str)
+                v_str = colorize(self.settings.get_as_color(Keys.Table.Colors.Player.KEY_LOW), v_str)
         return v_str

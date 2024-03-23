@@ -30,7 +30,7 @@ from watchdog.observers import Observer
 from coh2_live_stats.coh2api import CoH2API
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.output import Output
-from coh2_live_stats.settings import Settings
+from coh2_live_stats.settings import Settings, Keys
 from coh2_live_stats.util import progress_start, progress_stop, play_sound
 
 API_TIMEOUT = 30
@@ -49,7 +49,7 @@ def get_players_from_log(notify=True):
     global new_match_notified
     player_lines = []
     # Get human player lines from log
-    with open(settings.get_as_path('logfile'), encoding='utf-8') as f:
+    with open(settings.get_logfile(), encoding='utf-8') as f:
         lines = f.readlines()
     pl = 0
     for i, line in enumerate(lines):
@@ -72,7 +72,8 @@ def get_players_from_log(notify=True):
             new_match_notified = False
         is_mp = 'Party::SetStatus - S_PLAYING' in lines[pl + 1] if pl < len(lines) - 1 else False
         if not new_match_notified and is_mp:
-            if not settings.get('notification.play_sound') or not play_sound(str(settings.get_notification_sound())):
+            if not settings.get(Keys.Notification.KEY_PLAY_SOUND) or not play_sound(
+                    str(settings.get_notification_sound())):
                 print('New match found!')
 
             new_match_notified = True
@@ -87,7 +88,7 @@ class LogFileEventHandler(FileSystemEventHandler):
         self.loop = loop
 
     def on_modified(self, event: FileSystemEvent) -> None:
-        if event.is_directory or event.src_path != str(settings.get_as_path('logfile')):
+        if event.is_directory or event.src_path != str(settings.get_logfile()):
             return
 
         f: BytesIO
@@ -147,11 +148,11 @@ async def main():
         await init_leaderboards()
         output.print_players(await get_players(notify=False))
         # Watch log files
-        observer.schedule(LogFileEventHandler(asyncio.get_running_loop()), str(settings.get_as_path('logfile').parent))
+        observer.schedule(LogFileEventHandler(asyncio.get_running_loop()), str(settings.get_logfile().parent))
         observer.start()
         while True:
             # Force CoH2 to write out its collected log
-            with open(settings.get_as_path('logfile'), mode="rb", buffering=0):
+            with open(settings.get_logfile(), mode="rb", buffering=0):
                 await asyncio.sleep(1)
     except TOMLDecodeError as e:
         print(e.args[0])

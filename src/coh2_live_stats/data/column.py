@@ -12,24 +12,17 @@
 #  You should have received a copy of the GNU General Public License along with Foobar. If not,
 #  see <https://www.gnu.org/licenses/>.
 
-from enum import Enum
+from enum import Enum, auto
 
 
-class Faction(Enum):
-    WM = 0, 'german', 'Wehrmacht'
-    SU = 1, 'soviet', 'Soviet Union'
-    OKW = 2, 'west_german', 'Oberkommando West'
-    US = 3, 'aef', 'US Forces'
-    UK = 4, 'british', 'British Forces'
-
-    def __init__(self, _id, key_log, full_name):
-        self.id = _id
-        self.key_log = key_log
-        self.full_name = full_name
-
-    @classmethod
-    def from_log(cls, faction_name):
-        for member in cls:
-            if member.key_log == faction_name:
-                return member
-        return None
+class Column(Enum):
+    FACTION = auto()
+    RANK = auto()
+    LEVEL = auto()
+    WIN_RATIO = auto()
+    DROP_RATIO = auto()
+    TEAM = auto()
+    TEAM_RANK = auto()
+    TEAM_LEVEL = auto()
+    COUNTRY = auto()
+    NAME = auto()

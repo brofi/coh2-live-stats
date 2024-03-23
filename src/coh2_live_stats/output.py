@@ -109,11 +109,8 @@ class Output:
     def print_players(self, players):
         clear()
 
-        if not players:
-            print('No players found.')
-            return
-        if len(players) < 2:
-            print('Not enough players.')
+        if not players or len(players) < 2:
+            print('No match found.')
             return
 
         team_data = _get_team_data(players)

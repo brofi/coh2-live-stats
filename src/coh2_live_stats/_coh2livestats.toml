@@ -38,7 +38,8 @@
 #always_show_team = false
 #
 ## Columns to include in the output.
-## Rearrange to change column order, remove key/value to exclude a column or set value to change the label.
+## Set label or alignment values or rearrange to change column order.
+## If the table.columns section is not specified, then the default columns will be shown.
 #[table.columns]
 #faction.label = 'Fac'
 #faction.align = 'l'

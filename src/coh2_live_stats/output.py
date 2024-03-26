@@ -80,8 +80,8 @@ class Output:
         table.border = self.settings.get(Keys.Table.KEY_BORDER)
         table.preserve_internal_border = True
 
-        columns = self.settings.get(Keys.Table.Columns.KEY)
-        table.field_names = [col.get(Keys.Table.Columns.KEY_COLUMN_LABEL) for col in columns.values()]
+        column_keys = self.settings.get_columns().keys()
+        table.field_names = [self.settings.get_column_label(Column[k.upper()]) for k in column_keys]
         self.set_format(table, Column.FACTION, self._format_faction)
         self.set_format(table, Column.RANK, partial(self._format_rank, 2))
         self.set_format(table, Column.LEVEL, partial(self._format_rank, 1))
@@ -90,7 +90,7 @@ class Output:
         self.set_format(table, Column.COUNTRY, self._format_min_max)
         self.set_format(table, Column.NAME, self._format_min_max)
 
-        align = [col.get(Keys.Table.Columns.KEY_COLUMN_ALIGN) for col in columns.values()]
+        align = [self.settings.get_column_align(Column[k.upper()]) for k in column_keys]
         assert len(align) == len(table.field_names)
         for ai, a in enumerate(align):
             table.align[table.field_names[ai]] = a
@@ -98,8 +98,8 @@ class Output:
         return table
 
     def set_format(self, table: PrettyTable, c: Column, formatter):
-        label = self.settings.get_safe(Keys.Table.Columns.key_label(c))
-        if label:
+        label = self.settings.get_column_label(c)
+        if label is not None:
             table.custom_format[label] = formatter
 
     def set_column(self, row: list, c: Column, value):
@@ -158,8 +158,7 @@ class Output:
                 table.add_row(row, divider=True if tpi == len(team_players) - 1 else False)
 
             if (self.settings.get(Keys.Table.KEY_SHOW_AVERAGE)
-                    and (self.settings.has_key(Keys.Table.Columns.key(Column.RANK))
-                         or self.settings.has_key(Keys.Table.Columns.key(Column.LEVEL)))
+                    and (self.settings.has_column(Column.RANK) or self.settings.has_column(Column.LEVEL))
                     and len([p for p in team_players if p.relic_id > 0]) > 1):
 
                 avg_rank_prefix = '*' if team_data[team].avg_estimated_rank < team_data[
@@ -184,10 +183,10 @@ class Output:
 
         if (not self.settings.get(Keys.Table.KEY_ALWAYS_SHOW_TEAM)
                 and not team_data[0].pre_made_team_ids and not team_data[1].pre_made_team_ids):
-            for col in (self.settings.get_safe(Keys.Table.Columns.key_label(Column.TEAM)),
-                        self.settings.get_safe(Keys.Table.Columns.key_label(Column.TEAM_RANK)),
-                        self.settings.get_safe(Keys.Table.Columns.key_label(Column.TEAM_LEVEL))):
-                if col:
+            for col in (self.settings.get_column_label(Column.TEAM),
+                        self.settings.get_column_label(Column.TEAM_RANK),
+                        self.settings.get_column_label(Column.TEAM_LEVEL)):
+                if col is not None:
                     table.del_column(col)
 
         if len(table.field_names) > 0:
@@ -228,9 +227,9 @@ class Output:
         colored = self.settings.get(Keys.Table.KEY_COLOR)
         if isinstance(v, float):
             v_str = f'{v:.0%}'
-            if colored and f == self.settings.get_safe(Keys.Table.Columns.key(Column.DROP_RATIO)) and v >= 0.1:
+            if colored and f == self.settings.get_column_label(Column.DROP_RATIO) and v >= 0.1:
                 v_str = colorize(self.settings.get_as_color(Keys.Table.Colors.Player.KEY_HIGH_DROP_RATE), v_str)
-            elif f == self.settings.get_safe(Keys.Table.Columns.key(Column.WIN_RATIO)):
+            elif f == self.settings.get_column_label(Column.WIN_RATIO):
                 v_str = self._format_min_max(f, (v_str, v >= 0.6, v < 0.5))
         return v_str
 

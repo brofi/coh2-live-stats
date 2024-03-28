@@ -7,3 +7,5 @@ src/coh2_live_stats.egg-info/
 ## pyinstaller build
 build/
 CoH2LiveStats.spec
+## setuptools-scm
+version.py

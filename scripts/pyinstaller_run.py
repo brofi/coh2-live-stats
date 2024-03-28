@@ -21,7 +21,7 @@ import PyInstaller.__main__
 from PyInstaller.utils.win32.versioninfo import StringFileInfo, StringTable, StringStruct, VarFileInfo, VarStruct
 from PyInstaller.utils.win32.versioninfo import VSVersionInfo, FixedFileInfo
 
-from coh2_live_stats.version import __version__, __version_info__
+from coh2_live_stats.version import __version__, __version_tuple__
 
 app_name = 'CoH2LiveStats'
 config_file_name = '_coh2livestats.toml'
@@ -35,12 +35,13 @@ module_path = content_root.joinpath('src', 'coh2_live_stats')
 res_path = module_path.joinpath('res')
 version_file = build_path.joinpath('file_version_info.txt')
 
+ffi_version = (*__version_tuple__[:2], __version_tuple__[2] if isinstance(__version_tuple__[2], int) else 0, 0)
 # see: https://learn.microsoft.com/en-us/windows/win32/menurc/vs-versioninfo
 version_info = VSVersionInfo(
     # see: https://learn.microsoft.com/en-us/windows/win32/api/VerRsrc/ns-verrsrc-vs_fixedfileinfo
     ffi=FixedFileInfo(
-        filevers=__version_info__ + (0,),
-        prodvers=__version_info__ + (0,),
+        filevers=ffi_version,
+        prodvers=ffi_version,
         date=(0, 0)
     ),
     kids=[

@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools >= 61.0"]
+requires = ["setuptools >= 61.0", "setuptools-scm >= 8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "coh2_live_stats"
-version = "1.9.0"
+dynamic = ["version"]
 dependencies = [
     "httpx",
     "prettytable",
@@ -34,3 +34,6 @@ coh2livestats = "coh2_live_stats.__main__:run"
 [tool.setuptools.package-data]
 coh2_live_stats = ["*.toml"]
 "coh2_live_stats.res" = ["*.wav"]
+
+[tool.setuptools_scm]
+version_file = "src/coh2_live_stats/version.py"

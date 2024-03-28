@@ -153,6 +153,8 @@ class Output:
                 self._set_column(row, self.settings.table.columns.team_rank, ','.join(team_ranks))
                 self._set_column(row, self.settings.table.columns.team_level, ','.join(team_rank_levels))
 
+                self._set_column(row, self.settings.table.columns.steam_profile, player.get_steam_profile_url())
+
                 country: dict = country_set[player.country] if player.country else ''
                 self._set_column(row, self.settings.table.columns.country,
                                  (country['name'] if country else '', is_high_lvl_player, is_low_lvl_player))

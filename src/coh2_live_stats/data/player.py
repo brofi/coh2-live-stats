@@ -28,6 +28,7 @@ class Player:
     faction: Faction
 
     # CoH2 API data
+    steam_profile: str = ''
     country: str = ''
     leaderboard_id: int = -1
     wins: int = -1
@@ -70,6 +71,9 @@ class Player:
             if self.is_team_allies():
                 leaderboard_id += 1
         return leaderboard_id
+
+    def get_steam_profile_url(self):
+        return 'https://steamcommunity.com' + self.steam_profile.replace('steam', 'profiles')
 
     def estimate_rank(self, avg_team_rank_factor=0):
         if (self.rank > 0 and self.rank_level > 0) or self.relic_id <= 0:

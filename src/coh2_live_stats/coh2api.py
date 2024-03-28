@@ -46,7 +46,7 @@ class CoH2API:
         player.leaderboard_id = player.get_leaderboard_id(game_mode)
         self._set_player_stats_from_json(player, json)
         self._set_rank_total(player)
-        self._set_country_from_json(player, json)
+        self._set_extra_player_data_from_json(player, json)
         self._set_teams_from_json(player, json)
         return player
 
@@ -75,13 +75,14 @@ class CoH2API:
                     break
 
     @staticmethod
-    def _set_country_from_json(player: Player, json):
+    def _set_extra_player_data_from_json(player: Player, json):
         if not json:
             return
 
         for g in json['statGroups']:
             for m in g['members']:
                 if m['profile_id'] == player.relic_id:
+                    player.steam_profile = m['name']
                     player.country = m['country']
                     return
 

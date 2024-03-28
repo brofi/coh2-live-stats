@@ -63,22 +63,23 @@ class _TableColors(BaseModel):
 
 
 class _ColumnDefaults(Enum):
-    FACTION = 'Fac', 'l'
-    RANK = 'Rank', 'r'
-    LEVEL = 'Lvl', 'r'
-    WIN_RATIO = 'W%', 'r'
-    DROP_RATIO = 'D%', 'r'
-    TEAM = 'Team', 'c'
-    TEAM_RANK = 'T_Rank', 'r'
-    TEAM_LEVEL = 'T_Level', 'r'
-    COUNTRY = 'Country', 'l'
-    NAME = 'Name', 'l'
+    FACTION = 'Fac', 'l', True
+    RANK = 'Rank', 'r', True
+    LEVEL = 'Lvl', 'r', True
+    WIN_RATIO = 'W%', 'r', True
+    DROP_RATIO = 'D%', 'r', True
+    TEAM = 'Team', 'c', True
+    TEAM_RANK = 'T_Rank', 'r', True
+    TEAM_LEVEL = 'T_Level', 'r', True
+    STEAM_PROFILE = 'Profile', 'l', False
+    COUNTRY = 'Country', 'l', True
+    NAME = 'Name', 'l', True
 
-    def __init__(self, label: str, align: _Align):
-        self.visible = True
+    def __init__(self, label: str, align: _Align, visible: bool):
         self.pos = 0
         self.label = label
         self.align = align
+        self.visible = visible
 
 
 def _create_columns_model():

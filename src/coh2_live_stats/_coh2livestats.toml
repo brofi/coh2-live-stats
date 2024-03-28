@@ -86,6 +86,12 @@
 #visible = true
 #pos = 0
 #
+#[table.columns.steam_profile]
+#label = 'Profile'
+#align = 'l'
+#visible = false
+#pos = 0
+#
 #[table.columns.country]
 #label = 'Country'
 #align = 'l'

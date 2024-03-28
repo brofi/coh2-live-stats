@@ -234,10 +234,12 @@ class Output:
         colored = self.settings.table.color
         if isinstance(v, float):
             v_str = f'{v:.0%}'
-            if colored and f == self.settings.table.columns.drop_ratio.label and v >= 0.1:
+            if (colored and f == self.settings.table.columns.drop_ratio.label
+                    and v >= self.settings.table.drop_ratio_high_threshold):
                 v_str = colorize(self.settings.table.colors.player.high_drop_rate, v_str)
             elif f == self.settings.table.columns.win_ratio.label:
-                v_str = self._format_min_max(f, (v_str, v >= 0.6, v < 0.5))
+                v_str = self._format_min_max(f, (v_str, v >= self.settings.table.win_ratio_high_threshold,
+                                                 v < self.settings.table.win_ratio_low_threshold))
         return v_str
 
     def _format_min_max(self, _, v: tuple[any, bool, bool]):

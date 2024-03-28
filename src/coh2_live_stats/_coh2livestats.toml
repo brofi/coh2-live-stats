@@ -36,6 +36,12 @@
 #show_average = true
 ## Wether to always show team columns, even if they are empty.
 #always_show_team = false
+## Drop ratios higher than or equal this are considered high.
+#drop_ratio_high_threshold = 0.05
+## Win ratios higher than or equal this are considired high.
+#win_ratio_high_threshold = 0.6
+## Win ratios lower than this are considired low.
+#win_ratio_low_threshold = 0.5
 #
 ## Output columns.
 #[table.columns.faction]

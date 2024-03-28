@@ -42,6 +42,9 @@ _CT = Annotated[Color, BeforeValidator(_validate_color), PlainSerializer(lambda 
 # A Path that can handle variables, gets serialized as a string and must point to a file.
 _PT = Annotated[FilePath, BeforeValidator(lambda p: expandvars(p)), PlainSerializer(lambda p: str(p))]
 
+# Custom ratio type.
+_RT = Annotated[float, Field(ge=0, le=1)]
+
 
 class _TableColorsPlayer(BaseModel):
     high_drop_rate: _CT = Color.RED
@@ -102,6 +105,9 @@ class _Table(BaseModel):
     border: bool = False
     show_average: bool = True
     always_show_team: bool = False
+    drop_ratio_high_threshold: _RT = 0.05
+    win_ratio_high_threshold: _RT = 0.6
+    win_ratio_low_threshold: _RT = 0.5
     columns: _TableColumns = _TableColumns()
     colors: _TableColors = _TableColors()
 

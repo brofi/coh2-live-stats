@@ -14,18 +14,21 @@
 
 from enum import Enum
 
+from .color import Color
+
 
 class Faction(Enum):
-    WM = 0, 'german', 'Wehrmacht'
-    SU = 1, 'soviet', 'Soviet Union'
-    OKW = 2, 'west_german', 'Oberkommando West'
-    US = 3, 'aef', 'US Forces'
-    UK = 4, 'british', 'British Forces'
+    WM = 0, 'german', 'Wehrmacht', Color.RED
+    SU = 1, 'soviet', 'Soviet Union', Color.RED
+    OKW = 2, 'west_german', 'Oberkommando West', Color.CYAN
+    US = 3, 'aef', 'US Forces', Color.BLUE
+    UK = 4, 'british', 'British Forces', Color.YELLOW
 
-    def __init__(self, _id, key_log, full_name):
+    def __init__(self, _id, key_log, full_name, default_color: Color = Color.WHITE):
         self.id = _id
         self.key_log = key_log
         self.full_name = full_name
+        self.default_color = default_color
 
     @classmethod
     def from_log(cls, faction_name):

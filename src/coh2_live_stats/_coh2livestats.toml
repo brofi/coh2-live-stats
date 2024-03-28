@@ -37,31 +37,67 @@
 ## Wether to always show team columns, even if they are empty.
 #always_show_team = false
 #
-## Columns to include in the output.
-## Set label or alignment values or rearrange to change column order.
-## If the table.columns section is not specified, then the default columns will be shown.
-#[table.columns]
-#faction.label = 'Fac'
-#faction.align = 'l'
-#rank.label = 'Rank'
-#rank.align = 'r'
-#level.label = 'Lvl'
-#level.align = 'r'
-#win_ratio.label = 'W%'
-#win_ratio.align = 'r'
-#drop_ratio.label = 'D%'
-#drop_ratio.align = 'r'
-#team.label = 'Team'
-#team.align = 'c'
-#team_rank.label = 'T_Rank'
-#team_rank.align = 'r'
-#team_level.label = 'T_Lvl'
-#team_level.align = 'r'
-#country.label = 'Country'
-#country.align = 'l'
+## Output columns.
+#[table.columns.faction]
+#label = 'Fac'
+#align = 'l'
+#visible = true
+#pos = 0
+#
+#[table.columns.rank]
+#label = 'Rank'
+#align = 'r'
+#visible = true
+#pos = 0
+#
+#[table.columns.level]
+#label = 'Lvl'
+#align = 'r'
+#visible = true
+#pos = 0
+#
+#[table.columns.win_ratio]
+#label = 'W%'
+#align = 'r'
+#visible = true
+#pos = 0
+#
+#[table.columns.drop_ratio]
+#label = 'D%'
+#align = 'r'
+#visible = true
+#pos = 0
+#
+#[table.columns.team]
+#label = 'Team'
+#align = 'c'
+#visible = true
+#pos = 0
+#
+#[table.columns.team_rank]
+#label = 'T_Rank'
+#align = 'r'
+#visible = true
+#pos = 0
+#
+#[table.columns.team_level]
+#label = 'T_Lvl'
+#align = 'r'
+#visible = true
+#pos = 0
+#
+#[table.columns.country]
+#label = 'Country'
+#align = 'l'
+#visible = true
+#pos = 0
+#
 ## Recommended to have table.border = false and name column last, since CJK characters could distort table.
-#name.label = 'Name'
-#name.align = 'l'
+#[table.columns.name]
+#label = 'Name'
+#align = 'l'
+#visible = true
+#pos = 0
 #
 ## Output table color options.
 #[table.colors]

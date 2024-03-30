@@ -39,8 +39,14 @@ def _validate_color(v: str):
 # Custom `Color` type for validation/serialization
 _CT = Annotated[Color, BeforeValidator(_validate_color), PlainSerializer(lambda c: c.name)]
 
+
+def _serialize_path(p: Path):
+    env = '%USERPROFILE%'
+    return str(p).replace(expandvars(env), env)
+
+
 # A Path that can handle variables, gets serialized as a string and must point to a file.
-_PT = Annotated[FilePath, BeforeValidator(lambda p: expandvars(p)), PlainSerializer(lambda p: str(p))]
+_PT = Annotated[FilePath, BeforeValidator(lambda p: expandvars(p)), PlainSerializer(_serialize_path)]
 
 # Custom ratio type.
 _RT = Annotated[float, Field(ge=0, le=1)]

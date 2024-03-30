@@ -90,7 +90,7 @@ class Output:
         self._set_format(table, settings.table.columns.level, partial(self._format_rank, 1))
         for c in settings.table.columns.win_ratio, settings.table.columns.drop_ratio:
             self._set_format(table, c, self._format_ratio)
-        for c in settings.table.columns.country, settings.table.columns.name:
+        for c in settings.table.columns.prestige, settings.table.columns.country, settings.table.columns.name:
             self._set_format(table, c, self._format_min_max)
 
         for label, align in visible_columns:
@@ -133,6 +133,11 @@ class Output:
                                  (rank_estimate[0], rank_estimate[1], is_high_lvl_player, is_low_lvl_player))
                 self._set_column(row, self.settings.table.columns.level,
                                  (rank_estimate[0], rank_estimate[2], is_high_lvl_player, is_low_lvl_player))
+
+                self._set_column(row, self.settings.table.columns.prestige, (
+                    player.get_prestige_level_stars(self.settings.table.prestige_star_char,
+                                                    self.settings.table.prestige_half_star_char),
+                    is_high_lvl_player, is_low_lvl_player))
 
                 num_games = player.wins + player.losses
                 self._set_column(row, self.settings.table.columns.win_ratio,
@@ -183,7 +188,9 @@ class Output:
                         and self._get_column_index(self.settings.table.columns.rank) != 0):
                     avg_row[0] = 'Avg'
 
-                for c in self.settings.table.columns.country, self.settings.table.columns.name:
+                for c in (self.settings.table.columns.prestige,
+                          self.settings.table.columns.country,
+                          self.settings.table.columns.name):
                     self._set_column(avg_row, c, ('', False, False))
 
                 self.table.add_row(avg_row, divider=True)

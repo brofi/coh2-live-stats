@@ -1,6 +1,6 @@
 # Configuration file for CoH2LiveStats
 # 
-# Generated 2024-03-30 05:30:47
+# Generated 2024-03-30 08:01:36
 # Version 1.9.1.dev1+g3ebc4f7
 # 
 # Valid config locations:
@@ -42,6 +42,8 @@ always_show_team = false # Always show team columns, even if they're empty
 drop_ratio_high_threshold = 0.05 # Drop ratios are considered high if they're higher than or equal this value (used for color)
 win_ratio_high_threshold = 0.6 # Win ratios are considered high if they're higher than or equal this value (used for color)
 win_ratio_low_threshold = 0.5 # Win ratios are considered low if they're lower than this value (used for color)
+prestige_star_char = "*" # Character to use for one prestige level star
+prestige_half_star_char = "~" # Character to use for a half prestige level star
 
 [table.colors] # Output table color options
 border = "BRIGHT_BLACK" # Output table border color
@@ -81,6 +83,13 @@ visible = true
 pos = 0
 label = "Lvl"
 align = "r"
+
+
+[table.columns.prestige]
+visible = false
+pos = 0
+label = "XP"
+align = "l"
 
 
 [table.columns.win_ratio]

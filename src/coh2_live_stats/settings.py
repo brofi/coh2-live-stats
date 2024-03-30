@@ -67,6 +67,9 @@ _PT = Annotated[FilePath, BeforeValidator(lambda p: expandvars(p)), PlainSeriali
 # Custom ratio type.
 _RT = Annotated[float, Field(ge=0, le=1)]
 
+# Custom string type for a character.
+_Char = Annotated[str, Field(min_length=1, max_length=1)]
+
 
 class _TableColorsPlayer(BaseModel):
     high_drop_rate: _CT = Field(Color.RED, description="Color for a high player drop ratio")
@@ -92,6 +95,7 @@ class _ColumnDefaults(Enum):
     FACTION = 'Fac', 'l', True
     RANK = 'Rank', 'r', True
     LEVEL = 'Lvl', 'r', True
+    PRESTIGE = 'XP', 'l', False
     WIN_RATIO = 'W%', 'r', True
     DROP_RATIO = 'D%', 'r', True
     TEAM = 'Team', 'c', True
@@ -137,6 +141,8 @@ class _Table(BaseModel):
     win_ratio_low_threshold: _RT = Field(
         0.5,
         description="Win ratios are considered low if they're lower than this value (used for color)")
+    prestige_star_char: _Char = Field("*", description="Character to use for one prestige level star")
+    prestige_half_star_char: _Char = Field("~", description="Character to use for a half prestige level star")
     colors: _TableColors = Field(_TableColors(), description="Output table color options")
     columns: _TableColumns = Field(_TableColumns(), description="Output table column options")
 

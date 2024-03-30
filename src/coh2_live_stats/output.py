@@ -125,19 +125,19 @@ class Output:
 
                 self._set_column(row, self.settings.table.columns.faction, player.faction)
 
-                is_high_lvl_player = player in team_data[team].high_level_players
-                is_low_lvl_player = player in team_data[team].low_level_players
+                is_high_low_lvl_player = (player in team_data[team].high_level_players,
+                                          player in team_data[team].low_level_players)
 
                 rank_estimate = player.estimate_rank(team_data[team].avg_rank_factor)
                 self._set_column(row, self.settings.table.columns.rank,
-                                 (rank_estimate[0], rank_estimate[1], is_high_lvl_player, is_low_lvl_player))
+                                 (rank_estimate[0], rank_estimate[1], *is_high_low_lvl_player))
                 self._set_column(row, self.settings.table.columns.level,
-                                 (rank_estimate[0], rank_estimate[2], is_high_lvl_player, is_low_lvl_player))
+                                 (rank_estimate[0], rank_estimate[2], *is_high_low_lvl_player))
 
-                self._set_column(row, self.settings.table.columns.prestige, (
-                    player.get_prestige_level_stars(self.settings.table.prestige_star_char,
-                                                    self.settings.table.prestige_half_star_char),
-                    is_high_lvl_player, is_low_lvl_player))
+                self._set_column(row, self.settings.table.columns.prestige,
+                                 (player.get_prestige_level_stars(self.settings.table.prestige_star_char,
+                                                                  self.settings.table.prestige_half_star_char),
+                                  *is_high_low_lvl_player))
 
                 num_games = player.wins + player.losses
                 self._set_column(row, self.settings.table.columns.win_ratio,
@@ -162,10 +162,9 @@ class Output:
 
                 country: dict = country_set[player.country] if player.country else ''
                 self._set_column(row, self.settings.table.columns.country,
-                                 (country['name'] if country else '', is_high_lvl_player, is_low_lvl_player))
+                                 (country['name'] if country else '', *is_high_low_lvl_player))
 
-                self._set_column(row, self.settings.table.columns.name,
-                                 (player.name, is_high_lvl_player, is_low_lvl_player))
+                self._set_column(row, self.settings.table.columns.name, (player.name, *is_high_low_lvl_player))
 
                 self.table.add_row(row, divider=True if tpi == len(team_players) - 1 else False)
 

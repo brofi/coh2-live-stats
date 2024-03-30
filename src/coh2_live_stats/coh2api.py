@@ -17,6 +17,7 @@ import asyncio
 from httpx import AsyncClient
 
 from .data.leaderboard import Leaderboard
+from .data.match_type import MatchType
 from .data.player import Player
 from .data.team import Team
 
@@ -37,13 +38,12 @@ class CoH2API:
 
         r = await asyncio.gather(*(self._get_player(p.relic_id) for p in players))
         if r:
-            game_mode = (len(players) // 2) - 1
-            players = [self._init_player(p, game_mode, j) for (p, j) in zip(players, r)]
+            players = [self._init_player(p, MatchType(len(players) // 2), j) for (p, j) in zip(players, r)]
             self._derive_pre_made_teams(players)
         return players
 
-    def _init_player(self, player: Player, game_mode: int, json):
-        player.leaderboard_id = player.get_leaderboard_id(game_mode)
+    def _init_player(self, player: Player, match_type: MatchType, json):
+        player.leaderboard_id = player.get_leaderboard_id(match_type)
         self._set_player_stats_from_json(player, json)
         self._set_rank_total(player)
         self._set_extra_player_data_from_json(player, json)

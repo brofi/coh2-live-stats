@@ -15,6 +15,7 @@
 from dataclasses import dataclass, field
 
 from .faction import Faction
+from .match_type import MatchType
 from .team import Team
 from ..util import ratio
 
@@ -71,14 +72,8 @@ class Player:
     def is_team_allies(self) -> bool:
         return self.faction in (Faction.SU, Faction.US, Faction.UK)
 
-    # game mode: 1v1: 0, 2v2: 1, 3v3: 2, 4v4: 3
-    def get_leaderboard_id(self, game_mode: int):
-        if self.faction.id == 4:
-            lid = 51 + game_mode
-        else:
-            # leaderboard_id 0..3 -> AI Games
-            lid = 4 + (game_mode * 4) + self.faction.id
-        return lid
+    def get_leaderboard_id(self, match_type: MatchType):
+        return 50 + match_type if self.faction == Faction.UK else match_type * 4 + self.faction.id
 
     def get_team_leaderboard_id(self, num_team_members: int):
         leaderboard_id = -1

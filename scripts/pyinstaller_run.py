@@ -21,11 +21,11 @@ import PyInstaller.__main__
 from PyInstaller.utils.win32.versioninfo import StringFileInfo, StringTable, StringStruct, VarFileInfo, VarStruct
 from PyInstaller.utils.win32.versioninfo import VSVersionInfo, FixedFileInfo
 
-from coh2_live_stats.settings import CONFIG_DEV
+from coh2_live_stats.settings import CONFIG_FILE_DEV
 from coh2_live_stats.version import __version__, __version_tuple__
 
 app_name = 'CoH2LiveStats'
-config_file_name = CONFIG_DEV
+config_file_name = CONFIG_FILE_DEV
 license_file_name = 'COPYING'
 exec_name = f'{app_name}.exe'
 contents_dir_name = 'lib'

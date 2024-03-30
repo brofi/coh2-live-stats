@@ -17,7 +17,7 @@ from contextlib import suppress
 from enum import Enum
 from os.path import expandvars
 from pathlib import Path
-from tomllib import load, TOMLDecodeError
+from tomllib import TOMLDecodeError, load
 from typing import get_args, Literal, Annotated
 
 from pydantic import BeforeValidator, PlainSerializer, BaseModel, create_model, field_validator, FilePath, Field
@@ -30,22 +30,17 @@ CONFIG_PATHS = ['%USERPROFILE%', str(Path(getattr(sys, '_MEIPASS', __file__)).pa
 CONFIG_NAMES = [f'{p}{b}.toml' for b in ['coh2livestats', 'coh2_live_stats'] for p in ['_', '.', '']]
 CONFIG_FILES = [Path(expandvars(p)).joinpath(n) for p in CONFIG_PATHS for n in CONFIG_NAMES]
 
-CONFIG_DEV = Path(__file__).with_name(CONFIG_NAMES[0])
 
-
-def _config():
+def _first_valid_config():
     for c in CONFIG_FILES:
-        try:
+        with suppress(FileNotFoundError, TOMLDecodeError):
             with open(c, 'rb') as f:
                 _ = load(f)
                 return c
-        except TOMLDecodeError as e:
-            print('Error: Invalid TOML')
-            print(f'\tFile: {c}')
-            print(f'\tCause: {e.args[0]}')
-        except FileNotFoundError:
-            pass
 
+
+CONFIG_FILE = _first_valid_config()
+CONFIG_FILE_DEV = Path(__file__).with_name(CONFIG_NAMES[0])
 
 Align = Literal['l', 'c', 'r']
 Sound = Literal['horn_subtle', 'horn', 'horn_epic']
@@ -169,7 +164,7 @@ class Settings(BaseSettings):
 
 
 class TomlSettings(Settings):
-    model_config = SettingsConfigDict(toml_file=_config())
+    model_config = SettingsConfigDict(toml_file=CONFIG_FILE)
 
     @classmethod
     def settings_customise_sources(

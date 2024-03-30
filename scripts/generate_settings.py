@@ -21,7 +21,7 @@ from tomlkit import document, comment, nl, TOMLDocument, items, dump
 from tomlkit.items import AbstractTable
 
 from coh2_live_stats.data.color import Color
-from coh2_live_stats.settings import SettingsFactory, CONFIG_NAMES, Sound, Align, CONFIG_DEV, CONFIG_PATHS
+from coh2_live_stats.settings import SettingsFactory, CONFIG_NAMES, Sound, Align, CONFIG_FILE_DEV, CONFIG_PATHS
 from coh2_live_stats.version import __version__
 
 
@@ -100,5 +100,5 @@ for line in header_comment.splitlines():
 doc.add(nl()).add(nl())
 init_doc(settings, doc)
 
-with open(CONFIG_DEV, 'w') as f:
+with open(CONFIG_FILE_DEV, 'w') as f:
     dump(doc, f)

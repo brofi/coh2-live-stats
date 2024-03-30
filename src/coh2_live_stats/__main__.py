@@ -31,7 +31,7 @@ from watchdog.observers import Observer
 from coh2_live_stats.coh2api import CoH2API
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.output import Output
-from coh2_live_stats.settings import SettingsFactory, Settings
+from coh2_live_stats.settings import SettingsFactory, Settings, CONFIG_FILE
 from coh2_live_stats.util import progress_start, progress_stop, play_sound
 
 API_TIMEOUT = 30
@@ -155,7 +155,9 @@ async def main():
             with open(settings.logfile, mode="rb", buffering=0):
                 await asyncio.sleep(1)
     except TOMLDecodeError as e:
-        print(e.args[0])
+        print('Error: Invalid TOML configuration file')
+        print(f'\tFile: {CONFIG_FILE}')
+        print(f'\tCause: {e.args[0]}')
         EXIT_STATUS = 1
     except ValidationError as e:
         n = e.error_count()

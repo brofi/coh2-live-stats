@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 
 from .faction import Faction
 from .team import Team
+from ..util import ratio
 
 
 @dataclass(eq=False)
@@ -50,11 +51,25 @@ class Player:
     # (A,B,C).
     pre_made_teams: list[Team] = field(default_factory=list)
 
-    def is_team_axis(self):
-        return self.faction.id == 0 or self.faction.id == 2
+    @property
+    def num_games(self) -> int:
+        return self.wins + self.losses
 
-    def is_team_allies(self):
-        return not self.is_team_axis()
+    @property
+    def win_ratio(self) -> float:
+        return ratio(self.wins, self.num_games)
+
+    @property
+    def drop_ratio(self) -> float:
+        return ratio(self.drops, self.num_games)
+
+    @property
+    def is_team_axis(self) -> bool:
+        return self.faction in (Faction.WM, Faction.OKW)
+
+    @property
+    def is_team_allies(self) -> bool:
+        return self.faction in (Faction.SU, Faction.US, Faction.UK)
 
     # game mode: 1v1: 0, 2v2: 1, 3v3: 2, 4v4: 3
     def get_leaderboard_id(self, game_mode: int):
@@ -69,7 +84,7 @@ class Player:
         leaderboard_id = -1
         if num_team_members > 1:
             leaderboard_id = 20 + (num_team_members - 2) * 2
-            if self.is_team_allies():
+            if self.is_team_allies:
                 leaderboard_id += 1
         return leaderboard_id
 

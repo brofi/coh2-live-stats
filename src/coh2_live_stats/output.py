@@ -139,11 +139,8 @@ class Output:
                                                                   self.settings.table.prestige_half_star_char),
                                   *is_high_low_lvl_player))
 
-                num_games = player.wins + player.losses
-                self._set_column(row, self.settings.table.columns.win_ratio,
-                                 player.wins / num_games if num_games > 0 else '')
-                self._set_column(row, self.settings.table.columns.drop_ratio,
-                                 player.drops / num_games if num_games > 0 else '')
+                self._set_column(row, self.settings.table.columns.win_ratio, player.win_ratio)
+                self._set_column(row, self.settings.table.columns.drop_ratio, player.drop_ratio)
 
                 team_ranks = [str(t.rank) for t in player.pre_made_teams]
                 team_rank_levels = [str(t.rank_level) for t in player.pre_made_teams]

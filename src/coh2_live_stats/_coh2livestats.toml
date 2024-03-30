@@ -1,138 +1,139 @@
-## Configuration file for CoH2LiveStats.
-##
-## Valid configuration file paths in order of detection:
-##   * %USERPROFILE%\CONFIG
-##   * PARENT_FOLDER_OF_EXECUTABLE\CONFIG
-## with CONFIG in:
-##   * _coh2livestats.toml
-##   * .coh2livestats.toml
-##   * coh2livestats.toml
-##   * _coh2_live_stats.toml
-##   * .coh2_live_stats.toml
-##   * coh2_live_stats.toml
-#
-## Valid colors (case-insensitive):
-##   * black, red, green, yellow, blue, magenta, cyan, white
-##   * bright_black, bright_red, bright_green, bright_yellow, bright_blue, bright_magenta, bright_cyan, bright_white
-#
-## Path to observed Company of Heroes 2 log file. Supports OS environment variables.
-#logfile = '%USERPROFILE%\Documents\My Games\Company of Heroes 2\warnings.log'
-#
-#[notification]
-## Whether to play a notification sound when a new multiplayer match was found.
-#play_sound = true
-## Built-in notification sound name or full path to custom waveform audio file.
-## Valid built-in sound names (case-insensitive): horn, horn_subtle, horn_epic
-#sound = 'horn'
-#
-## Output table options.
-#[table]
-## Wether to use color at all.
-#color = true
-## Draw a border around the output table.
-## Recommended to have table.border = false and name column last, since CJK characters could distort table.
-#border = false
-## Wether to show average team rank and level.
-#show_average = true
-## Wether to always show team columns, even if they are empty.
-#always_show_team = false
-## Drop ratios higher than or equal this are considered high.
-#drop_ratio_high_threshold = 0.05
-## Win ratios higher than or equal this are considired high.
-#win_ratio_high_threshold = 0.6
-## Win ratios lower than this are considired low.
-#win_ratio_low_threshold = 0.5
-#
-## Output columns.
-#[table.columns.faction]
-#label = 'Fac'
-#align = 'l'
-#visible = true
-#pos = 0
-#
-#[table.columns.rank]
-#label = 'Rank'
-#align = 'r'
-#visible = true
-#pos = 0
-#
-#[table.columns.level]
-#label = 'Lvl'
-#align = 'r'
-#visible = true
-#pos = 0
-#
-#[table.columns.win_ratio]
-#label = 'W%'
-#align = 'r'
-#visible = true
-#pos = 0
-#
-#[table.columns.drop_ratio]
-#label = 'D%'
-#align = 'r'
-#visible = true
-#pos = 0
-#
-#[table.columns.team]
-#label = 'Team'
-#align = 'c'
-#visible = true
-#pos = 0
-#
-#[table.columns.team_rank]
-#label = 'T_Rank'
-#align = 'r'
-#visible = true
-#pos = 0
-#
-#[table.columns.team_level]
-#label = 'T_Lvl'
-#align = 'r'
-#visible = true
-#pos = 0
-#
-#[table.columns.steam_profile]
-#label = 'Profile'
-#align = 'l'
-#visible = false
-#pos = 0
-#
-#[table.columns.country]
-#label = 'Country'
-#align = 'l'
-#visible = true
-#pos = 0
-#
-## Recommended to have table.border = false and name column last, since CJK characters could distort table.
-#[table.columns.name]
-#label = 'Name'
-#align = 'l'
-#visible = true
-#pos = 0
-#
-## Output table color options.
-#[table.colors]
-#border = 'bright_black'
-#label = 'bright_black'
-#
-## Player-specific color options.
-#[table.colors.player]
-#high_drop_rate = 'red'
-## Color for highest ranked player and high winrate.
-#high = 'bright_white'
-## Color for lowest ranked player and low winrate.
-#low = 'bright_black'
-#
-## Faction colors.
-#[table.colors.faction]
-## Wehrmacht
-#wm = 'red'
-## Soviet Union
-#su = 'red'
-## Oberkommando West
-#okw = 'cyan'
-## US Forces
-#us = 'blue'
-## British Forces
-#uk = 'yellow'
+# Configuration file for CoH2LiveStats
+# 
+# Generated 2024-03-30 05:30:47
+# Version 1.9.1.dev1+g3ebc4f7
+# 
+# Valid config locations:
+#     * %USERPROFILE%
+#     * Next to executable
+# Valid config names:
+#     * _coh2livestats.toml
+#     * .coh2livestats.toml
+#     * coh2livestats.toml
+#     * _coh2_live_stats.toml
+#     * .coh2_live_stats.toml
+#     * coh2_live_stats.toml
+# 
+# Valid colors:
+#     * 'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan' or 'white'
+#     * 'bright_black', 'bright_red', 'bright_green', 'bright_yellow', 'bright_blue', 'bright_magenta', 'bright_cyan' or 'bright_white'
+# 
+# Valid sound values:
+#     * 'horn_subtle', 'horn' or 'horn_epic'
+#     * Path to custom WAV file
+# 
+# Valid alignment values: 'l', 'c' or 'r'
+# 
+# Notes:
+#     * CJK characters can distort table (table.border = false and name column last is recommended)
+
+
+logfile = "%USERPROFILE%\\Documents\\My Games\\Company of Heroes 2\\warnings.log" # Path to observed Company of Heroes 2 log file (supports OS environment variables)
+
+[notification] # Notification sound options
+play_sound = true # Play a notification sound when a new multiplayer match was found
+sound = "%USERPROFILE%\\PycharmProjects\\CoH2LiveStats\\src\\coh2_live_stats\\res\\horn.wav" # Built-in notification sound name or full path to custom waveform audio file
+
+[table] # Output table options
+color = true # Use color for output
+border = false # Draw a border around the output table
+show_average = true # Show team's average rank and level
+always_show_team = false # Always show team columns, even if they're empty
+drop_ratio_high_threshold = 0.05 # Drop ratios are considered high if they're higher than or equal this value (used for color)
+win_ratio_high_threshold = 0.6 # Win ratios are considered high if they're higher than or equal this value (used for color)
+win_ratio_low_threshold = 0.5 # Win ratios are considered low if they're lower than this value (used for color)
+
+[table.colors] # Output table color options
+border = "BRIGHT_BLACK" # Output table border color
+label = "BRIGHT_BLACK" # Output table header color
+
+[table.colors.player] # Player-specific color options
+high_drop_rate = "RED" # Color for a high player drop ratio
+high = "BRIGHT_WHITE" # Color for highest ranked player and high win ratio
+low = "BRIGHT_BLACK" # Color for lowest ranked player and low win ratio
+
+
+[table.colors.faction] # Faction colors
+wm = "RED" # Wehrmacht color
+su = "RED" # Soviet Union color
+okw = "CYAN" # Oberkommando West color
+us = "BLUE" # US Forces color
+uk = "YELLOW" # British Forces color
+
+
+[table.columns] # Output table column options
+[table.columns.faction]
+visible = true
+pos = 0
+label = "Fac"
+align = "l"
+
+
+[table.columns.rank]
+visible = true
+pos = 0
+label = "Rank"
+align = "r"
+
+
+[table.columns.level]
+visible = true
+pos = 0
+label = "Lvl"
+align = "r"
+
+
+[table.columns.win_ratio]
+visible = true
+pos = 0
+label = "W%"
+align = "r"
+
+
+[table.columns.drop_ratio]
+visible = true
+pos = 0
+label = "D%"
+align = "r"
+
+
+[table.columns.team]
+visible = true
+pos = 0
+label = "Team"
+align = "c"
+
+
+[table.columns.team_rank]
+visible = true
+pos = 0
+label = "T_Rank"
+align = "r"
+
+
+[table.columns.team_level]
+visible = true
+pos = 0
+label = "T_Level"
+align = "r"
+
+
+[table.columns.steam_profile]
+visible = false
+pos = 0
+label = "Profile"
+align = "l"
+
+
+[table.columns.country]
+visible = true
+pos = 0
+label = "Country"
+align = "l"
+
+
+[table.columns.name]
+visible = true
+pos = 0
+label = "Name"
+align = "l"

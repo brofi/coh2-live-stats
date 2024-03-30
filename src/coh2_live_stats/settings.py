@@ -26,8 +26,29 @@ from pydantic_settings import BaseSettings, SettingsConfigDict, PydanticBaseSett
 from .data.color import Color
 from .data.faction import Faction
 
-_Align = Literal['l', 'c', 'r']
-_Sound = Literal['horn_subtle', 'horn', 'horn_epic']
+CONFIG_PATHS = ['%USERPROFILE%', str(Path(getattr(sys, '_MEIPASS', __file__)).parent)]
+CONFIG_NAMES = [f'{p}{b}.toml' for b in ['coh2livestats', 'coh2_live_stats'] for p in ['_', '.', '']]
+CONFIG_FILES = [Path(expandvars(p)).joinpath(n) for p in CONFIG_PATHS for n in CONFIG_NAMES]
+
+CONFIG_DEV = Path(__file__).with_name(CONFIG_NAMES[0])
+
+
+def _config():
+    for c in CONFIG_FILES:
+        try:
+            with open(c, 'rb') as f:
+                _ = load(f)
+                return c
+        except TOMLDecodeError as e:
+            print('Error: Invalid TOML')
+            print(f'\tFile: {c}')
+            print(f'\tCause: {e.args[0]}')
+        except FileNotFoundError:
+            pass
+
+
+Align = Literal['l', 'c', 'r']
+Sound = Literal['horn_subtle', 'horn', 'horn_epic']
 
 
 def _validate_color(v: str):
@@ -53,19 +74,20 @@ _RT = Annotated[float, Field(ge=0, le=1)]
 
 
 class _TableColorsPlayer(BaseModel):
-    high_drop_rate: _CT = Color.RED
-    high: _CT = Color.BRIGHT_WHITE
-    low: _CT = Color.BRIGHT_BLACK
+    high_drop_rate: _CT = Field(Color.RED, description="Color for a high player drop ratio")
+    high: _CT = Field(Color.BRIGHT_WHITE, description="Color for highest ranked player and high win ratio")
+    low: _CT = Field(Color.BRIGHT_BLACK, description="Color for lowest ranked player and low win ratio")
 
 
-_TableColorsFaction = create_model('_TableColorsFaction', **{f.name.lower(): (_CT, f.default_color) for f in Faction})
+_TableColorsFaction = create_model('_TableColorsFaction', **{
+    f.name.lower(): (_CT, Field(f.default_color, description=f"{f.full_name} color")) for f in Faction})
 
 
 class _TableColors(BaseModel):
-    border: _CT = Color.BRIGHT_BLACK
-    label: _CT = Color.BRIGHT_BLACK
-    player: _TableColorsPlayer = _TableColorsPlayer()
-    faction: _TableColorsFaction = _TableColorsFaction()
+    border: _CT = Field(Color.BRIGHT_BLACK, description="Output table border color")
+    label: _CT = Field(Color.BRIGHT_BLACK, description="Output table header color")
+    player: _TableColorsPlayer = Field(_TableColorsPlayer(), description="Player-specific color options")
+    faction: _TableColorsFaction = Field(_TableColorsFaction(), description="Faction colors")
 
     def get_faction_color(self, f: Faction):
         return getattr(self.faction, f.name.lower())
@@ -84,7 +106,7 @@ class _ColumnDefaults(Enum):
     COUNTRY = 'Country', 'l', True
     NAME = 'Name', 'l', True
 
-    def __init__(self, label: str, align: _Align, visible: bool):
+    def __init__(self, label: str, align: Align, visible: bool):
         self.pos = 0
         self.label = label
         self.align = align
@@ -98,8 +120,8 @@ def _create_columns_model():
                                  visible=(bool, d.visible),
                                  pos=(int, d.pos),
                                  label=(str, d.label),
-                                 align=(_Align, d.align))
-        field_definitions[d.name.lower()] = model_col, model_col()
+                                 align=(Align, d.align))
+        field_definitions[d.name.lower()] = model_col, Field(model_col())
     return create_model('_TableColumns', **field_definitions)
 
 
@@ -107,63 +129,67 @@ _TableColumns = _create_columns_model()
 
 
 class _Table(BaseModel):
-    color: bool = True
-    border: bool = False
-    show_average: bool = True
-    always_show_team: bool = False
-    drop_ratio_high_threshold: _RT = 0.05
-    win_ratio_high_threshold: _RT = 0.6
-    win_ratio_low_threshold: _RT = 0.5
-    columns: _TableColumns = _TableColumns()
-    colors: _TableColors = _TableColors()
+    color: bool = Field(True, description="Use color for output")
+    border: bool = Field(False, description="Draw a border around the output table")
+    show_average: bool = Field(True, description="Show team's average rank and level")
+    always_show_team: bool = Field(False, description="Always show team columns, even if they're empty")
+    drop_ratio_high_threshold: _RT = Field(
+        0.05,
+        description="Drop ratios are considered high if they're higher than or equal this value (used for color)")
+    win_ratio_high_threshold: _RT = Field(
+        0.6,
+        description="Win ratios are considered high if they're higher than or equal this value (used for color)")
+    win_ratio_low_threshold: _RT = Field(
+        0.5,
+        description="Win ratios are considered low if they're lower than this value (used for color)")
+    colors: _TableColors = Field(_TableColors(), description="Output table color options")
+    columns: _TableColumns = Field(_TableColumns(), description="Output table column options")
 
 
 class _Notification(BaseModel):
-    play_sound: bool = True
-    sound: _PT = Field(default='horn', validate_default=True)
+    play_sound: bool = Field(True, description="Play a notification sound when a new multiplayer match was found")
+    sound: _PT = Field(default='horn', validate_default=True,
+                       description="Built-in notification sound name or full path to custom waveform audio file")
 
     # noinspection PyNestedDecorators
     @field_validator('sound', mode='before')
     @classmethod
     def resolve_sound_name(cls, v) -> Path:
-        if v in get_args(_Sound):
+        if v in get_args(Sound):
             return Path(getattr(sys, '_MEIPASS', str(Path(__file__).parent))).joinpath('res', f'{v}.wav')
         return v
 
 
-def _get_config():
-    config = None
-    config_paths = ['%USERPROFILE%', str(Path(getattr(sys, '_MEIPASS', __file__)).parent)]
-    config_names = [f'{p}{b}.toml' for b in ['coh2livestats', 'coh2_live_stats'] for p in ['_', '.', '']]
-    config_files = [Path(expandvars(p)).joinpath(n) for p in config_paths for n in config_names]
-    for c in config_files:
-        try:
-            with open(c, 'rb') as f:
-                _ = load(f)
-                config = c
-                break
-        except TOMLDecodeError as e:
-            print('Error: Invalid TOML')
-            print(f'\tFile: {c}')
-            print(f'\tCause: {e.args[0]}')
-        except FileNotFoundError:
-            pass
-    return config
-
-
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(toml_file=_get_config(), frozen=True)
+    logfile: _PT = Field(
+        Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log'),
+        description="Path to observed Company of Heroes 2 log file (supports OS environment variables)")
+    notification: _Notification = Field(_Notification(), description="Notification sound options")
+    table: _Table = Field(_Table(), description="Output table options")
 
-    logfile: _PT = Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log')
-    table: _Table = _Table()
-    notification: _Notification = _Notification()
+
+class TomlSettings(Settings):
+    model_config = SettingsConfigDict(toml_file=_config())
 
     @classmethod
-    def settings_customise_sources(cls,
-                                   settings_cls: type[BaseSettings],
-                                   init_settings: PydanticBaseSettingsSource,
-                                   env_settings: PydanticBaseSettingsSource,
-                                   dotenv_settings: PydanticBaseSettingsSource,
-                                   file_secret_settings: PydanticBaseSettingsSource
-                                   ) -> tuple[PydanticBaseSettingsSource, ...]:
+    def settings_customise_sources(
+            cls,
+            settings_cls: type[BaseSettings],
+            init_settings: PydanticBaseSettingsSource,
+            env_settings: PydanticBaseSettingsSource,
+            dotenv_settings: PydanticBaseSettingsSource,
+            file_secret_settings: PydanticBaseSettingsSource
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
         return TomlConfigSettingsSource(settings_cls),
+
+
+class SettingsFactory:
+    @staticmethod
+    def create_settings(values: any = None) -> Settings:
+        if values is None:
+            return TomlSettings()
+        return Settings(**values)
+
+    @staticmethod
+    def create_default_settings() -> Settings:
+        return SettingsFactory.create_settings({})

@@ -31,7 +31,7 @@ from watchdog.observers import Observer
 from coh2_live_stats.coh2api import CoH2API
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.output import Output
-from coh2_live_stats.settings import Settings
+from coh2_live_stats.settings import SettingsFactory, Settings
 from coh2_live_stats.util import progress_start, progress_stop, play_sound
 
 API_TIMEOUT = 30
@@ -142,7 +142,7 @@ async def main():
     observer = Observer()
 
     try:
-        settings = Settings()
+        settings = SettingsFactory.create_settings()
         output = Output(settings)
         # Initial requests
         await init_leaderboards()

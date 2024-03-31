@@ -81,8 +81,9 @@ class Output:
         table.preserve_internal_border = True
 
         cols = settings.table.columns
-        visible_columns = [(c['label'], c['align']) for c in
-                           sorted(filter(lambda c: c['visible'], cols.model_dump().values()), key=lambda c: c['pos'])]
+        visible_columns = [(c.label, c.align) for c in sorted(
+            filter(lambda c: c.visible, [getattr(cols, attr) for attr in cols.model_fields.keys()]),
+            key=lambda c: c.pos)]
         table.field_names = [label for label, _ in visible_columns]
 
         for label, align in visible_columns:

@@ -92,10 +92,10 @@ class Output:
         table.custom_format[cols.faction.label] = self._format_faction
         table.custom_format[cols.rank.label] = partial(self._format_rank, 2)
         table.custom_format[cols.level.label] = partial(self._format_rank, 1)
-        for c in cols.win_ratio.label, cols.drop_ratio.label:
-            table.custom_format[c] = self._format_ratio
-        for c in cols.prestige.label, cols.country.label, cols.name.label:
-            table.custom_format[c] = self._format_min_max
+        for c in cols.win_ratio, cols.drop_ratio:
+            table.custom_format[c.label] = self._format_ratio
+        for c in cols.prestige, cols.country, cols.name:
+            table.custom_format[c.label] = self._format_min_max
 
         return table
 
@@ -110,59 +110,56 @@ class Output:
         clear()
 
         if not players or len(players) < 2:
-            print('No match found.')
+            print('Waiting for match...')
             return
 
         team_data = _get_team_data(players)
+        cols = self.settings.table.columns
         for team in range(2):
             team_players = [p for p in players if p.team == team]
             for tpi, player in enumerate(team_players):
                 row = [''] * len(self.table.field_names)
 
-                self._set_column(row, self.settings.table.columns.faction, player.faction)
+                self._set_column(row, cols.faction, player.faction)
 
                 is_high_low_lvl_player = (player in team_data[team].high_level_players,
                                           player in team_data[team].low_level_players)
 
                 rank_estimate = player.estimate_rank(team_data[team].avg_rank_factor)
-                self._set_column(row, self.settings.table.columns.rank,
-                                 (rank_estimate[0], rank_estimate[1], *is_high_low_lvl_player))
-                self._set_column(row, self.settings.table.columns.level,
-                                 (rank_estimate[0], rank_estimate[2], *is_high_low_lvl_player))
+                self._set_column(row, cols.rank, (rank_estimate[0], rank_estimate[1], *is_high_low_lvl_player))
+                self._set_column(row, cols.level, (rank_estimate[0], rank_estimate[2], *is_high_low_lvl_player))
 
-                self._set_column(row, self.settings.table.columns.prestige,
+                self._set_column(row, cols.prestige,
                                  (player.get_prestige_level_stars(self.settings.table.prestige_star_char,
                                                                   self.settings.table.prestige_half_star_char),
                                   *is_high_low_lvl_player))
 
-                self._set_column(row, self.settings.table.columns.win_ratio, player.win_ratio)
-                self._set_column(row, self.settings.table.columns.drop_ratio, player.drop_ratio)
+                self._set_column(row, cols.win_ratio, player.win_ratio)
+                self._set_column(row, cols.drop_ratio, player.drop_ratio)
 
                 team_ranks = [str(t.rank) for t in player.pre_made_teams]
                 team_rank_levels = [str(t.rank_level) for t in player.pre_made_teams]
                 for ti, t in enumerate(player.pre_made_teams):
-                    if t.rank <= 0 < t.highest_rank:
-                        team_ranks[ti] = '+' + str(t.highest_rank)
-                    if t.rank_level <= 0 < t.highest_rank_level:
-                        team_rank_levels[ti] = '+' + str(t.highest_rank_level)
+                    if t.rank <= 0:
+                        team_ranks[ti] = '+' + str(t.highest_rank) if t.highest_rank > 0 else '-'
+                    if t.rank_level <= 0:
+                        team_rank_levels[ti] = '+' + str(t.highest_rank_level) if t.highest_rank_level > 0 else '-'
 
-                self._set_column(row, self.settings.table.columns.team, ','.join(map(str, [
+                self._set_column(row, cols.team, ','.join(map(str, [
                     chr(team_data[player.team].pre_made_team_ids.index(t.id) + 65) for t in player.pre_made_teams])))
-                self._set_column(row, self.settings.table.columns.team_rank, ','.join(team_ranks))
-                self._set_column(row, self.settings.table.columns.team_level, ','.join(team_rank_levels))
+                self._set_column(row, cols.team_rank, ','.join(team_ranks))
+                self._set_column(row, cols.team_level, ','.join(team_rank_levels))
 
-                self._set_column(row, self.settings.table.columns.steam_profile, player.get_steam_profile_url())
+                self._set_column(row, cols.steam_profile, player.get_steam_profile_url())
 
                 country: dict = country_set[player.country] if player.country else ''
-                self._set_column(row, self.settings.table.columns.country,
-                                 (country['name'] if country else '', *is_high_low_lvl_player))
+                self._set_column(row, cols.country, (country['name'] if country else '', *is_high_low_lvl_player))
 
-                self._set_column(row, self.settings.table.columns.name, (player.name, *is_high_low_lvl_player))
+                self._set_column(row, cols.name, (player.name, *is_high_low_lvl_player))
 
                 self.table.add_row(row, divider=True if tpi == len(team_players) - 1 else False)
 
-            if (self.settings.table.show_average
-                    and (self.settings.table.columns.rank.visible or self.settings.table.columns.level.visible)
+            if (self.settings.table.show_average and (cols.rank.visible or cols.level.visible)
                     and len([p for p in team_players if p.relic_id > 0]) > 1):
 
                 avg_rank_prefix = '*' if team_data[team].avg_estimated_rank < team_data[
@@ -171,27 +168,19 @@ class Output:
                     abs(team - 1)].avg_estimated_rank_level else ''
                 avg_row: list[Any] = [''] * len(self.table.field_names)
 
-                self._set_column(avg_row, self.settings.table.columns.rank,
+                self._set_column(avg_row, cols.rank,
                                  (avg_rank_prefix, team_data[team].avg_estimated_rank, False, False))
-                self._set_column(avg_row, self.settings.table.columns.level,
+                self._set_column(avg_row, cols.level,
                                  (avg_rank_level_prefix, team_data[team].avg_estimated_rank_level, False, False))
 
-                if (self._get_column_index(self.settings.table.columns.rank) != 0
-                        and self._get_column_index(self.settings.table.columns.level) != 0):
+                if self._get_column_index(cols.rank) != 0 and self._get_column_index(cols.level) != 0:
                     avg_row[0] = 'Avg'
-
-                for c in (self.settings.table.columns.prestige,
-                          self.settings.table.columns.country,
-                          self.settings.table.columns.name):
-                    self._set_column(avg_row, c, ('', False, False))
 
                 self.table.add_row(avg_row, divider=True)
 
         if (not self.settings.table.always_show_team
                 and not team_data[0].pre_made_team_ids and not team_data[1].pre_made_team_ids):
-            for col in (self.settings.table.columns.team,
-                        self.settings.table.columns.team_rank,
-                        self.settings.table.columns.team_level):
+            for col in (cols.team, cols.team_rank, cols.team_level):
                 if col.visible:
                     self.table.del_column(col.label)
 
@@ -217,11 +206,11 @@ class Output:
             return colorize(self.settings.table.colors.get_faction_color(v), v.name) if colored else v.name
         return colorize(self.settings.table.colors.label, str(v)) if colored else str(v)
 
-    def _format_rank(self, precision, _, v: tuple[str, any, bool, bool]):
-        if v[1] <= 0:
+    def _format_rank(self, precision, _, v: any):
+        if not v or not isinstance(v, tuple) or len(v) < 4 or v[1] <= 0:
             return ''
 
-        v_str = str(v)
+        v_str = ''
         if isinstance(v[1], float):
             v_str = f'{v[0]}{v[1]:.{precision}f}'
         elif isinstance(v[1], int):
@@ -241,7 +230,10 @@ class Output:
                                                  v < self.settings.table.win_ratio_low_threshold))
         return v_str
 
-    def _format_min_max(self, _, v: tuple[any, bool, bool]):
+    def _format_min_max(self, _, v: any):
+        if not v or not isinstance(v, tuple) or len(v) < 3:
+            return ''
+
         v_str = str(v[0])
         colored = self.settings.table.color
         if colored:

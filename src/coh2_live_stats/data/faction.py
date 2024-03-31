@@ -50,6 +50,6 @@ class TeamFaction(IntEnum):
     AXIS = 0
     ALLIES = 1
 
-    @staticmethod
-    def from_faction(f: Faction):
-        return TeamFaction(int(f.is_allies_faction))
+    @classmethod
+    def from_faction(cls, f: Faction):
+        return cls(int(f.is_allies_faction))

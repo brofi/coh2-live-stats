@@ -18,9 +18,38 @@ from enum import IntEnum
 from httpx import AsyncClient
 
 from .data.faction import TeamFaction, Faction
-from .data.leaderboard import Leaderboard
 from .data.player import Player
 from .data.team import Team
+
+
+class _SoloMatchType(IntEnum):
+    CUSTOM = 0
+    S_1V1 = 1
+    S_2V2 = 2
+    S_3V3 = 3
+    S_4V4 = 4
+
+    def __str__(self):
+        return self.name.removeprefix('S_').lower()
+
+
+class _TeamMatchType(IntEnum):
+    T_2V2 = 0
+    T_3V3 = 1
+    T_4V4 = 2
+
+    def __str__(self):
+        return self.name.removeprefix('T_').lower()
+
+
+class _Difficulty(IntEnum):
+    EASY = 0
+    MEDIUM = 1
+    HARD = 2
+    EXPERT = 3
+
+
+type Leaderboard = dict[int, dict[str, any]]
 
 
 class CoH2API:
@@ -28,28 +57,19 @@ class CoH2API:
     URL_LEADERBOARDS = 'https://coh2-api.reliclink.com/community/leaderboard/getAvailableLeaderboards'
     URL_LEADERBOARD = 'https://coh2-api.reliclink.com/community/leaderboard/getleaderboard2'
 
-    class _SoloMatchType(IntEnum):
-        CUSTOM = 0
-        SOLO_1V1 = 1
-        SOLO_2V2 = 2
-        SOLO_3V3 = 3
-        SOLO_4V4 = 4
-
-    class _TeamMatchType(IntEnum):
-        TEAM_2V2 = 0
-        TEAM_3V3 = 1
-        TEAM_4V4 = 2
-
-    class _Difficulty(IntEnum):
-        EASY = 0
-        MEDIUM = 1
-        HARD = 2
-        EXPERT = 3
+    KEY_LEADERBOARD_NAME = 'name'
+    KEY_LEADERBOARD_RANK_TOTAL = 'rank_total'
 
     def __init__(self, timeout=60):
         self.http_client = AsyncClient()
         self.timeout = timeout
-        self.leaderboards: list[Leaderboard] = []
+        self.leaderboards: Leaderboard = {
+            **{self._get_solo_leaderboard_id(m, f): {
+                self.KEY_LEADERBOARD_NAME: f'{m}_{f.name}'}
+                for m in _SoloMatchType if m != _SoloMatchType.CUSTOM for f in Faction},
+            **{self._get_team_leaderboard_id(m, t): {
+                self.KEY_LEADERBOARD_NAME: f'Team_of_{m.value + 2}_{t.name.capitalize()}'}
+                for m in _TeamMatchType for t in TeamFaction}}
 
     async def get_players(self, players: list[Player]) -> list[Player]:
         if not self.leaderboards:
@@ -63,15 +83,16 @@ class CoH2API:
         return players
 
     def _init_player(self, player: Player, num_players: int, json):
-        leaderboard_id = self._get_solo_leaderboard_id(self._SoloMatchType(num_players // 2), player.faction)
+        leaderboard_id = self._get_solo_leaderboard_id(_SoloMatchType(num_players // 2), player.faction)
         self._set_player_stats_from_json(player, leaderboard_id, json)
         self._set_rank_total(player, leaderboard_id)
         self._set_extra_player_data_from_json(player, json)
         self._set_teams_from_json(player, json)
         return player
 
-    def _get_solo_leaderboard_id(self, __m: _SoloMatchType, __f: Faction) -> int:
-        if self._SoloMatchType.CUSTOM == __m:
+    @staticmethod
+    def _get_solo_leaderboard_id(__m: _SoloMatchType, __f: Faction) -> int:
+        if _SoloMatchType.CUSTOM == __m:
             return 50 if __f == Faction.UK else __f.id
         else:
             return 50 + __m if __f == Faction.UK else __m * 4 + __f.id
@@ -103,10 +124,7 @@ class CoH2API:
 
     def _set_rank_total(self, player: Player, leaderboard_id: int):
         if player.rank_total <= 0:
-            for lb in self.leaderboards:
-                if lb.id == leaderboard_id:
-                    player.rank_total = lb.rank_total
-                    break
+            player.rank_total = self.leaderboards[leaderboard_id][self.KEY_LEADERBOARD_RANK_TOTAL]
 
     @staticmethod
     def _set_extra_player_data_from_json(player: Player, json):
@@ -132,8 +150,8 @@ class CoH2API:
             for m in g['members']:
                 t.members.append(m['profile_id'])
             for s in json['leaderboardStats']:
-                lid = self._get_team_leaderboard_id(self._TeamMatchType(g['type'] - 2),
-                                                    TeamFaction.from_faction(player.faction))
+                lid = self._get_team_leaderboard_id(
+                    _TeamMatchType(g['type'] - 2), TeamFaction.from_faction(player.faction))
                 if s['statgroup_id'] == t.id and s['leaderboard_id'] == lid:
                     t.rank = s['rank']
                     t.rank_level = s['ranklevel']
@@ -176,15 +194,10 @@ class CoH2API:
         return r.json()
 
     async def init_leaderboards(self):
-        leaderboards = []
-        r1 = await self._get_leaderboards()
-        if r1:
-            lbs = [lb for lb in r1['leaderboards'] if lb['isranked'] == 1]
-            r2 = await asyncio.gather(*(self._get_leaderboard(lb['id']) for lb in lbs))
-            if r2:
-                for i, lb in enumerate(lbs):
-                    leaderboards.append(Leaderboard(lb['id'], lb['name'], r2[i]['rankTotal']))
-        self.leaderboards = leaderboards
+        r = await asyncio.gather(*(self._get_leaderboard(_id) for _id in self.leaderboards.keys()))
+        if r:
+            for i, _id in enumerate(self.leaderboards.keys()):
+                self.leaderboards[_id][self.KEY_LEADERBOARD_RANK_TOTAL] = r[i]['rankTotal']
 
     async def _get_leaderboards(self):
         r = await self.http_client.get(self.URL_LEADERBOARDS, params={'title': 'coh2'}, timeout=self.timeout)

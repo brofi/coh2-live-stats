@@ -176,7 +176,7 @@ class Output:
                                  (avg_rank_level_prefix, team_data[team].avg_estimated_rank_level, False, False))
 
                 if (self._get_column_index(self.settings.table.columns.rank) != 0
-                        and self._get_column_index(self.settings.table.columns.rank) != 0):
+                        and self._get_column_index(self.settings.table.columns.level) != 0):
                     avg_row[0] = 'Avg'
 
                 for c in (self.settings.table.columns.prestige,

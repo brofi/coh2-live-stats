@@ -13,11 +13,12 @@
 #  see <https://www.gnu.org/licenses/>.
 
 import asyncio
+from enum import IntEnum
 
 from httpx import AsyncClient
 
+from .data.faction import TeamFaction, Faction
 from .data.leaderboard import Leaderboard
-from .data.match_type import MatchType
 from .data.player import Player
 from .data.team import Team
 
@@ -26,6 +27,24 @@ class CoH2API:
     URL_PLAYER = 'https://coh2-api.reliclink.com/community/leaderboard/GetPersonalStat'
     URL_LEADERBOARDS = 'https://coh2-api.reliclink.com/community/leaderboard/getAvailableLeaderboards'
     URL_LEADERBOARD = 'https://coh2-api.reliclink.com/community/leaderboard/getleaderboard2'
+
+    class _SoloMatchType(IntEnum):
+        CUSTOM = 0
+        SOLO_1V1 = 1
+        SOLO_2V2 = 2
+        SOLO_3V3 = 3
+        SOLO_4V4 = 4
+
+    class _TeamMatchType(IntEnum):
+        TEAM_2V2 = 0
+        TEAM_3V3 = 1
+        TEAM_4V4 = 2
+
+    class _Difficulty(IntEnum):
+        EASY = 0
+        MEDIUM = 1
+        HARD = 2
+        EXPERT = 3
 
     def __init__(self, timeout=60):
         self.http_client = AsyncClient()
@@ -38,25 +57,40 @@ class CoH2API:
 
         r = await asyncio.gather(*(self._get_player(p.relic_id) for p in players))
         if r:
-            players = [self._init_player(p, MatchType(len(players) // 2), j) for (p, j) in zip(players, r)]
+            num_players = len(players)
+            players = [self._init_player(p, num_players, j) for (p, j) in zip(players, r)]
             self._derive_pre_made_teams(players)
         return players
 
-    def _init_player(self, player: Player, match_type: MatchType, json):
-        player.leaderboard_id = player.get_leaderboard_id(match_type)
-        self._set_player_stats_from_json(player, json)
-        self._set_rank_total(player)
+    def _init_player(self, player: Player, num_players: int, json):
+        leaderboard_id = self._get_solo_leaderboard_id(self._SoloMatchType(num_players // 2), player.faction)
+        self._set_player_stats_from_json(player, leaderboard_id, json)
+        self._set_rank_total(player, leaderboard_id)
         self._set_extra_player_data_from_json(player, json)
         self._set_teams_from_json(player, json)
         return player
 
+    def _get_solo_leaderboard_id(self, __m: _SoloMatchType, __f: Faction) -> int:
+        if self._SoloMatchType.CUSTOM == __m:
+            return 50 if __f == Faction.UK else __f.id
+        else:
+            return 50 + __m if __f == Faction.UK else __m * 4 + __f.id
+
     @staticmethod
-    def _set_player_stats_from_json(player: Player, json):
+    def _get_team_leaderboard_id(__m: _TeamMatchType, __t: TeamFaction) -> int:
+        return 20 + __m * 2 + __t
+
+    @staticmethod
+    def _get_ai_leaderboard_id(__m: _TeamMatchType, __d: _Difficulty, __t: TeamFaction) -> int:
+        return 26 + __m * 8 + __d * 2 + __t
+
+    @staticmethod
+    def _set_player_stats_from_json(player: Player, leaderboard_id: int, json):
         if not json:
             return
 
         for s in json['leaderboardStats']:
-            if s['leaderboard_id'] == player.leaderboard_id:
+            if s['leaderboard_id'] == leaderboard_id:
                 player.wins = s['wins']
                 player.losses = s['losses']
                 player.drops = s['drops']
@@ -67,10 +101,10 @@ class CoH2API:
                 player.highest_rank_level = s['highestranklevel']
                 return
 
-    def _set_rank_total(self, player: Player):
+    def _set_rank_total(self, player: Player, leaderboard_id: int):
         if player.rank_total <= 0:
             for lb in self.leaderboards:
-                if lb.id == player.leaderboard_id:
+                if lb.id == leaderboard_id:
                     player.rank_total = lb.rank_total
                     break
 
@@ -87,17 +121,20 @@ class CoH2API:
                     player.country = m['country']
                     return
 
-    @staticmethod
-    def _set_teams_from_json(player: Player, json):
+    def _set_teams_from_json(self, player: Player, json):
         if not json:
             return
 
         for g in json['statGroups']:
+            if g['type'] <= 1:
+                continue
             t = Team(g['id'])
             for m in g['members']:
                 t.members.append(m['profile_id'])
             for s in json['leaderboardStats']:
-                if s['statgroup_id'] == t.id and s['leaderboard_id'] == player.get_team_leaderboard_id(g['type']):
+                lid = self._get_team_leaderboard_id(self._TeamMatchType(g['type'] - 2),
+                                                    TeamFaction.from_faction(player.faction))
+                if s['statgroup_id'] == t.id and s['leaderboard_id'] == lid:
                     t.rank = s['rank']
                     t.rank_level = s['ranklevel']
                     t.highest_rank = s['highestrank']

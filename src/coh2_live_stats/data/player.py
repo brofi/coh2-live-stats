@@ -15,7 +15,6 @@
 from dataclasses import dataclass, field
 
 from .faction import Faction
-from .match_type import MatchType
 from .team import Team
 from ..util import ratio
 
@@ -33,7 +32,6 @@ class Player:
     steam_profile: str = ''
     prestige: int = -1
     country: str = ''
-    leaderboard_id: int = -1
     wins: int = -1
     losses: int = -1
     drops: int = -1
@@ -63,25 +61,6 @@ class Player:
     @property
     def drop_ratio(self) -> float:
         return ratio(self.drops, self.num_games)
-
-    @property
-    def is_team_axis(self) -> bool:
-        return self.faction in (Faction.WM, Faction.OKW)
-
-    @property
-    def is_team_allies(self) -> bool:
-        return self.faction in (Faction.SU, Faction.US, Faction.UK)
-
-    def get_leaderboard_id(self, match_type: MatchType):
-        return 50 + match_type if self.faction == Faction.UK else match_type * 4 + self.faction.id
-
-    def get_team_leaderboard_id(self, num_team_members: int):
-        leaderboard_id = -1
-        if num_team_members > 1:
-            leaderboard_id = 20 + (num_team_members - 2) * 2
-            if self.is_team_allies:
-                leaderboard_id += 1
-        return leaderboard_id
 
     def get_steam_profile_url(self):
         return 'https://steamcommunity.com' + self.steam_profile.replace('steam', 'profiles')

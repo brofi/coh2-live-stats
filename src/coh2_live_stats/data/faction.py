@@ -12,7 +12,7 @@
 #  You should have received a copy of the GNU General Public License along with Foobar. If not,
 #  see <https://www.gnu.org/licenses/>.
 
-from enum import Enum
+from enum import Enum, IntEnum
 
 from .color import Color
 
@@ -30,9 +30,26 @@ class Faction(Enum):
         self.full_name = full_name
         self.default_color = default_color
 
+    @property
+    def is_axis_faction(self):
+        return self in [Faction.WM, Faction.OKW]
+
+    @property
+    def is_allies_faction(self):
+        return self in [Faction.SU, Faction.US, Faction.UK]
+
     @classmethod
     def from_log(cls, faction_name):
         for member in cls:
             if member.key_log == faction_name:
                 return member
         return None
+
+
+class TeamFaction(IntEnum):
+    AXIS = 0
+    ALLIES = 1
+
+    @staticmethod
+    def from_faction(f: Faction):
+        return TeamFaction(int(f.is_allies_faction))

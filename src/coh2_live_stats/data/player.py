@@ -51,6 +51,10 @@ class Player:
     pre_made_teams: list[Team] = field(default_factory=list)
 
     @property
+    def is_ranked(self) -> bool:
+        return self.rank > 0 and self.rank_level > 0
+
+    @property
     def num_games(self) -> int:
         return self.wins + self.losses
 
@@ -69,7 +73,7 @@ class Player:
         return star * int(self.prestige / 100) + half_star * round((self.prestige / 100) % 1)
 
     def estimate_rank(self, avg_team_rank_factor=0):
-        if (self.rank > 0 and self.rank_level > 0) or self.relic_id <= 0:
+        if self.is_ranked or self.relic_id <= 0:
             return '', self.rank, self.rank_level
         if self.highest_rank > 0 and self.highest_rank_level > 0:
             return '+', self.highest_rank, self.highest_rank_level

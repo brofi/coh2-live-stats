@@ -21,6 +21,7 @@ from prettytable.colortable import Theme, ColorTable
 
 from .data.countries import country_set
 from .data.faction import Faction
+from .data.player import Player
 from .settings import Settings
 from .util import avg, clear, colorize
 
@@ -35,7 +36,7 @@ class _TeamData:
     pre_made_team_ids: list[int] = field(default_factory=list)
 
 
-def _get_team_data(players):
+def _get_team_data(players: list[Player]):
     data = (_TeamData(), _TeamData())
 
     for team in range(2):
@@ -46,7 +47,7 @@ def _get_team_data(players):
                 t.id for t in p.pre_made_teams if t.id not in data[p.team].pre_made_team_ids)
             data[p.team].pre_made_team_ids.sort()
 
-        ranked_players = [p for p in team_players if p.rank > 0]
+        ranked_players = [p for p in team_players if p.is_ranked]
         if ranked_players:
             rank_factors = [p.rank / p.rank_total for p in ranked_players]
             data[team].high_level_players = [p for p in ranked_players if

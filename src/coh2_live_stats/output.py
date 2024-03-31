@@ -72,37 +72,31 @@ class Output:
     def _create_output_table(self, settings) -> PrettyTable:
         if settings.table.color:
             border_color = str(settings.table.colors.border.value)
-            border_theme = Theme(vertical_color=border_color, horizontal_color=border_color,
-                                 junction_color=border_color)
-            table = ColorTable(theme=border_theme)
+            table = ColorTable(
+                theme=Theme(vertical_color=border_color, horizontal_color=border_color, junction_color=border_color))
         else:
             table = PrettyTable()
 
         table.border = settings.table.border
         table.preserve_internal_border = True
 
+        cols = settings.table.columns
         visible_columns = [(c['label'], c['align']) for c in
-                           sorted(filter(lambda c: c['visible'], settings.table.columns.model_dump().values()),
-                                  key=lambda c: c['pos'])]
+                           sorted(filter(lambda c: c['visible'], cols.model_dump().values()), key=lambda c: c['pos'])]
         table.field_names = [label for label, _ in visible_columns]
-
-        self._set_format(table, settings.table.columns.faction, self._format_faction)
-        self._set_format(table, settings.table.columns.rank, partial(self._format_rank, 2))
-        self._set_format(table, settings.table.columns.level, partial(self._format_rank, 1))
-        for c in settings.table.columns.win_ratio, settings.table.columns.drop_ratio:
-            self._set_format(table, c, self._format_ratio)
-        for c in settings.table.columns.prestige, settings.table.columns.country, settings.table.columns.name:
-            self._set_format(table, c, self._format_min_max)
 
         for label, align in visible_columns:
             table.align[label] = align
 
-        return table
+        table.custom_format[cols.faction.label] = self._format_faction
+        table.custom_format[cols.rank.label] = partial(self._format_rank, 2)
+        table.custom_format[cols.level.label] = partial(self._format_rank, 1)
+        for c in cols.win_ratio.label, cols.drop_ratio.label:
+            table.custom_format[c] = self._format_ratio
+        for c in cols.prestige.label, cols.country.label, cols.name.label:
+            table.custom_format[c] = self._format_min_max
 
-    @staticmethod
-    def _set_format(table: PrettyTable, c, formatter):
-        if c.visible:
-            table.custom_format[c.label] = formatter
+        return table
 
     def _set_column(self, row, col, val):
         if col.visible:

@@ -14,7 +14,7 @@
 
 from dataclasses import dataclass, field
 
-from .faction import Faction
+from .faction import Faction, TeamFaction
 from .team import Team
 from ..util import ratio
 
@@ -25,7 +25,7 @@ class Player:
     id: int
     name: str
     relic_id: int
-    team: int
+    team: TeamFaction
     faction: Faction
 
     # CoH2 API data
@@ -115,7 +115,8 @@ class Player:
     def from_log(player_line):
         s = player_line.split(' ')
         faction = Faction.from_log(s.pop())
-        team = int(s.pop())
+        s.pop()  # Log file team ID can't be used to determine the team faction (always 0 for user's team)
+        team = TeamFaction.from_faction(faction)
         relic_id = int(s.pop())
         player_id = int(s.pop(0))
         name = ' '.join(s)

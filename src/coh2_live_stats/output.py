@@ -20,7 +20,7 @@ from prettytable import PrettyTable
 from prettytable.colortable import Theme, ColorTable
 
 from .data.countries import country_set
-from .data.faction import Faction
+from .data.faction import Faction, TeamFaction
 from .data.player import Player
 from .settings import Settings
 from .util import avg, clear, colorize
@@ -39,13 +39,13 @@ class _TeamData:
 def _get_team_data(players: list[Player]):
     data = (_TeamData(), _TeamData())
 
-    for team in range(2):
+    for team in TeamFaction:
         team_players = [p for p in players if p.relic_id > 0 and p.team == team]
 
         for p in team_players:
-            data[p.team].pre_made_team_ids.extend(
-                t.id for t in p.pre_made_teams if t.id not in data[p.team].pre_made_team_ids)
-            data[p.team].pre_made_team_ids.sort()
+            data[p.team.value].pre_made_team_ids.extend(
+                t.id for t in p.pre_made_teams if t.id not in data[p.team.value].pre_made_team_ids)
+            data[p.team.value].pre_made_team_ids.sort()
 
         ranked_players = [p for p in team_players if p.is_ranked]
         if ranked_players:
@@ -115,7 +115,7 @@ class Output:
 
         team_data = _get_team_data(players)
         cols = self.settings.table.columns
-        for team in range(2):
+        for team in TeamFaction:
             team_players = [p for p in players if p.team == team]
             for tpi, player in enumerate(team_players):
                 row = [''] * len(self.table.field_names)
@@ -146,7 +146,8 @@ class Output:
                         team_rank_levels[ti] = '+' + str(t.highest_rank_level) if t.highest_rank_level > 0 else '-'
 
                 self._set_column(row, cols.team, ','.join(map(str, [
-                    chr(team_data[player.team].pre_made_team_ids.index(t.id) + 65) for t in player.pre_made_teams])))
+                    chr(team_data[player.team.value].pre_made_team_ids.index(t.id) + 65)
+                    for t in player.pre_made_teams])))
                 self._set_column(row, cols.team_rank, ','.join(team_ranks))
                 self._set_column(row, cols.team_level, ','.join(team_rank_levels))
 

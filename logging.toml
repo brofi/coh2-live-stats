@@ -2,7 +2,8 @@ version = 1
 disable_existing_loggers = false
 
 [formatters.simple]
-format = '%s(levelname)s: %(message)s'
+style = '{'
+format = '[{levelname}] {message}'
 
 [formatters.detailed]
 '()' = 'src.coh2_live_stats.util.CustomFormatter'

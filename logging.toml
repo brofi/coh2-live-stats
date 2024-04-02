@@ -31,5 +31,8 @@ handlers = ['stderr', 'file']
 respect_handler_level = true
 
 [loggers.root]
-level = 'DEBUG'
+level = 'WARNING'
 handlers = ['queue_handler']
+
+[loggers.coh2_live_stats]
+level = 'DEBUG'

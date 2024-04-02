@@ -21,11 +21,11 @@ import PyInstaller.__main__
 from PyInstaller.utils.win32.versioninfo import StringFileInfo, StringTable, StringStruct, VarFileInfo, VarStruct
 from PyInstaller.utils.win32.versioninfo import VSVersionInfo, FixedFileInfo
 
+from coh2_live_stats.__main__ import LOGGING_CONF
 from coh2_live_stats.settings import CONFIG_FILE_DEV
 from coh2_live_stats.version import __version__, __version_tuple__
 
 app_name = 'CoH2LiveStats'
-config_file_name = CONFIG_FILE_DEV
 license_file_name = 'COPYING'
 exec_name = f'{app_name}.exe'
 contents_dir_name = 'lib'
@@ -83,7 +83,8 @@ PyInstaller.__main__.run([
     '--name', app_name,
     '--contents-directory', contents_dir_name,
     '--add-data', f'{license_file_name}:.',
-    '--add-data', f'{module_path.joinpath(config_file_name)}:.',
+    '--add-data', f'{CONFIG_FILE_DEV}:.',
+    '--add-data', f'{LOGGING_CONF}:.',
     '--add-data', f'{res_path.joinpath('horn.wav')}:./res',
     '--add-data', f'{res_path.joinpath('horn_subtle.wav')}:./res',
     '--add-data', f'{res_path.joinpath('horn_epic.wav')}:./res',
@@ -95,7 +96,7 @@ PyInstaller.__main__.run([
 # Move license and config next to executable
 app_path = dist_path.joinpath(app_name)
 os.replace(app_path.joinpath(contents_dir_name, license_file_name), app_path.joinpath(license_file_name + '.txt'))
-os.replace(app_path.joinpath(contents_dir_name, config_file_name), app_path.joinpath(config_file_name))
+os.replace(app_path.joinpath(contents_dir_name, CONFIG_FILE_DEV.name), app_path.joinpath(CONFIG_FILE_DEV.name))
 
 # Create distribution archive
 res = shutil.make_archive(str(app_path), 'zip', dist_path, app_name)

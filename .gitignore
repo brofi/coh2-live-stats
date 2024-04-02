@@ -11,3 +11,5 @@ build/
 CoH2LiveStats.spec
 ## setuptools-scm
 version.py
+#logs
+coh2livestats.log*

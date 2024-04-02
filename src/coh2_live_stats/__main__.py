@@ -13,9 +13,16 @@
 #  see <https://www.gnu.org/licenses/>.
 
 import asyncio
+import atexit
 import concurrent.futures
+import logging
+import logging.config
+import sys
+import tomllib
 from hashlib import file_digest
 from io import BytesIO
+from logging import Logger
+from pathlib import Path
 from sys import exit
 from tomllib import TOMLDecodeError
 
@@ -34,6 +41,16 @@ from coh2_live_stats.data.player import Player
 from coh2_live_stats.output import Output
 from coh2_live_stats.settings import SettingsFactory, Settings, CONFIG_FILE
 from coh2_live_stats.util import progress_start, progress_stop, play_sound, clear
+
+# When running in PyInstaller bundle:
+# getattr(sys, '_MEIPASS', __file__): ... \CoH2LiveStats\dist\CoH2LiveStats\lib                 (_MEIPASS)
+# __file__:                           ... \CoH2LiveStats\dist\CoH2LiveStats\lib\__main__.py
+# When running in a normal Python process:
+# getattr(sys, '_MEIPASS', __file__): ... \CoH2LiveStats\src\coh2_live_stats\__main__.py        (getattr default)
+# __file__:                           ... \CoH2LiveStats\src\coh2_live_stats\__main__.py
+
+LOGGING_CONF = Path(getattr(sys, '_MEIPASS', str(Path(__file__).parents[2]))).joinpath('logging.toml')
+logger: Logger = logging.getLogger('CoH2LiveStats')
 
 API_TIMEOUT = 30
 EXIT_STATUS = 0
@@ -141,12 +158,35 @@ def print_match(players: list[Player]):
         output.print_match(Match(players))
 
 
+def print_error(*values, **kwargs):
+    print(*values, file=sys.stderr, **kwargs)
+
+
+def setup_logging():
+    with open(LOGGING_CONF, 'rb') as f:
+        try:
+            conf = tomllib.load(f)
+        except TOMLDecodeError as e:
+            print_error('Error: Invalid TOML in logging configuration')
+            print_error(f'\tFile: {LOGGING_CONF}')
+            print_error(f'\tCause: {e.args[0]}')
+            exit(1)
+
+    logging.config.dictConfig(conf)
+
+    queue_handler = logging.getHandlerByName('queue_handler')
+    if queue_handler is not None:
+        queue_handler.listener.start()
+        atexit.register(queue_handler.listener.stop)
+
+
 async def main():
     global api
     global settings
     global output
     global EXIT_STATUS
 
+    setup_logging()
     api = CoH2API(API_TIMEOUT)
     observer = Observer()
 

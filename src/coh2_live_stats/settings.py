@@ -26,6 +26,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict, PydanticBaseSett
 from .data.color import Color
 from .data.faction import Faction
 
+# When running in PyInstaller bundle:
+# getattr(sys, '_MEIPASS', __file__): ... \CoH2LiveStats\dist\CoH2LiveStats\lib                 (_MEIPASS)
+# __file__:                           ... \CoH2LiveStats\dist\CoH2LiveStats\lib\settings.py
+# When running in a normal Python process:
+# getattr(sys, '_MEIPASS', __file__): ... \CoH2LiveStats\src\coh2_live_stats\settings.py        (getattr default)
+# __file__:                           ... \CoH2LiveStats\src\coh2_live_stats\settings.py
+
 CONFIG_PATHS = ['%USERPROFILE%', str(Path(getattr(sys, '_MEIPASS', __file__)).parent)]
 CONFIG_NAMES = [f'{p}{b}.toml' for b in ['coh2livestats', 'coh2_live_stats'] for p in ['_', '.', '']]
 CONFIG_FILES = [Path(expandvars(p)).joinpath(n) for p in CONFIG_PATHS for n in CONFIG_NAMES]

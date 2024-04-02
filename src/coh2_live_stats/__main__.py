@@ -22,7 +22,7 @@ import tomllib
 from contextlib import suppress
 from hashlib import file_digest
 from io import BytesIO
-from logging import Logger
+from logging import Logger, CRITICAL, WARNING
 from pathlib import Path
 from sys import exit
 from tomllib import TOMLDecodeError
@@ -51,7 +51,7 @@ from coh2_live_stats.util import progress_start, progress_stop, play_sound, clea
 # __file__:                           ... \CoH2LiveStats\src\coh2_live_stats\__main__.py
 
 LOGGING_CONF = Path(getattr(sys, '_MEIPASS', str(Path(__file__).parents[2]))).joinpath('logging.toml')
-logger: Logger = logging.getLogger('CoH2LiveStats')
+logger: Logger = logging.getLogger('coh2_live_stats')
 
 API_TIMEOUT = 30
 EXIT_STATUS = 0
@@ -179,6 +179,8 @@ def setup_logging():
             Path(getattr(sys, '_MEIPASS', str(Path(__file__).parents[1]))).with_name(filename))
 
     logging.config.dictConfig(conf)
+    logging.addLevelName(WARNING, 'WARN')
+    logging.addLevelName(CRITICAL, 'CRIT')
 
     queue_handler = logging.getHandlerByName('queue_handler')
     if queue_handler is not None:

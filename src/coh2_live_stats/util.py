@@ -64,7 +64,7 @@ class CustomFormatter(Formatter):
         ct = self.converter(record.created)
         if datefmt:
             # Replace %f (only supported by datetime) with milliseconds
-            s = time.strftime(datefmt.replace('%f', '%03d' % record.msecs), ct)
+            s = time.strftime(datefmt.replace('%f', f'{record.msecs:03.0f}'), ct)
         else:
             s = time.strftime(self.default_time_format, ct)
             if self.default_msec_format:

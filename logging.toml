@@ -6,7 +6,8 @@ format = '%s(levelname)s: %(message)s'
 
 [formatters.detailed]
 '()' = 'src.coh2_live_stats.util.CustomFormatter'
-format = '[%(levelname)s|%(module)s|L%(lineno)d] %(asctime)s: %(message)s'
+style = '{'
+format = '[{levelname:<5}] [{asctime}] [{taskName:<7}] [{name} {module}:{lineno}:{funcName}] - {message}'
 datefmt = '%Y-%m-%dT%H:%M:%S.%f%z'
 
 [handlers.stderr]

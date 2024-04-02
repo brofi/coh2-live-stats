@@ -5,8 +5,9 @@ disable_existing_loggers = false
 format = '%s(levelname)s: %(message)s'
 
 [formatters.detailed]
+'()' = 'src.coh2_live_stats.util.CustomFormatter'
 format = '[%(levelname)s|%(module)s|L%(lineno)d] %(asctime)s: %(message)s'
-datefmt = '%Y-%m-%dT%H:%M:%S%z'
+datefmt = '%Y-%m-%dT%H:%M:%S.%f%z'
 
 [handlers.stderr]
 class = 'logging.StreamHandler'

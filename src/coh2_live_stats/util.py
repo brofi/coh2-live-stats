@@ -14,6 +14,8 @@
 
 import asyncio
 import os
+import time
+from logging import Formatter
 
 import winsound
 from prettytable.colortable import Theme, RESET_CODE
@@ -55,3 +57,16 @@ def play_sound(soundfile: str):
     except RuntimeError:
         return False
     return True
+
+
+class CustomFormatter(Formatter):
+    def formatTime(self, record, datefmt=None):
+        ct = self.converter(record.created)
+        if datefmt:
+            # Replace %f (only supported by datetime) with milliseconds
+            s = time.strftime(datefmt.replace('%f', '%03d' % record.msecs), ct)
+        else:
+            s = time.strftime(self.default_time_format, ct)
+            if self.default_msec_format:
+                s = self.default_msec_format % (s, record.msecs)
+        return s

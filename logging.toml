@@ -23,6 +23,7 @@ formatter = 'detailed'
 filename = 'coh2livestats.log'
 maxBytes = 500000
 backupCount = 3
+encoding = 'utf-8'
 
 [handlers.queue_handler]
 class = 'logging.handlers.QueueHandler'

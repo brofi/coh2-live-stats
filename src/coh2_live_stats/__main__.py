@@ -19,6 +19,7 @@ import logging
 import logging.config
 import sys
 import tomllib
+from contextlib import suppress
 from hashlib import file_digest
 from io import BytesIO
 from logging import Logger
@@ -171,6 +172,11 @@ def setup_logging():
             print_error(f'\tFile: {LOGGING_CONF}')
             print_error(f'\tCause: {e.args[0]}')
             exit(1)
+
+    with suppress(KeyError):
+        filename = str(Path(conf['handlers']['file']['filename']).name)
+        conf['handlers']['file']['filename'] = str(
+            Path(getattr(sys, '_MEIPASS', str(Path(__file__).parents[1]))).with_name(filename))
 
     logging.config.dictConfig(conf)
 

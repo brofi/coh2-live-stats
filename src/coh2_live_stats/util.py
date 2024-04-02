@@ -25,12 +25,6 @@ def ratio(x, total) -> float:
     return x / total if total > 0 else 0
 
 
-def avg(c):
-    if not c:
-        raise ValueError('Cannot calculate average of empty list.')
-    return sum(c) / len(c)
-
-
 def clear():
     if os.name == 'nt':
         _ = os.system('cls')

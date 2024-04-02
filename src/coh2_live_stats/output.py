@@ -12,7 +12,6 @@
 #  You should have received a copy of the GNU General Public License along with Foobar. If not,
 #  see <https://www.gnu.org/licenses/>.
 
-from dataclasses import dataclass, field
 from functools import partial
 from typing import Any
 
@@ -20,47 +19,10 @@ from prettytable import PrettyTable
 from prettytable.colortable import Theme, ColorTable
 
 from .data.countries import country_set
-from .data.faction import Faction, TeamFaction
-from .data.player import Player
+from .data.faction import Faction
+from .data.match import Match
 from .settings import Settings
-from .util import avg, clear, colorize
-
-
-@dataclass
-class _TeamData:
-    avg_estimated_rank: float = -1
-    avg_estimated_rank_level: float = -1
-    avg_rank_factor: float = -1
-    high_level_players: list[int] = field(default_factory=list)
-    low_level_players: list[int] = field(default_factory=list)
-    pre_made_team_ids: list[int] = field(default_factory=list)
-
-
-def _get_team_data(players: list[Player]):
-    data = (_TeamData(), _TeamData())
-
-    for team in TeamFaction:
-        team_players = [p for p in players if p.relic_id > 0 and p.team == team]
-
-        for p in team_players:
-            data[p.team.value].pre_made_team_ids.extend(
-                t.id for t in p.pre_made_teams if t.id not in data[p.team.value].pre_made_team_ids)
-            data[p.team.value].pre_made_team_ids.sort()
-
-        ranked_players = [p for p in team_players if p.is_ranked]
-        if ranked_players:
-            rank_factors = [p.rank / p.rank_total for p in ranked_players]
-            data[team].high_level_players = [p for p in ranked_players if
-                                             p.rank / p.rank_total <= min(rank_factors)]
-            data[team].low_level_players = [p for p in ranked_players if p.rank / p.rank_total >= max(rank_factors)]
-            data[team].avg_rank_factor = avg(rank_factors)
-
-        rank_estimates = [p.estimate_rank(data[team].avg_rank_factor) for p in team_players]
-        if rank_estimates:
-            data[team].avg_estimated_rank = avg([rank for (_, rank, _) in rank_estimates])
-            data[team].avg_estimated_rank_level = avg([level for (_, _, level) in rank_estimates])
-
-    return data
+from .util import colorize
 
 
 class Output:
@@ -106,50 +68,37 @@ class Output:
     def _get_column_index(self, col):
         return self.table.field_names.index(col.label)
 
-    def print_players(self, players):
-        clear()
-
-        if not players or len(players) < 2:
-            print('Waiting for match...')
-            return
-
-        team_data = _get_team_data(players)
+    def print_match(self, match: Match):
         cols = self.settings.table.columns
-        for team in TeamFaction:
-            team_players = [p for p in players if p.team == team]
-            for tpi, player in enumerate(team_players):
+        for party_index, party in enumerate(match.parties):
+            for player_index, player in enumerate(party.players):
                 row = [''] * len(self.table.field_names)
 
                 self._set_column(row, cols.faction, player.faction)
 
-                is_high_low_lvl_player = (player in team_data[team].high_level_players,
-                                          player in team_data[team].low_level_players)
+                is_high_low_lvl_player = (player.relative_rank <= party.min_relative_rank,
+                                          player.relative_rank >= party.max_relative_rank)
 
-                rank_estimate = player.estimate_rank(team_data[team].avg_rank_factor)
+                rank_estimate = party.rank_estimates.get(player.relic_id)
                 self._set_column(row, cols.rank, (rank_estimate[0], rank_estimate[1], *is_high_low_lvl_player))
                 self._set_column(row, cols.level, (rank_estimate[0], rank_estimate[2], *is_high_low_lvl_player))
 
-                self._set_column(row, cols.prestige,
-                                 (player.get_prestige_level_stars(self.settings.table.prestige_star_char,
-                                                                  self.settings.table.prestige_half_star_char),
-                                  *is_high_low_lvl_player))
+                prestige = player.get_prestige_level_stars(self.settings.table.prestige_star_char,
+                                                           self.settings.table.prestige_half_star_char)
+                self._set_column(row, cols.prestige, (prestige, *is_high_low_lvl_player))
 
                 self._set_column(row, cols.win_ratio, player.win_ratio)
                 self._set_column(row, cols.drop_ratio, player.drop_ratio)
 
-                team_ranks = [str(t.rank) for t in player.pre_made_teams]
-                team_rank_levels = [str(t.rank_level) for t in player.pre_made_teams]
-                for ti, t in enumerate(player.pre_made_teams):
-                    if t.rank <= 0:
-                        team_ranks[ti] = '+' + str(t.highest_rank) if t.highest_rank > 0 else '-'
-                    if t.rank_level <= 0:
-                        team_rank_levels[ti] = '+' + str(t.highest_rank_level) if t.highest_rank_level > 0 else '-'
-
-                self._set_column(row, cols.team, ','.join(map(str, [
-                    chr(team_data[player.team.value].pre_made_team_ids.index(t.id) + 65)
-                    for t in player.pre_made_teams])))
-                self._set_column(row, cols.team_rank, ','.join(team_ranks))
-                self._set_column(row, cols.team_level, ','.join(team_rank_levels))
+                team_names = []
+                display_ranks = []
+                for ti, team in enumerate(party.pre_made_teams):
+                    if player.relic_id in team.members:
+                        team_names.append(chr(ti + 65))
+                        display_ranks.append(team.display_rank)
+                self._set_column(row, cols.team, ','.join(team_names))
+                self._set_column(row, cols.team_rank, ','.join(r for (r, _) in display_ranks))
+                self._set_column(row, cols.team_level, ','.join(l for (_, l) in display_ranks))
 
                 self._set_column(row, cols.steam_profile, player.get_steam_profile_url())
 
@@ -158,30 +107,26 @@ class Output:
 
                 self._set_column(row, cols.name, (player.name, *is_high_low_lvl_player))
 
-                self.table.add_row(row, divider=True if tpi == len(team_players) - 1 else False)
+                self.table.add_row(row, divider=True if player_index == party.size - 1 else False)
 
             if (self.settings.table.show_average and (cols.rank.visible or cols.level.visible)
-                    and len([p for p in team_players if p.relic_id > 0]) > 1):
-
-                avg_rank_prefix = '*' if team_data[team].avg_estimated_rank < team_data[
-                    abs(team - 1)].avg_estimated_rank else ''
-                avg_rank_level_prefix = '*' if team_data[team].avg_estimated_rank_level > team_data[
-                    abs(team - 1)].avg_estimated_rank_level else ''
+                    and len([p for p in party.players if p.relic_id > 0]) > 1):
                 avg_row: list[Any] = [''] * len(self.table.field_names)
 
+                avg_rank_prefix = '*' if party_index == match.highest_avg_rank_party else ''
+                avg_rank_level_prefix = '*' if party_index == match.highest_avg_rank_level_party else ''
                 self._set_column(avg_row, cols.rank,
-                                 (avg_rank_prefix, team_data[team].avg_estimated_rank, False, False))
+                                 (avg_rank_prefix, party.avg_estimated_rank, False, False))
                 self._set_column(avg_row, cols.level,
-                                 (avg_rank_level_prefix, team_data[team].avg_estimated_rank_level, False, False))
+                                 (avg_rank_level_prefix, party.avg_estimated_rank_level, False, False))
 
                 if self._get_column_index(cols.rank) != 0 and self._get_column_index(cols.level) != 0:
                     avg_row[0] = 'Avg'
 
                 self.table.add_row(avg_row, divider=True)
 
-        if (not self.settings.table.always_show_team
-                and not team_data[0].pre_made_team_ids and not team_data[1].pre_made_team_ids):
-            for col in (cols.team, cols.team_rank, cols.team_level):
+        if not self.settings.table.always_show_team and not match.has_pre_made_teams:
+            for col in cols.team, cols.team_rank, cols.team_level:
                 if col.visible:
                     self.table.del_column(col.label)
 

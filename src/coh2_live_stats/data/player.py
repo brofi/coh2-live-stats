@@ -13,6 +13,7 @@
 #  see <https://www.gnu.org/licenses/>.
 
 from dataclasses import dataclass, field
+from typing import override
 
 from .faction import Faction, TeamFaction
 from .team import Team
@@ -25,7 +26,7 @@ class Player:
     id: int
     name: str
     relic_id: int
-    team: TeamFaction
+    team_id: int
     faction: Faction
 
     # CoH2 API data
@@ -42,17 +43,22 @@ class Player:
     highest_rank_level: int = -1
     teams: list[Team] = field(default_factory=list)
 
-    # Derived data
-
-    # There could be multiple possible pre-made teams. For example when players A, B
-    # and C with teams (A,B), (B,C) have no team (A,B,C). Which means either player
-    # A or C queued alone or the current match is the first match of a new team
-    # (A,B,C).
-    pre_made_teams: list[Team] = field(default_factory=list)
+    @property
+    def team_faction(self) -> TeamFaction:
+        # Log file team ID can't be used to determine the team faction (always 0 for user's team)
+        return TeamFaction.from_faction(self.faction)
 
     @property
     def is_ranked(self) -> bool:
         return self.rank > 0 and self.rank_level > 0
+
+    @property
+    def has_highest_rank(self) -> bool:
+        return self.highest_rank > 0 and self.highest_rank_level > 0
+
+    @property
+    def relative_rank(self) -> float:
+        return self.rank / self.rank_total if self.is_ranked else 0.
 
     @property
     def num_games(self) -> int:
@@ -72,13 +78,13 @@ class Player:
     def get_prestige_level_stars(self, star="*", half_star="~"):
         return star * int(self.prestige / 100) + half_star * round((self.prestige / 100) % 1)
 
-    def estimate_rank(self, avg_team_rank_factor=0):
+    def estimate_rank(self, avg_relative_rank=0) -> tuple[str, int, int]:
         if self.is_ranked or self.relic_id <= 0:
             return '', self.rank, self.rank_level
         if self.highest_rank > 0 and self.highest_rank_level > 0:
             return '+', self.highest_rank, self.highest_rank_level
-        if avg_team_rank_factor > 0:
-            avg_rank = round(avg_team_rank_factor * self.rank_total)
+        if avg_relative_rank > 0:
+            avg_rank = round(avg_relative_rank * self.rank_total)
             return '?', avg_rank, self._rank_level_from_rank(avg_rank)
         avg_rank = round(self.rank_total / 2)
         return '?', avg_rank, self._rank_level_from_rank(avg_rank)
@@ -115,13 +121,13 @@ class Player:
     def from_log(player_line):
         s = player_line.split(' ')
         faction = Faction.from_log(s.pop())
-        s.pop()  # Log file team ID can't be used to determine the team faction (always 0 for user's team)
-        team = TeamFaction.from_faction(faction)
+        team = int(s.pop())
         relic_id = int(s.pop())
         player_id = int(s.pop(0))
         name = ' '.join(s)
         return Player(player_id, name, relic_id, team, faction)
 
+    @override
     def __eq__(self, other):
         if not isinstance(other, Player):
             return NotImplemented

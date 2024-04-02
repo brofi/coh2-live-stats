@@ -29,10 +29,11 @@ from watchdog.observers import Observer
 # See: Solution 1/3 in https://stackoverflow.com/a/28154841.
 # Since the creation of a virtual environment this somehow works without the project being installed.
 from coh2_live_stats.coh2api import CoH2API
+from coh2_live_stats.data.match import Match
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.output import Output
 from coh2_live_stats.settings import SettingsFactory, Settings, CONFIG_FILE
-from coh2_live_stats.util import progress_start, progress_stop, play_sound
+from coh2_live_stats.util import progress_start, progress_stop, play_sound, clear
 
 API_TIMEOUT = 30
 EXIT_STATUS = 0
@@ -107,7 +108,7 @@ class LogFileEventHandler(FileSystemEventHandler):
 def on_players_gathered(future_players):
     if new_match_found:
         try:
-            output.print_players(future_players.result())
+            print_match(future_players.result())
         except concurrent.futures.CancelledError:
             pass
 
@@ -132,6 +133,14 @@ async def get_players(notify=True):
             progress_stop()
 
 
+def print_match(players: list[Player]):
+    if not players:
+        print('Waiting for match...')
+    else:
+        clear()
+        output.print_match(Match(players))
+
+
 async def main():
     global api
     global settings
@@ -146,7 +155,7 @@ async def main():
         output = Output(settings)
         # Initial requests
         await init_leaderboards()
-        output.print_players(await get_players(notify=False))
+        print_match(await get_players(notify=False))
         # Watch log files
         observer.schedule(LogFileEventHandler(asyncio.get_running_loop()), str(settings.logfile.parent))
         observer.start()

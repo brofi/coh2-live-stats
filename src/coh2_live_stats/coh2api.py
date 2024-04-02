@@ -79,7 +79,6 @@ class CoH2API:
         if r:
             num_players = len(players)
             players = [self._init_player(p, num_players, j) for (p, j) in zip(players, r)]
-            self._derive_pre_made_teams(players)
         return players
 
     def _init_player(self, player: Player, num_players: int, json):
@@ -150,39 +149,13 @@ class CoH2API:
             for m in g['members']:
                 t.members.append(m['profile_id'])
             for s in json['leaderboardStats']:
-                lid = self._get_team_leaderboard_id(
-                    _TeamMatchType(g['type'] - 2), TeamFaction.from_faction(player.faction))
+                lid = self._get_team_leaderboard_id(_TeamMatchType(g['type'] - 2), player.team_faction)
                 if s['statgroup_id'] == t.id and s['leaderboard_id'] == lid:
                     t.rank = s['rank']
                     t.rank_level = s['ranklevel']
                     t.highest_rank = s['highestrank']
                     t.highest_rank_level = s['highestranklevel']
             player.teams.append(t)
-
-    @staticmethod
-    def _derive_pre_made_teams(players):
-        if len(players) < 4:
-            return
-
-        for player in players:
-            pre_made_teams = []
-            max_team_size = -1
-            for team in player.teams:
-                if len(team.members) > 1:
-                    isvalid = True
-                    for member in team.members:
-                        if member not in [p.relic_id for p in players if p.team == player.team]:
-                            isvalid = False
-                            break
-                    if isvalid:
-                        team_size = len(team.members)
-                        if team_size > max_team_size:
-                            max_team_size = team_size
-                        pre_made_teams.append(team)
-            pre_made_teams.sort(key=lambda x: x.id)
-            for team in pre_made_teams:
-                if len(team.members) >= max_team_size:
-                    player.pre_made_teams.append(team)
 
     async def _get_player(self, relic_id):
         if relic_id <= 0:

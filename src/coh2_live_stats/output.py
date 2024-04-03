@@ -23,7 +23,7 @@ from .data.countries import country_set
 from .data.faction import Faction
 from .data.match import Match
 from .settings import Settings
-from .util import colorize, cls_name
+from .util import cls_name
 
 LOG = logging.getLogger('coh2_live_stats')
 
@@ -145,7 +145,7 @@ class Output:
                 i = int(self.settings.table.border)
                 for h in self.table.field_names:
                     header = ' ' * self.table.padding_width + h + ' ' * self.table.padding_width
-                    color_header = colorize(self.settings.table.colors.label, header)
+                    color_header = self.settings.table.colors.label.colorize(header)
                     table_lines[i] = table_lines[i].replace(header, color_header)
                 print(''.join(table_lines))
             else:
@@ -156,8 +156,8 @@ class Output:
     def _format_faction(self, _, v):
         colored = self.settings.table.color
         if isinstance(v, Faction):
-            return colorize(self.settings.table.colors.get_faction_color(v), v.name) if colored else v.name
-        return colorize(self.settings.table.colors.label, str(v)) if colored else str(v)
+            return self.settings.table.colors.get_faction_color(v).colorize(v.name) if colored else v.name
+        return self.settings.table.colors.label.colorize(str(v)) if colored else str(v)
 
     def _format_rank(self, precision, _, v: any):
         if not v or not isinstance(v, tuple) or len(v) < 4 or v[1] <= 0:
@@ -177,7 +177,7 @@ class Output:
             v_str = f'{v:.0%}'
             if (colored and f == self.settings.table.columns.drop_ratio.label
                     and v >= self.settings.table.drop_ratio_high_threshold):
-                v_str = colorize(self.settings.table.colors.player.high_drop_rate, v_str)
+                v_str = self.settings.table.colors.player.high_drop_rate.colorize(v_str)
             elif f == self.settings.table.columns.win_ratio.label:
                 v_str = self._format_min_max(f, (v_str, v >= self.settings.table.win_ratio_high_threshold,
                                                  v < self.settings.table.win_ratio_low_threshold))
@@ -191,7 +191,7 @@ class Output:
         colored = self.settings.table.color
         if colored:
             if v[1]:
-                v_str = colorize(self.settings.table.colors.player.high, v_str)
+                v_str = self.settings.table.colors.player.high.colorize(v_str)
             if v[2]:
-                v_str = colorize(self.settings.table.colors.player.low, v_str)
+                v_str = self.settings.table.colors.player.low.colorize(v_str)
         return v_str

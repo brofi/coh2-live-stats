@@ -19,9 +19,6 @@ from inspect import isclass
 from logging import Formatter, Filter, LogRecord
 
 import winsound
-from prettytable.colortable import Theme, RESET_CODE
-
-from .data.color import Color
 
 
 def cls_name(obj: type | object) -> str:
@@ -42,10 +39,6 @@ def clear():
         print('\b', end='')
     else:
         _ = os.system('clear')
-
-
-def colorize(c: Color, s):
-    return Theme.format_code(str(c.value)) + s + RESET_CODE
 
 
 async def progress_start():

@@ -88,7 +88,7 @@ class _TableColors(BaseModel):
     player: _TableColorsPlayer = Field(_TableColorsPlayer(), description="Player-specific color options")
     faction: _TableColorsFaction = Field(_TableColorsFaction(), description="Faction colors")
 
-    def get_faction_color(self, f: Faction):
+    def get_faction_color(self, f: Faction) -> Color:
         return getattr(self.faction, f.name.lower())
 
 

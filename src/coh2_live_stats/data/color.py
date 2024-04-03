@@ -14,6 +14,8 @@
 
 from enum import Enum
 
+from prettytable.colortable import Theme, RESET_CODE
+
 from coh2_live_stats.util import cls_name
 
 
@@ -40,3 +42,6 @@ class Color(Enum):
 
     def __str__(self):
         return ' '.join(self.name.lower().split('_'))
+
+    def colorize(self, s: str) -> str:
+        return Theme.format_code(str(self.value)) + s + RESET_CODE

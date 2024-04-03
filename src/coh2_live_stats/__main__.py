@@ -187,6 +187,9 @@ def setup_logging():
     logging.config.dictConfig(conf)
     logging.addLevelName(WARNING, 'WARN')
     logging.addLevelName(CRITICAL, 'CRIT')
+    logging.logThreads = False
+    logging.logProcesses = False
+    logging.logMultiprocessing = False
 
     queue_handler = logging.getHandlerByName('queue_handler')
     if queue_handler is not None:

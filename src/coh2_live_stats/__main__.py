@@ -41,7 +41,8 @@ from coh2_live_stats.data.match import Match
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.output import Output
 from coh2_live_stats.settings import SettingsFactory, Settings
-from coh2_live_stats.util import progress_start, progress_stop, play_sound, clear, StderrHiddenFilter
+from coh2_live_stats.util import progress_start, progress_stop, play_sound, clear, StderrHiddenFilter, cls_name, \
+    cls_name_parent
 
 # When running in PyInstaller bundle:
 # getattr(sys, '_MEIPASS', __file__): ... \CoH2LiveStats\dist\CoH2LiveStats\lib                 (_MEIPASS)
@@ -109,7 +110,7 @@ class LogFileEventHandler(FileSystemEventHandler):
     def __init__(self, loop):
         self.last_hash = None
         self.loop = loop
-        LOG.info('Initialized %s(%s)', self.__class__.__name__, self.__class__.__mro__[1].__name__)
+        LOG.info('Initialized %s(%s)', cls_name(self), cls_name_parent(self))
 
     def on_modified(self, event: FileSystemEvent) -> None:
         if event.is_directory or event.src_path != str(settings.logfile):
@@ -218,9 +219,9 @@ async def main():
         # Watch log files
         handler = LogFileEventHandler(asyncio.get_running_loop())
         logfile_dir = str(settings.logfile.parent)
-        LOG.info('Scheduling %s for: %s', handler.__class__.__name__, logfile_dir)
+        LOG.info('Scheduling %s for: %s', cls_name(handler), logfile_dir)
         observer.schedule(handler, logfile_dir)
-        LOG.info('Starting observer: %s[name=%s]', observer.__class__.__name__, observer.name)
+        LOG.info('Starting observer: %s[name=%s]', cls_name(observer), observer.name)
         observer.start()
         while True:
             # Force CoH2 to write out its collected log
@@ -249,7 +250,7 @@ async def main():
         raise
     finally:
         if observer:
-            LOG.info('Stopping observer: %s[name=%s]', observer.__class__.__name__, observer.name)
+            LOG.info('Stopping observer: %s[name=%s]', cls_name(observer), observer.name)
             observer.stop()
             if observer.is_alive():
                 observer.join()

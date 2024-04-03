@@ -15,6 +15,7 @@
 from enum import Enum, IntEnum
 
 from .color import Color
+from ..util import cls_name
 
 
 class Faction(Enum):
@@ -46,7 +47,7 @@ class Faction(Enum):
         return None
 
     def __repr__(self):
-        return f'{self.__class__.__name__}.{self.name}'
+        return f'{cls_name(self)}.{self.name}'
 
     def __str__(self):
         return self.full_name
@@ -61,7 +62,7 @@ class TeamFaction(IntEnum):
         return cls(int(f.is_allies_faction))
 
     def __repr__(self):
-        return f'{self.__class__.__name__}.{self.name}'
+        return f'{cls_name(self)}.{self.name}'
 
     def __str__(self):
         return self.name.capitalize()

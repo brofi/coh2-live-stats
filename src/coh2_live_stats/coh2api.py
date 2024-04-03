@@ -21,6 +21,7 @@ from httpx import AsyncClient, URL
 from .data.faction import TeamFaction, Faction
 from .data.player import Player
 from .data.team import Team
+from .util import cls_name
 
 LOG = logging.getLogger('coh2_live_stats')
 
@@ -33,7 +34,7 @@ class _SoloMatchType(IntEnum):
     S_4V4 = 4
 
     def __repr__(self):
-        return f'{self.__class__.__name__}.{self.name}'
+        return f'{cls_name(self)}.{self.name}'
 
     def __str__(self):
         return self.name.removeprefix('S_').lower()
@@ -45,7 +46,7 @@ class _TeamMatchType(IntEnum):
     T_4V4 = 2
 
     def __repr__(self):
-        return f'{self.__class__.__name__}.{self.name}'
+        return f'{cls_name(self)}.{self.name}'
 
     def __str__(self):
         return self.name.removeprefix('T_').lower()
@@ -58,7 +59,7 @@ class _Difficulty(IntEnum):
     EXPERT = 3
 
     def __repr__(self):
-        return f'{self.__class__.__name__}.{self.name}'
+        return f'{cls_name(self)}.{self.name}'
 
     def __str__(self):
         return self.name.lower()
@@ -85,7 +86,7 @@ class CoH2API:
             **{self._get_team_leaderboard_id(m, t): {
                 self.KEY_LEADERBOARD_NAME: f'Team_of_{m.value + 2}_{t.name.capitalize()}'}
                 for m in _TeamMatchType for t in TeamFaction}}
-        LOG.info('Initialized %s[timeout=%d]', self.__class__.__name__, self.timeout)
+        LOG.info('Initialized %s[timeout=%d]', cls_name(self), self.timeout)
 
     async def get_players(self, players: list[Player]) -> list[Player]:
         if not self.leaderboards:
@@ -205,5 +206,5 @@ class CoH2API:
         return r.json()
 
     async def close(self):
-        LOG.info('Closing HTTP client: %s', self.http_client.__class__.__name__)
+        LOG.info('Closing HTTP client: %s', cls_name(self.http_client))
         await self.http_client.aclose()

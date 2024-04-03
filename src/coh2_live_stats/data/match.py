@@ -17,6 +17,7 @@ from operator import add
 
 from .player import Player
 from .team import Team
+from ..util import cls_name
 
 LOG = logging.getLogger('coh2_live_stats')
 
@@ -34,7 +35,7 @@ class Match:
 
         self.parties: tuple[_Party, _Party] = p0, p1
 
-        LOG.info('Initialized %s', self.__class__.__name__)
+        LOG.info('Initialized %s', cls_name(self))
 
     @property
     def highest_avg_rank_party(self) -> int:
@@ -102,7 +103,7 @@ class _Party:
         LOG.info('Initialized average estimated (rank, rank_level): (%f, %f)', self.avg_estimated_rank,
                  self.avg_estimated_rank_level)
 
-        LOG.info('Initialized %s', self.__class__.__name__)
+        LOG.info('Initialized %s', cls_name(self))
 
     @property
     def size(self) -> int:

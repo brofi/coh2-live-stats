@@ -15,12 +15,21 @@
 import asyncio
 import os
 import time
+from inspect import isclass
 from logging import Formatter, Filter, LogRecord
 
 import winsound
 from prettytable.colortable import Theme, RESET_CODE
 
 from .data.color import Color
+
+
+def cls_name(obj: type | object) -> str:
+    return obj.__name__ if isclass(obj) else type(obj).__name__
+
+
+def cls_name_parent(obj: type | object) -> str | None:
+    return obj.mro()[1].__name__ if isclass(obj) else obj.__class__.mro()[1].__name__
 
 
 def ratio(x, total) -> float:

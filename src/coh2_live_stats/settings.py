@@ -22,10 +22,11 @@ from tomllib import TOMLDecodeError, load
 from typing import get_args, Literal, Annotated
 
 from pydantic import BeforeValidator, PlainSerializer, BaseModel, create_model, field_validator, FilePath, Field
-from pydantic_settings import BaseSettings, SettingsConfigDict, PydanticBaseSettingsSource, TomlConfigSettingsSource
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, TomlConfigSettingsSource
 
 from .data.color import Color
 from .data.faction import Faction
+from .util import cls_name
 
 LOG = logging.getLogger('coh2_live_stats')
 
@@ -199,7 +200,7 @@ class SettingsFactory:
     def create_settings(values: any = None) -> Settings:
         if values is None:
             settings = TomlSettings()
-            LOG.info('Loading %s[file=%s]', settings.__class__.__name__, settings.model_config.get('toml_file'))
+            LOG.info('Loading %s[file=%s]', cls_name(settings), settings.model_config.get('toml_file'))
             return settings
         return Settings(**values)
 

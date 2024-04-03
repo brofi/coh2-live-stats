@@ -11,7 +11,10 @@
 #
 #  You should have received a copy of the GNU General Public License along with Foobar. If not,
 #  see <https://www.gnu.org/licenses/>.
+
 from enum import Enum
+
+from coh2_live_stats.util import cls_name
 
 
 class Color(Enum):
@@ -33,7 +36,7 @@ class Color(Enum):
     BRIGHT_WHITE = 97
 
     def __repr__(self):
-        return f'{self.__class__.__name__}.{self.name}'
+        return cls_name(self)
 
     def __str__(self):
         return ' '.join(self.name.lower().split('_'))

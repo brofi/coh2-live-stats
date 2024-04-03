@@ -23,7 +23,7 @@ from .data.countries import country_set
 from .data.faction import Faction
 from .data.match import Match
 from .settings import Settings
-from .util import colorize
+from .util import colorize, cls_name
 
 LOG = logging.getLogger('coh2_live_stats')
 
@@ -33,7 +33,7 @@ class Output:
     def __init__(self, settings: Settings):
         self.settings = settings
         self.table = self._create_output_table(settings)
-        LOG.info('Initialized %s[columns=%s]', self.__class__.__name__, self.table.field_names)
+        LOG.info('Initialized %s[columns=%s]', cls_name(self), self.table.field_names)
 
     def _create_output_table(self, settings) -> PrettyTable:
         if settings.table.color:

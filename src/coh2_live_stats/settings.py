@@ -12,6 +12,7 @@
 #  You should have received a copy of the GNU General Public License along with Foobar. If not,
 #  see <https://www.gnu.org/licenses/>.
 
+import logging
 import sys
 from contextlib import suppress
 from enum import Enum
@@ -26,6 +27,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict, PydanticBaseSett
 from .data.color import Color
 from .data.faction import Faction
 
+LOG = logging.getLogger('coh2_live_stats')
+
 # When running in PyInstaller bundle:
 # getattr(sys, '_MEIPASS', __file__): ... \CoH2LiveStats\dist\CoH2LiveStats\lib                 (_MEIPASS)
 # __file__:                           ... \CoH2LiveStats\dist\CoH2LiveStats\lib\settings.py
@@ -37,17 +40,7 @@ CONFIG_PATHS = ['%USERPROFILE%', str(Path(getattr(sys, '_MEIPASS', __file__)).pa
 CONFIG_NAMES = [f'{p}{b}.toml' for b in ['coh2livestats', 'coh2_live_stats'] for p in ['_', '.', '']]
 CONFIG_FILES = [Path(expandvars(p)).joinpath(n) for p in CONFIG_PATHS for n in CONFIG_NAMES]
 
-
-def _first_valid_config():
-    for c in CONFIG_FILES:
-        with suppress(FileNotFoundError, TOMLDecodeError):
-            with open(c, 'rb') as f:
-                _ = load(f)
-                return c
-
-
-CONFIG_FILE = _first_valid_config()
-CONFIG_FILE_DEV = Path(__file__).with_name(CONFIG_NAMES[0])
+CONFIG_FILE_DEV: Path = Path(__file__).with_name(CONFIG_NAMES[0])
 
 Align = Literal['l', 'c', 'r']
 Sound = Literal['horn_subtle', 'horn', 'horn_epic']
@@ -177,8 +170,6 @@ class Settings(BaseSettings):
 
 
 class TomlSettings(Settings):
-    model_config = SettingsConfigDict(toml_file=CONFIG_FILE)
-
     @classmethod
     def settings_customise_sources(
             cls,
@@ -188,14 +179,28 @@ class TomlSettings(Settings):
             dotenv_settings: PydanticBaseSettingsSource,
             file_secret_settings: PydanticBaseSettingsSource
     ) -> tuple[PydanticBaseSettingsSource, ...]:
-        return TomlConfigSettingsSource(settings_cls),
+        return TomlConfigSettingsSource(settings_cls, cls._first_valid_config()),
+
+    @staticmethod
+    def _first_valid_config() -> Path | None:
+        for c in CONFIG_FILES:
+            with suppress(FileNotFoundError):
+                with open(c, 'rb') as f:
+                    LOG.info('Found TOML configuration: %s', c)
+                    try:
+                        _ = load(f)
+                        return c
+                    except TOMLDecodeError as e:
+                        LOG.warning('Failed to parse TOML configuration: %s', e.args[0])
 
 
 class SettingsFactory:
     @staticmethod
     def create_settings(values: any = None) -> Settings:
         if values is None:
-            return TomlSettings()
+            settings = TomlSettings()
+            LOG.info('Loading %s[file=%s]', settings.__class__.__name__, settings.model_config.get('toml_file'))
+            return settings
         return Settings(**values)
 
     @staticmethod

@@ -12,10 +12,13 @@
 #  You should have received a copy of the GNU General Public License along with Foobar. If not,
 #  see <https://www.gnu.org/licenses/>.
 
+import logging
 from operator import add
 
 from .player import Player
 from .team import Team
+
+LOG = logging.getLogger('coh2_live_stats')
 
 
 class Match:
@@ -30,6 +33,8 @@ class Match:
             raise ValueError('Parties must be of equal size.')
 
         self.parties: tuple[_Party, _Party] = p0, p1
+
+        LOG.info('Initialized %s', self.__class__.__name__)
 
     @property
     def highest_avg_rank_party(self) -> int:
@@ -81,6 +86,8 @@ class _Party:
             if p.relative_rank > self.max_relative_rank:
                 self.max_relative_rank = p.relative_rank
         avg_relative_rank = sum_relative_rank / self.size
+        LOG.info('Initialized pre-made teams: %s', self.pre_made_teams)
+        LOG.info('Initialized (min, max) relative rank: (%f, %f)', self.min_relative_rank, self.max_relative_rank)
 
         self.rank_estimates: dict[int, tuple[str, int, int]] = {}
         sum_estimates = (0, 0)
@@ -88,9 +95,14 @@ class _Party:
             estimate_rank = p.estimate_rank(avg_relative_rank)
             sum_estimates = tuple(map(add, sum_estimates, estimate_rank[1:]))
             self.rank_estimates[p.relic_id] = estimate_rank
+        LOG.info('Initialized rank estimates: %s', self.rank_estimates)
 
         self.avg_estimated_rank: float = sum_estimates[0] / self.size
         self.avg_estimated_rank_level: float = sum_estimates[1] / self.size
+        LOG.info('Initialized average estimated (rank, rank_level): (%f, %f)', self.avg_estimated_rank,
+                 self.avg_estimated_rank_level)
+
+        LOG.info('Initialized %s', self.__class__.__name__)
 
     @property
     def size(self) -> int:

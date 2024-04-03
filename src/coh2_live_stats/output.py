@@ -12,6 +12,7 @@
 #  You should have received a copy of the GNU General Public License along with Foobar. If not,
 #  see <https://www.gnu.org/licenses/>.
 
+import logging
 from functools import partial
 from typing import Any
 
@@ -24,12 +25,15 @@ from .data.match import Match
 from .settings import Settings
 from .util import colorize
 
+LOG = logging.getLogger('coh2_live_stats')
+
 
 class Output:
 
     def __init__(self, settings: Settings):
         self.settings = settings
         self.table = self._create_output_table(settings)
+        LOG.info('Initialized %s[columns=%s]', self.__class__.__name__, self.table.field_names)
 
     def _create_output_table(self, settings) -> PrettyTable:
         if settings.table.color:
@@ -107,6 +111,7 @@ class Output:
 
                 self._set_column(row, cols.name, (player.name, *is_high_low_lvl_player))
 
+                LOG.info('Add row (party=%d,player=%d): %s', party_index, player.relic_id, row)
                 self.table.add_row(row, divider=True if player_index == party.size - 1 else False)
 
             if (self.settings.table.show_average and (cols.rank.visible or cols.level.visible)
@@ -123,11 +128,13 @@ class Output:
                 if self._get_column_index(cols.rank) != 0 and self._get_column_index(cols.level) != 0:
                     avg_row[0] = 'Avg'
 
+                LOG.info('Add average row: %s', avg_row)
                 self.table.add_row(avg_row, divider=True)
 
         if not self.settings.table.always_show_team and not match.has_pre_made_teams:
             for col in cols.team, cols.team_rank, cols.team_level:
                 if col.visible:
+                    LOG.info('Deleting column %r', col.label)
                     self.table.del_column(col.label)
 
         if len(self.table.field_names) > 0:
@@ -144,7 +151,7 @@ class Output:
             else:
                 print(self.table)
         else:
-            print('No table columns to print.')
+            LOG.warning('No table columns to print.')
 
     def _format_faction(self, _, v):
         colored = self.settings.table.color

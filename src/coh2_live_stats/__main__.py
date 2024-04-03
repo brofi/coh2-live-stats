@@ -22,7 +22,7 @@ import tomllib
 from contextlib import suppress
 from hashlib import file_digest
 from io import BytesIO
-from logging import Logger, CRITICAL, WARNING
+from logging import INFO, WARNING, ERROR, CRITICAL
 from pathlib import Path
 from sys import exit
 from tomllib import TOMLDecodeError
@@ -40,7 +40,7 @@ from coh2_live_stats.coh2api import CoH2API
 from coh2_live_stats.data.match import Match
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.output import Output
-from coh2_live_stats.settings import SettingsFactory, Settings, CONFIG_FILE
+from coh2_live_stats.settings import SettingsFactory, Settings
 from coh2_live_stats.util import progress_start, progress_stop, play_sound, clear
 
 # When running in PyInstaller bundle:
@@ -51,7 +51,7 @@ from coh2_live_stats.util import progress_start, progress_stop, play_sound, clea
 # __file__:                           ... \CoH2LiveStats\src\coh2_live_stats\__main__.py
 
 LOGGING_CONF = Path(getattr(sys, '_MEIPASS', str(Path(__file__).parents[2]))).joinpath('logging.toml')
-logger: Logger = logging.getLogger('coh2_live_stats')
+LOG = logging.getLogger('coh2_live_stats')
 
 API_TIMEOUT = 30
 EXIT_STATUS = 0
@@ -84,6 +84,9 @@ def get_players_from_log(notify=True):
     new_match_found = pl != last_player_line
     last_player_line = pl
 
+    for p in player_lines:
+        LOG.info('Found player: %s', p)
+
     if notify:
         # If a multiplayer match is detected (no replay, no local AI game) and it's a new match -> notify.
         # If a multiplayer match is detected, and it's not a new match, but we haven't played a sound before -> notify.
@@ -92,8 +95,9 @@ def get_players_from_log(notify=True):
             new_match_notified = False
         is_mp = 'Party::SetStatus - S_PLAYING' in lines[pl + 1] if pl < len(lines) - 1 else False
         if not new_match_notified and is_mp:
-            if not settings.notification.play_sound or not play_sound(settings.notification.sound):
-                print('New match found!')
+            LOG.info('Notify new match')
+            if settings.notification.play_sound and not play_sound(settings.notification.sound):
+                LOG.warning('Failed to play sound: %s', settings.notification.sound)
 
             new_match_notified = True
 
@@ -105,6 +109,7 @@ class LogFileEventHandler(FileSystemEventHandler):
     def __init__(self, loop):
         self.last_hash = None
         self.loop = loop
+        LOG.info('Initialized %s(%s)', self.__class__.__name__, self.__class__.__mro__[1].__name__)
 
     def on_modified(self, event: FileSystemEvent) -> None:
         if event.is_directory or event.src_path != str(settings.logfile):
@@ -117,6 +122,7 @@ class LogFileEventHandler(FileSystemEventHandler):
         # Getting multiple modified events on every other file write, so make sure the file contents have really
         # changed. See: https://github.com/gorakhargosh/watchdog/issues/346
         if self.last_hash != h:
+            LOG.info('Logfile %s: %s', event.event_type, event.src_path)
             future_players: concurrent.futures.Future = asyncio.run_coroutine_threadsafe(get_players(), self.loop)
             # Don't block for future result here, since the Observer thread might need to be stopped
             future_players.add_done_callback(on_players_gathered)
@@ -187,6 +193,8 @@ def setup_logging():
         queue_handler.listener.start()
         atexit.register(queue_handler.listener.stop)
 
+    LOG.info('Configured logging with: %s', LOGGING_CONF)
+
 
 async def main():
     global api
@@ -205,41 +213,48 @@ async def main():
         await init_leaderboards()
         print_match(await get_players(notify=False))
         # Watch log files
-        observer.schedule(LogFileEventHandler(asyncio.get_running_loop()), str(settings.logfile.parent))
+        handler = LogFileEventHandler(asyncio.get_running_loop())
+        logfile_dir = str(settings.logfile.parent)
+        LOG.info('Scheduling %s for: %s', handler.__class__.__name__, logfile_dir)
+        observer.schedule(handler, logfile_dir)
+        LOG.info('Starting observer: %s[name=%s]', observer.__class__.__name__, observer.name)
         observer.start()
         while True:
             # Force CoH2 to write out its collected log
             with open(settings.logfile, mode="rb", buffering=0):
                 await asyncio.sleep(1)
     except TOMLDecodeError as e:
-        print('Error: Invalid TOML configuration file')
-        print(f'\tFile: {CONFIG_FILE}')
-        print(f'\tCause: {e.args[0]}')
+        # Should only occur if pydantic settings model is given an invalid TOML config
+        LOG.error('Failed to parse TOML file: %s', settings.model_config.get('toml_file'))
+        LOG.error('Invalid TOML: %s', e.args[0])
         EXIT_STATUS = 1
     except ValidationError as e:
+        # Pydantic model validation errors
         n = e.error_count()
-        print(f'{n} validation error{'s' if n > 1 else ''}:')
+        LOG.error('%d validation error%s for %s:', n, 's' if n > 1 else '', e.title)
         for err in e.errors():
-            print(f'\tAt {'.'.join(err['loc'])}: {err['msg']}'.expandtabs(4))
+            LOG.error('\t[%s]: %s'.expandtabs(4), '.'.join(err['loc']), err['msg'])
         EXIT_STATUS = 1
     except FileNotFoundError as e:
-        print(f'No logfile: "{e.filename}"')
+        LOG.error('No logfile: %s', e.filename)
         EXIT_STATUS = 1
     except RequestError as e:
-        print(f"An error occurred while requesting {e.request.url!r}.")
+        LOG.error('An error occurred while requesting %s.', repr(e.request.url))
         EXIT_STATUS = 1
     except HTTPStatusError as e:
-        print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
+        LOG.error("Error response %d while requesting %s.", e.response.status_code, repr(e.request.url))
         EXIT_STATUS = 1
     # In asyncio `Ctrl-C` cancels the main task, which raises a Cancelled Error
     except asyncio.CancelledError:
         raise
     finally:
         if observer:
+            LOG.info('Stopping observer: %s[name=%s]', observer.__class__.__name__, observer.name)
             observer.stop()
             if observer.is_alive():
                 observer.join()
         await api.close()
+        LOG.log(INFO if EXIT_STATUS == 0 else ERROR, 'Exit with code: %d\n', EXIT_STATUS)
 
 
 def run():

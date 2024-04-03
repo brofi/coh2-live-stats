@@ -13,13 +13,16 @@
 #  see <https://www.gnu.org/licenses/>.
 
 import asyncio
+import logging
 from enum import IntEnum
 
-from httpx import AsyncClient
+from httpx import AsyncClient, URL
 
 from .data.faction import TeamFaction, Faction
 from .data.player import Player
 from .data.team import Team
+
+LOG = logging.getLogger('coh2_live_stats')
 
 
 class _SoloMatchType(IntEnum):
@@ -82,11 +85,13 @@ class CoH2API:
             **{self._get_team_leaderboard_id(m, t): {
                 self.KEY_LEADERBOARD_NAME: f'Team_of_{m.value + 2}_{t.name.capitalize()}'}
                 for m in _TeamMatchType for t in TeamFaction}}
+        LOG.info('Initialized %s[timeout=%d]', self.__class__.__name__, self.timeout)
 
     async def get_players(self, players: list[Player]) -> list[Player]:
         if not self.leaderboards:
             raise ValueError('Initialize leaderboards first.')
 
+        LOG.info('GET players: %s', [p.relic_id for p in players])
         r = await asyncio.gather(*(self._get_player(p.relic_id) for p in players))
         if r:
             num_players = len(players)
@@ -99,6 +104,7 @@ class CoH2API:
         self._set_rank_total(player, leaderboard_id)
         self._set_extra_player_data_from_json(player, json)
         self._set_teams_from_json(player, json)
+        LOG.info('Initialized player: %s', player)
         return player
 
     @staticmethod
@@ -174,15 +180,18 @@ class CoH2API:
             return {}
 
         params = {'title': 'coh2', 'profile_ids': f'[{relic_id}]'}
+        LOG.info('GET player: %s', str(URL(self.URL_PLAYER, params=params)))
         r = await self.http_client.get(self.URL_PLAYER, params=params, timeout=self.timeout)
         r.raise_for_status()
         return r.json()
 
     async def init_leaderboards(self):
+        LOG.info('GET leaderboards: %s', list(self.leaderboards.keys()))
         r = await asyncio.gather(*(self._get_leaderboard(_id) for _id in self.leaderboards.keys()))
         if r:
             for i, _id in enumerate(self.leaderboards.keys()):
                 self.leaderboards[_id][self.KEY_LEADERBOARD_RANK_TOTAL] = r[i]['rankTotal']
+        LOG.info('Initialized leaderboards: %s', self.leaderboards)
 
     async def _get_leaderboards(self):
         r = await self.http_client.get(self.URL_LEADERBOARDS, params={'title': 'coh2'}, timeout=self.timeout)
@@ -196,4 +205,5 @@ class CoH2API:
         return r.json()
 
     async def close(self):
+        LOG.info('Closing HTTP client: %s', self.http_client.__class__.__name__)
         await self.http_client.aclose()

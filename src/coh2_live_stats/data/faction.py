@@ -45,6 +45,12 @@ class Faction(Enum):
                 return member
         return None
 
+    def __repr__(self):
+        return f'{self.__class__.__name__}.{self.name}'
+
+    def __str__(self):
+        return self.full_name
+
 
 class TeamFaction(IntEnum):
     AXIS = 0
@@ -53,3 +59,9 @@ class TeamFaction(IntEnum):
     @classmethod
     def from_faction(cls, f: Faction):
         return cls(int(f.is_allies_faction))
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}.{self.name}'
+
+    def __str__(self):
+        return self.name.capitalize()

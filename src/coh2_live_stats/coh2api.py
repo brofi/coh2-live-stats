@@ -29,6 +29,9 @@ class _SoloMatchType(IntEnum):
     S_3V3 = 3
     S_4V4 = 4
 
+    def __repr__(self):
+        return f'{self.__class__.__name__}.{self.name}'
+
     def __str__(self):
         return self.name.removeprefix('S_').lower()
 
@@ -37,6 +40,9 @@ class _TeamMatchType(IntEnum):
     T_2V2 = 0
     T_3V3 = 1
     T_4V4 = 2
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}.{self.name}'
 
     def __str__(self):
         return self.name.removeprefix('T_').lower()
@@ -47,6 +53,12 @@ class _Difficulty(IntEnum):
     MEDIUM = 1
     HARD = 2
     EXPERT = 3
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}.{self.name}'
+
+    def __str__(self):
+        return self.name.lower()
 
 
 type Leaderboard = dict[int, dict[str, any]]

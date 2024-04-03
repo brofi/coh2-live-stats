@@ -31,3 +31,9 @@ class Color(Enum):
     BRIGHT_MAGENTA = 95
     BRIGHT_CYAN = 96
     BRIGHT_WHITE = 97
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}.{self.name}'
+
+    def __str__(self):
+        return ' '.join(self.name.lower().split('_'))

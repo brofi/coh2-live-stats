@@ -163,7 +163,7 @@ class _Notification(BaseModel):
 
 class Settings(BaseSettings):
     logfile: _PT = Field(
-        Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log'),
+        Path.home().joinpath('Documents', 'My Games', 'Company of Heroes 2', 'warnings.log'), validate_default=True,
         description="Path to observed Company of Heroes 2 log file (supports OS environment variables)")
     notification: _Notification = Field(_Notification(), description="Notification sound options")
     table: _Table = Field(_Table(), description="Output table options")

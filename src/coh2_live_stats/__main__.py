@@ -238,9 +238,6 @@ async def main():
         for err in e.errors():
             LOG.error('\t[%s]: %s'.expandtabs(4), '.'.join(err['loc']), err['msg'])
         EXIT_STATUS = 1
-    except FileNotFoundError as e:
-        LOG.error('No logfile: %s', e.filename)
-        EXIT_STATUS = 1
     except RequestError as e:
         LOG.error('An error occurred while requesting %s.', repr(e.request.url))
         EXIT_STATUS = 1

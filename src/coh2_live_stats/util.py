@@ -15,7 +15,7 @@
 import asyncio
 import os
 import time
-from logging import Formatter
+from logging import Formatter, Filter, LogRecord
 
 import winsound
 from prettytable.colortable import Theme, RESET_CODE
@@ -70,3 +70,11 @@ class CustomFormatter(Formatter):
             if self.default_msec_format:
                 s = self.default_msec_format % (s, record.msecs)
         return s
+
+
+class StderrHiddenFilter(Filter):
+    KEY_EXTRA_HIDE = 'hide_from_stderr'
+    KWARGS = {'extra': {KEY_EXTRA_HIDE: True}}
+
+    def filter(self, record: LogRecord):
+        return not getattr(record, self.KEY_EXTRA_HIDE, False)

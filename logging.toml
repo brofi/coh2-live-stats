@@ -11,11 +11,15 @@ style = '{'
 format = '[{levelname!s:<5}] [{asctime}] [{taskName!s:<7}] [{name} {module}:{lineno}:{funcName}] - {message}'
 datefmt = '%Y-%m-%dT%H:%M:%S.%f%z'
 
+[filters.stderr_hide]
+'()' = 'src.coh2_live_stats.util.StderrHiddenFilter'
+
 [handlers.stderr]
 class = 'logging.StreamHandler'
 level = 'WARNING'
 formatter = 'simple'
 stream = 'ext://sys.stderr'
+filters = ['stderr_hide']
 
 [handlers.file]
 class = 'logging.handlers.RotatingFileHandler'

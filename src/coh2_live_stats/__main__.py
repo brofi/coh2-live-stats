@@ -41,7 +41,7 @@ from coh2_live_stats.data.match import Match
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.output import Output
 from coh2_live_stats.settings import SettingsFactory, Settings
-from coh2_live_stats.util import progress_start, progress_stop, play_sound, clear
+from coh2_live_stats.util import progress_start, progress_stop, play_sound, clear, StderrHiddenFilter
 
 # When running in PyInstaller bundle:
 # getattr(sys, '_MEIPASS', __file__): ... \CoH2LiveStats\dist\CoH2LiveStats\lib                 (_MEIPASS)
@@ -254,7 +254,7 @@ async def main():
             if observer.is_alive():
                 observer.join()
         await api.close()
-        LOG.log(INFO if EXIT_STATUS == 0 else ERROR, 'Exit with code: %d\n', EXIT_STATUS)
+        LOG.log(INFO if EXIT_STATUS == 0 else ERROR, 'Exit with code: %d\n', EXIT_STATUS, **StderrHiddenFilter.KWARGS)
 
 
 def run():

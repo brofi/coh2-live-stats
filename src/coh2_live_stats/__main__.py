@@ -258,13 +258,9 @@ async def main():
 
 
 def run():
-    try:
+    with suppress(asyncio.CancelledError, KeyboardInterrupt):
         asyncio.run(main())
-        exit(EXIT_STATUS)
-    except asyncio.CancelledError:
-        pass
-    except KeyboardInterrupt:
-        pass
+    exit(EXIT_STATUS)
 
 
 if __name__ == '__main__':

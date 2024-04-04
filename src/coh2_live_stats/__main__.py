@@ -13,17 +13,12 @@
 #  see <https://www.gnu.org/licenses/>.
 
 import asyncio
-import atexit
 import concurrent.futures
-import logging
 import logging.config
-import sys
-import tomllib
 from contextlib import suppress
 from hashlib import file_digest
 from io import BytesIO
-from logging import INFO, WARNING, ERROR, CRITICAL
-from pathlib import Path
+from logging import INFO, ERROR
 from sys import exit
 from tomllib import TOMLDecodeError
 
@@ -39,19 +34,12 @@ from watchdog.observers import Observer
 from coh2_live_stats.coh2api import CoH2API
 from coh2_live_stats.data.match import Match
 from coh2_live_stats.data.player import Player
+from coh2_live_stats.logging_conf import StderrHiddenFilter, LoggingConf, LoggingConfException
 from coh2_live_stats.output import Output
 from coh2_live_stats.settings import SettingsFactory, Settings
-from coh2_live_stats.util import progress_start, progress_stop, play_sound, clear, StderrHiddenFilter, cls_name, \
-    cls_name_parent
+from coh2_live_stats.util import progress_start, progress_stop, play_sound, clear, cls_name, \
+    cls_name_parent, print_error
 
-# When running in PyInstaller bundle:
-# getattr(sys, '_MEIPASS', __file__): ... \CoH2LiveStats\dist\CoH2LiveStats\lib                 (_MEIPASS)
-# __file__:                           ... \CoH2LiveStats\dist\CoH2LiveStats\lib\__main__.py
-# When running in a normal Python process:
-# getattr(sys, '_MEIPASS', __file__): ... \CoH2LiveStats\src\coh2_live_stats\__main__.py        (getattr default)
-# __file__:                           ... \CoH2LiveStats\src\coh2_live_stats\__main__.py
-
-LOGGING_CONF = Path(getattr(sys, '_MEIPASS', str(Path(__file__).parents[2]))).joinpath('logging.toml')
 LOG = logging.getLogger('coh2_live_stats')
 
 API_TIMEOUT = 30
@@ -166,51 +154,16 @@ def print_match(players: list[Player]):
         output.print_match(Match(players))
 
 
-def print_error(*values, **kwargs):
-    print(*values, file=sys.stderr, **kwargs)
-
-
-def setup_logging():
-    with open(LOGGING_CONF, 'rb') as f:
-        try:
-            conf = tomllib.load(f)
-        except TOMLDecodeError as e:
-            print_error('Error: Invalid TOML in logging configuration')
-            print_error(f'\tFile: {LOGGING_CONF}')
-            print_error(f'\tCause: {e.args[0]}')
-            exit(1)
-
-    with suppress(KeyError):
-        filename = str(Path(conf['handlers']['file']['filename']).name)
-        conf['handlers']['file']['filename'] = str(
-            Path(getattr(sys, '_MEIPASS', str(Path(__file__).parents[1]))).with_name(filename))
-
-    logging.config.dictConfig(conf)
-    logging.addLevelName(WARNING, 'WARN')
-    logging.addLevelName(CRITICAL, 'CRIT')
-    logging.logThreads = False
-    logging.logProcesses = False
-    logging.logMultiprocessing = False
-
-    queue_handler = logging.getHandlerByName('queue_handler')
-    if queue_handler is not None:
-        queue_handler.listener.start()
-        atexit.register(queue_handler.listener.stop)
-
-    LOG.info('Configured logging with: %s', LOGGING_CONF)
-
-
 async def main():
-    global api
-    global settings
-    global output
-    global EXIT_STATUS
+    global api, settings, output, EXIT_STATUS
 
-    setup_logging()
+    _logging = None
     api = CoH2API(API_TIMEOUT)
     observer = Observer()
 
     try:
+        _logging = LoggingConf()
+        _logging.start()
         settings = SettingsFactory.create_settings()
         output = Output(settings)
         # Initial requests
@@ -227,6 +180,8 @@ async def main():
             # Force CoH2 to write out its collected log
             with open(settings.logfile, mode="rb", buffering=0):
                 await asyncio.sleep(1)
+    except LoggingConfException as e:
+        print_error(e.args[0])
     except TOMLDecodeError as e:
         # Should only occur if pydantic settings model is given an invalid TOML config
         LOG.error('Failed to parse TOML file: %s', settings.model_config.get('toml_file'))
@@ -248,6 +203,10 @@ async def main():
     # In asyncio `Ctrl-C` cancels the main task, which raises a Cancelled Error
     except asyncio.CancelledError:
         raise
+    except Exception as e:
+        msg = 'Unexpected error. Consult the log for more information'
+        LOG.exception('%s: %s', msg, _logging.log_file_path) if _logging else print_error(f'{msg}.')
+        raise e
     finally:
         if observer:
             LOG.info('Stopping observer: %s[name=%s]', cls_name(observer), observer.name)
@@ -256,10 +215,12 @@ async def main():
                 observer.join()
         await api.close()
         LOG.log(INFO if EXIT_STATUS == 0 else ERROR, 'Exit with code: %d\n', EXIT_STATUS, **StderrHiddenFilter.KWARGS)
+        if _logging:
+            _logging.stop()
 
 
 def run():
-    with suppress(asyncio.CancelledError, KeyboardInterrupt):
+    with suppress(asyncio.CancelledError, KeyboardInterrupt, Exception):
         asyncio.run(main())
     exit(EXIT_STATUS)
 

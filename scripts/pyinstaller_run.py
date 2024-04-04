@@ -21,7 +21,7 @@ import PyInstaller.__main__
 from PyInstaller.utils.win32.versioninfo import StringFileInfo, StringTable, StringStruct, VarFileInfo, VarStruct
 from PyInstaller.utils.win32.versioninfo import VSVersionInfo, FixedFileInfo
 
-from coh2_live_stats.__main__ import LOGGING_CONF
+from coh2_live_stats.logging_conf import LoggingConf
 from coh2_live_stats.settings import CONFIG_FILE_DEV
 from coh2_live_stats.version import __version__, __version_tuple__
 
@@ -84,7 +84,7 @@ PyInstaller.__main__.run([
     '--contents-directory', contents_dir_name,
     '--add-data', f'{license_file_name}:.',
     '--add-data', f'{CONFIG_FILE_DEV}:.',
-    '--add-data', f'{LOGGING_CONF}:.',
+    '--add-data', f'{LoggingConf.CONF_PATH}:.',
     '--add-data', f'{res_path.joinpath('horn.wav')}:./res',
     '--add-data', f'{res_path.joinpath('horn_subtle.wav')}:./res',
     '--add-data', f'{res_path.joinpath('horn_epic.wav')}:./res',

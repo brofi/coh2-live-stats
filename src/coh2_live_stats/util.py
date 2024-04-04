@@ -14,9 +14,8 @@
 
 import asyncio
 import os
-import time
+import sys
 from inspect import isclass
-from logging import Formatter, Filter, LogRecord
 
 import winsound
 
@@ -61,22 +60,5 @@ def play_sound(soundfile: str):
     return True
 
 
-class CustomFormatter(Formatter):
-    def formatTime(self, record, datefmt=None):
-        ct = self.converter(record.created)
-        if datefmt:
-            # Replace %f (only supported by datetime) with milliseconds
-            s = time.strftime(datefmt.replace('%f', f'{record.msecs:03.0f}'), ct)
-        else:
-            s = time.strftime(self.default_time_format, ct)
-            if self.default_msec_format:
-                s = self.default_msec_format % (s, record.msecs)
-        return s
-
-
-class StderrHiddenFilter(Filter):
-    KEY_EXTRA_HIDE = 'hide_from_stderr'
-    KWARGS = {'extra': {KEY_EXTRA_HIDE: True}}
-
-    def filter(self, record: LogRecord):
-        return not getattr(record, self.KEY_EXTRA_HIDE, False)
+def print_error(*values, **kwargs):
+    print(*values, file=sys.stderr, **kwargs)

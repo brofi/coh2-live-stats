@@ -2,17 +2,18 @@ version = 1
 disable_existing_loggers = false
 
 [formatters.simple]
+'()' = 'coh2_live_stats.logging_conf.SimpleFormatter'
 style = '{'
 format = '[{levelname}] {message}'
 
 [formatters.detailed]
-'()' = 'coh2_live_stats.util.CustomFormatter'
+'()' = 'coh2_live_stats.logging_conf.DetailedFormatter'
 style = '{'
 format = '[{levelname!s:<5}] [{asctime}] [{taskName!s:<7}] [{name} {module}:{lineno}:{funcName}] - {message}'
 datefmt = '%Y-%m-%dT%H:%M:%S.%f%z'
 
 [filters.stderr_hide]
-'()' = 'coh2_live_stats.util.StderrHiddenFilter'
+'()' = 'coh2_live_stats.logging_conf.StderrHiddenFilter'
 
 [handlers.stderr]
 class = 'logging.StreamHandler'
@@ -30,14 +31,8 @@ maxBytes = 500000
 backupCount = 3
 encoding = 'utf-8'
 
-[handlers.queue_handler]
-class = 'logging.handlers.QueueHandler'
-handlers = ['stderr', 'file']
-respect_handler_level = true
-
 [loggers.root]
 level = 'WARNING'
-handlers = ['queue_handler']
 
 [loggers.coh2_live_stats]
 level = 'DEBUG'

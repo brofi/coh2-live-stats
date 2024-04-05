@@ -17,13 +17,20 @@ import shutil
 from pathlib import Path
 
 import PyInstaller.__main__
+
 # noinspection PyUnresolvedReferences
-from PyInstaller.utils.win32.versioninfo import StringFileInfo, StringTable, StringStruct, VarFileInfo, VarStruct
+from PyInstaller.utils.win32.versioninfo import (
+    StringFileInfo,
+    StringTable,
+    StringStruct,
+    VarFileInfo,
+    VarStruct,
+)
 from PyInstaller.utils.win32.versioninfo import VSVersionInfo, FixedFileInfo
 
 from coh2_live_stats.logging_conf import LoggingConf
 from coh2_live_stats.settings import CONFIG_FILE_DEV
-from coh2_live_stats.version import __version__, __version_tuple__
+from coh2_live_stats import __version__, __version_tuple__
 
 app_name = 'CoH2LiveStats'
 license_file_name = 'COPYING'
@@ -36,15 +43,15 @@ module_path = content_root.joinpath('src', 'coh2_live_stats')
 res_path = module_path.joinpath('res')
 version_file = build_path.joinpath('file_version_info.txt')
 
-ffi_version = (*__version_tuple__[:2], __version_tuple__[2] if isinstance(__version_tuple__[2], int) else 0, 0)
+ffi_version = (
+    *__version_tuple__[:2],
+    __version_tuple__[2] if isinstance(__version_tuple__[2], int) else 0,
+    0,
+)
 # see: https://learn.microsoft.com/en-us/windows/win32/menurc/vs-versioninfo
 version_info = VSVersionInfo(
     # see: https://learn.microsoft.com/en-us/windows/win32/api/VerRsrc/ns-verrsrc-vs_fixedfileinfo
-    ffi=FixedFileInfo(
-        filevers=ffi_version,
-        prodvers=ffi_version,
-        date=(0, 0)
-    ),
+    ffi=FixedFileInfo(filevers=ffi_version, prodvers=ffi_version, date=(0, 0)),
     kids=[
         # see: https://learn.microsoft.com/en-us/windows/win32/menurc/stringfileinfo
         StringFileInfo(
@@ -53,18 +60,24 @@ version_info = VSVersionInfo(
                 StringTable(
                     '040904b0',  # Change with Translation (1200_10 = 04b0_16)
                     # see (szKey, Value): https://learn.microsoft.com/en-us/windows/win32/menurc/string-str
-                    [StringStruct('CompanyName', ''),
-                     StringStruct('FileDescription', app_name),
-                     StringStruct('FileVersion', __version__),
-                     StringStruct('InternalName', exec_name),
-                     StringStruct('LegalCopyright', 'Copyright (C) 2024 Andreas Becker.'),
-                     StringStruct('OriginalFilename', exec_name),
-                     StringStruct('ProductName', app_name),
-                     StringStruct('ProductVersion', __version__)])
-            ]),
+                    [
+                        StringStruct('CompanyName', ''),
+                        StringStruct('FileDescription', app_name),
+                        StringStruct('FileVersion', __version__),
+                        StringStruct('InternalName', exec_name),
+                        StringStruct(
+                            'LegalCopyright', 'Copyright (C) 2024 Andreas Becker.'
+                        ),
+                        StringStruct('OriginalFilename', exec_name),
+                        StringStruct('ProductName', app_name),
+                        StringStruct('ProductVersion', __version__),
+                    ],
+                )
+            ]
+        ),
         # see: https://learn.microsoft.com/en-us/windows/win32/menurc/varfileinfo-block
-        VarFileInfo([VarStruct('Translation', [0x0409, 1200])])
-    ]
+        VarFileInfo([VarStruct('Translation', [0x0409, 1200])]),
+    ],
 )
 
 try:
@@ -75,28 +88,49 @@ except FileExistsError:
 with open(version_file, 'w') as f:
     f.write(str(version_info))
 
-PyInstaller.__main__.run([
-    '--distpath', str(dist_path),
-    '--workpath', str(build_path),
-    '--noconfirm',
-    '--specpath', str(content_root),
-    '--name', app_name,
-    '--contents-directory', contents_dir_name,
-    '--add-data', f'{license_file_name}:.',
-    '--add-data', f'{CONFIG_FILE_DEV}:.',
-    '--add-data', f'{LoggingConf.CONF_PATH}:.',
-    '--add-data', f'{res_path.joinpath('horn.wav')}:./res',
-    '--add-data', f'{res_path.joinpath('horn_subtle.wav')}:./res',
-    '--add-data', f'{res_path.joinpath('horn_epic.wav')}:./res',
-    '--icon', str(res_path.joinpath('coh2_live_stats.ico')),
-    '--version-file', str(version_file),
-    str(module_path.joinpath('__main__.py'))
-])
+PyInstaller.__main__.run(
+    [
+        '--distpath',
+        str(dist_path),
+        '--workpath',
+        str(build_path),
+        '--noconfirm',
+        '--specpath',
+        str(content_root),
+        '--name',
+        app_name,
+        '--contents-directory',
+        contents_dir_name,
+        '--add-data',
+        f'{license_file_name}:.',
+        '--add-data',
+        f'{CONFIG_FILE_DEV}:.',
+        '--add-data',
+        f'{LoggingConf.CONF_PATH}:.',
+        '--add-data',
+        f'{res_path.joinpath('horn.wav')}:./res',
+        '--add-data',
+        f'{res_path.joinpath('horn_subtle.wav')}:./res',
+        '--add-data',
+        f'{res_path.joinpath('horn_epic.wav')}:./res',
+        '--icon',
+        str(res_path.joinpath('coh2_live_stats.ico')),
+        '--version-file',
+        str(version_file),
+        str(module_path.joinpath('__main__.py')),
+    ]
+)
 
 # Move license and config next to executable
 app_path = dist_path.joinpath(app_name)
-os.replace(app_path.joinpath(contents_dir_name, license_file_name), app_path.joinpath(license_file_name + '.txt'))
-os.replace(app_path.joinpath(contents_dir_name, CONFIG_FILE_DEV.name), app_path.joinpath(CONFIG_FILE_DEV.name))
+os.replace(
+    app_path.joinpath(contents_dir_name, license_file_name),
+    app_path.joinpath(license_file_name + '.txt'),
+)
+os.replace(
+    app_path.joinpath(contents_dir_name, CONFIG_FILE_DEV.name),
+    app_path.joinpath(CONFIG_FILE_DEV.name),
+)
 
 # Create distribution archive
 res = shutil.make_archive(str(app_path), 'zip', dist_path, app_name)

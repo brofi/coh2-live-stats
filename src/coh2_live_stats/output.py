@@ -29,7 +29,6 @@ LOG = logging.getLogger('coh2_live_stats')
 
 
 class Output:
-
     def __init__(self, settings: Settings):
         self.settings = settings
         self.table = self._create_output_table(settings)
@@ -39,7 +38,12 @@ class Output:
         if settings.table.color:
             border_color = str(settings.table.colors.border.value)
             table = ColorTable(
-                theme=Theme(vertical_color=border_color, horizontal_color=border_color, junction_color=border_color))
+                theme=Theme(
+                    vertical_color=border_color,
+                    horizontal_color=border_color,
+                    junction_color=border_color,
+                )
+            )
         else:
             table = PrettyTable()
 
@@ -47,9 +51,16 @@ class Output:
         table.preserve_internal_border = True
 
         cols = settings.table.columns
-        visible_columns = [(c.label, c.align) for c in sorted(
-            filter(lambda c: c.visible, [getattr(cols, attr) for attr in cols.model_fields.keys()]),
-            key=lambda c: c.pos)]
+        visible_columns = [
+            (c.label, c.align)
+            for c in sorted(
+                filter(
+                    lambda c: c.visible,
+                    [getattr(cols, attr) for attr in cols.model_fields.keys()],
+                ),
+                key=lambda c: c.pos,
+            )
+        ]
         table.field_names = [label for label, _ in visible_columns]
 
         for label, align in visible_columns:
@@ -80,16 +91,30 @@ class Output:
 
                 self._set_column(row, cols.faction, player.faction)
 
-                is_high_low_lvl_player = (player.relative_rank <= party.min_relative_rank,
-                                          player.relative_rank >= party.max_relative_rank)
+                is_high_low_lvl_player = (
+                    player.relative_rank <= party.min_relative_rank,
+                    player.relative_rank >= party.max_relative_rank,
+                )
 
                 rank_estimate = party.rank_estimates.get(player.relic_id)
-                self._set_column(row, cols.rank, (rank_estimate[0], rank_estimate[1], *is_high_low_lvl_player))
-                self._set_column(row, cols.level, (rank_estimate[0], rank_estimate[2], *is_high_low_lvl_player))
+                self._set_column(
+                    row,
+                    cols.rank,
+                    (rank_estimate[0], rank_estimate[1], *is_high_low_lvl_player),
+                )
+                self._set_column(
+                    row,
+                    cols.level,
+                    (rank_estimate[0], rank_estimate[2], *is_high_low_lvl_player),
+                )
 
-                prestige = player.get_prestige_level_stars(self.settings.table.prestige_star_char,
-                                                           self.settings.table.prestige_half_star_char)
-                self._set_column(row, cols.prestige, (prestige, *is_high_low_lvl_player))
+                prestige = player.get_prestige_level_stars(
+                    self.settings.table.prestige_star_char,
+                    self.settings.table.prestige_half_star_char,
+                )
+                self._set_column(
+                    row, cols.prestige, (prestige, *is_high_low_lvl_player)
+                )
 
                 self._set_column(row, cols.win_ratio, player.win_ratio)
                 self._set_column(row, cols.drop_ratio, player.drop_ratio)
@@ -101,31 +126,71 @@ class Output:
                         team_names.append(chr(ti + 65))
                         display_ranks.append(team.display_rank)
                 self._set_column(row, cols.team, ','.join(team_names))
-                self._set_column(row, cols.team_rank, ','.join(r for (r, _) in display_ranks))
-                self._set_column(row, cols.team_level, ','.join(l for (_, l) in display_ranks))
+                self._set_column(
+                    row, cols.team_rank, ','.join(rank for (rank, _) in display_ranks)
+                )
+                self._set_column(
+                    row,
+                    cols.team_level,
+                    ','.join(level for (_, level) in display_ranks),
+                )
 
-                self._set_column(row, cols.steam_profile, player.get_steam_profile_url())
+                self._set_column(
+                    row, cols.steam_profile, player.get_steam_profile_url()
+                )
 
                 country: dict = country_set[player.country] if player.country else ''
-                self._set_column(row, cols.country, (country['name'] if country else '', *is_high_low_lvl_player))
+                self._set_column(
+                    row,
+                    cols.country,
+                    (country['name'] if country else '', *is_high_low_lvl_player),
+                )
 
                 self._set_column(row, cols.name, (player.name, *is_high_low_lvl_player))
 
-                LOG.info('Add row (party=%d,player=%d): %s', party_index, player.relic_id, row)
-                self.table.add_row(row, divider=True if player_index == party.size - 1 else False)
+                LOG.info(
+                    'Add row (party=%d,player=%d): %s',
+                    party_index,
+                    player.relic_id,
+                    row,
+                )
+                self.table.add_row(
+                    row, divider=True if player_index == party.size - 1 else False
+                )
 
-            if (self.settings.table.show_average and (cols.rank.visible or cols.level.visible)
-                    and len([p for p in party.players if p.relic_id > 0]) > 1):
+            if (
+                self.settings.table.show_average
+                and (cols.rank.visible or cols.level.visible)
+                and len([p for p in party.players if p.relic_id > 0]) > 1
+            ):
                 avg_row: list[Any] = [''] * len(self.table.field_names)
 
-                avg_rank_prefix = '*' if party_index == match.highest_avg_rank_party else ''
-                avg_rank_level_prefix = '*' if party_index == match.highest_avg_rank_level_party else ''
-                self._set_column(avg_row, cols.rank,
-                                 (avg_rank_prefix, party.avg_estimated_rank, False, False))
-                self._set_column(avg_row, cols.level,
-                                 (avg_rank_level_prefix, party.avg_estimated_rank_level, False, False))
+                avg_rank_prefix = (
+                    '*' if party_index == match.highest_avg_rank_party else ''
+                )
+                avg_rank_level_prefix = (
+                    '*' if party_index == match.highest_avg_rank_level_party else ''
+                )
+                self._set_column(
+                    avg_row,
+                    cols.rank,
+                    (avg_rank_prefix, party.avg_estimated_rank, False, False),
+                )
+                self._set_column(
+                    avg_row,
+                    cols.level,
+                    (
+                        avg_rank_level_prefix,
+                        party.avg_estimated_rank_level,
+                        False,
+                        False,
+                    ),
+                )
 
-                if self._get_column_index(cols.rank) != 0 and self._get_column_index(cols.level) != 0:
+                if (
+                    self._get_column_index(cols.rank) != 0
+                    and self._get_column_index(cols.level) != 0
+                ):
                     avg_row[0] = 'Avg'
 
                 LOG.info('Add average row: %s', avg_row)
@@ -144,7 +209,11 @@ class Output:
                 table_lines = self.table.get_string().splitlines(True)
                 i = int(self.settings.table.border)
                 for h in self.table.field_names:
-                    header = ' ' * self.table.padding_width + h + ' ' * self.table.padding_width
+                    header = (
+                        ' ' * self.table.padding_width
+                        + h
+                        + ' ' * self.table.padding_width
+                    )
                     color_header = self.settings.table.colors.label.colorize(header)
                     table_lines[i] = table_lines[i].replace(header, color_header)
                 print(''.join(table_lines))
@@ -156,7 +225,11 @@ class Output:
     def _format_faction(self, _, v):
         colored = self.settings.table.color
         if isinstance(v, Faction):
-            return self.settings.table.colors.get_faction_color(v).colorize(v.name) if colored else v.name
+            return (
+                self.settings.table.colors.get_faction_color(v).colorize(v.name)
+                if colored
+                else v.name
+            )
         return self.settings.table.colors.label.colorize(str(v)) if colored else str(v)
 
     def _format_rank(self, precision, _, v: any):
@@ -175,12 +248,21 @@ class Output:
         colored = self.settings.table.color
         if isinstance(v, float):
             v_str = f'{v:.0%}'
-            if (colored and f == self.settings.table.columns.drop_ratio.label
-                    and v >= self.settings.table.drop_ratio_high_threshold):
+            if (
+                colored
+                and f == self.settings.table.columns.drop_ratio.label
+                and v >= self.settings.table.drop_ratio_high_threshold
+            ):
                 v_str = self.settings.table.colors.player.high_drop_rate.colorize(v_str)
             elif f == self.settings.table.columns.win_ratio.label:
-                v_str = self._format_min_max(f, (v_str, v >= self.settings.table.win_ratio_high_threshold,
-                                                 v < self.settings.table.win_ratio_low_threshold))
+                v_str = self._format_min_max(
+                    f,
+                    (
+                        v_str,
+                        v >= self.settings.table.win_ratio_high_threshold,
+                        v < self.settings.table.win_ratio_low_threshold,
+                    ),
+                )
         return v_str
 
     def _format_min_max(self, _, v: any):

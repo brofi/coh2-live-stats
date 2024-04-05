@@ -34,11 +34,22 @@ from watchdog.observers import Observer
 from coh2_live_stats.coh2api import CoH2API
 from coh2_live_stats.data.match import Match
 from coh2_live_stats.data.player import Player
-from coh2_live_stats.logging_conf import StderrHiddenFilter, LoggingConf, LoggingConfException
+from coh2_live_stats.logging_conf import (
+    StderrHiddenFilter,
+    LoggingConf,
+    LoggingConfException,
+)
 from coh2_live_stats.output import Output
 from coh2_live_stats.settings import SettingsFactory, Settings
-from coh2_live_stats.util import progress_start, progress_stop, play_sound, clear, cls_name, \
-    cls_name_parent, print_error
+from coh2_live_stats.util import (
+    progress_start,
+    progress_stop,
+    play_sound,
+    clear,
+    cls_name,
+    cls_name_parent,
+    print_error,
+)
 
 LOG = logging.getLogger('coh2_live_stats')
 
@@ -82,19 +93,28 @@ def get_players_from_log(notify=True):
         # The latter can happen if the playing status is written late.
         if new_match_found:
             new_match_notified = False
-        is_mp = 'Party::SetStatus - S_PLAYING' in lines[pl + 1] if pl < len(lines) - 1 else False
+        is_mp = (
+            'Party::SetStatus - S_PLAYING' in lines[pl + 1]
+            if pl < len(lines) - 1
+            else False
+        )
         if not new_match_notified and is_mp:
             LOG.info('Notify new match')
-            if settings.notification.play_sound and not play_sound(settings.notification.sound):
+            if settings.notification.play_sound and not play_sound(
+                settings.notification.sound
+            ):
                 LOG.warning('Failed to play sound: %s', settings.notification.sound)
 
             new_match_notified = True
 
-    return [Player.from_log(player_line) for player_line in player_lines] if player_lines else []
+    return (
+        [Player.from_log(player_line) for player_line in player_lines]
+        if player_lines
+        else []
+    )
 
 
 class LogFileEventHandler(FileSystemEventHandler):
-
     def __init__(self, loop):
         self.last_hash = None
         self.loop = loop
@@ -112,7 +132,9 @@ class LogFileEventHandler(FileSystemEventHandler):
         # changed. See: https://github.com/gorakhargosh/watchdog/issues/346
         if self.last_hash != h:
             LOG.info('Logfile %s: %s', event.event_type, event.src_path)
-            future_players: concurrent.futures.Future = asyncio.run_coroutine_threadsafe(get_players(), self.loop)
+            future_players: concurrent.futures.Future = (
+                asyncio.run_coroutine_threadsafe(get_players(), self.loop)
+            )
             # Don't block for future result here, since the Observer thread might need to be stopped
             future_players.add_done_callback(on_players_gathered)
             self.last_hash = h
@@ -184,7 +206,9 @@ async def main():
         print_error(e.args[0])
     except TOMLDecodeError as e:
         # Should only occur if pydantic settings model is given an invalid TOML config
-        LOG.error('Failed to parse TOML file: %s', settings.model_config.get('toml_file'))
+        LOG.error(
+            'Failed to parse TOML file: %s', settings.model_config.get('toml_file')
+        )
         LOG.error('Invalid TOML: %s', e.args[0])
         EXIT_STATUS = 1
     except ValidationError as e:
@@ -198,23 +222,36 @@ async def main():
         LOG.error('An error occurred while requesting %s.', repr(e.request.url))
         EXIT_STATUS = 1
     except HTTPStatusError as e:
-        LOG.error("Error response %d while requesting %s.", e.response.status_code, repr(e.request.url))
+        LOG.error(
+            "Error response %d while requesting %s.",
+            e.response.status_code,
+            repr(e.request.url),
+        )
         EXIT_STATUS = 1
     # In asyncio `Ctrl-C` cancels the main task, which raises a Cancelled Error
     except asyncio.CancelledError:
         raise
     except Exception as e:
         msg = 'Unexpected error. Consult the log for more information'
-        LOG.exception('%s: %s', msg, _logging.log_file_path) if _logging else print_error(f'{msg}.')
+        LOG.exception(
+            '%s: %s', msg, _logging.log_file_path
+        ) if _logging else print_error(f'{msg}.')
         raise e
     finally:
         if observer:
-            LOG.info('Stopping observer: %s[name=%s]', cls_name(observer), observer.name)
+            LOG.info(
+                'Stopping observer: %s[name=%s]', cls_name(observer), observer.name
+            )
             observer.stop()
             if observer.is_alive():
                 observer.join()
         await api.close()
-        LOG.log(INFO if EXIT_STATUS == 0 else ERROR, 'Exit with code: %d\n', EXIT_STATUS, **StderrHiddenFilter.KWARGS)
+        LOG.log(
+            INFO if EXIT_STATUS == 0 else ERROR,
+            'Exit with code: %d\n',
+            EXIT_STATUS,
+            **StderrHiddenFilter.KWARGS,
+        )
         if _logging:
             _logging.stop()
 

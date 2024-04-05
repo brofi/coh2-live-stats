@@ -21,8 +21,15 @@ from tomlkit import document, comment, nl, TOMLDocument, items, dump
 from tomlkit.items import AbstractTable
 
 from coh2_live_stats.data.color import Color
-from coh2_live_stats.settings import SettingsFactory, CONFIG_NAMES, Sound, Align, CONFIG_FILE_DEV, CONFIG_PATHS
-from coh2_live_stats.version import __version__
+from coh2_live_stats.settings import (
+    SettingsFactory,
+    CONFIG_NAMES,
+    Sound,
+    Align,
+    CONFIG_FILE_DEV,
+    CONFIG_PATHS,
+)
+from coh2_live_stats import __version__
 
 
 def wrap(__s: str, __w: str = "'") -> str:
@@ -42,12 +49,20 @@ def list_single(__seq: Sequence[str]) -> str:
 
 
 def list_inline(__s: Sequence[str]) -> str:
-    return ' or '.join((', '.join(wrap(s) for s in __s[:-1]), wrap(__s[-1]))) if len(__s) > 1 else str(__s)[1:-1]
+    return (
+        ' or '.join((', '.join(wrap(s) for s in __s[:-1]), wrap(__s[-1])))
+        if len(__s) > 1
+        else str(__s)[1:-1]
+    )
 
 
 def color_names(bright: bool = False) -> list[str]:
-    return [c.name.lower() for c in Color if
-            (bright and c.name.startswith('BRIGHT_')) or (not bright and not c.name.startswith('BRIGHT_'))]
+    return [
+        c.name.lower()
+        for c in Color
+        if (bright and c.name.startswith('BRIGHT_'))
+        or (not bright and not c.name.startswith('BRIGHT_'))
+    ]
 
 
 header_comment = f'''Configuration file for CoH2LiveStats
@@ -82,13 +97,19 @@ def create_doc(_model: BaseModel) -> TOMLDocument:
     return _doc
 
 
-def init_doc(_model: BaseModel, _container: TOMLDocument | AbstractTable) -> TOMLDocument:
+def init_doc(
+    _model: BaseModel, _container: TOMLDocument | AbstractTable
+) -> TOMLDocument:
     for attr_name, field_info in _model.model_fields.items():
         attr_dump = _model.model_dump()[attr_name]
         item = items.item(attr_dump)
         if field_info.description:
             item.comment(field_info.description)
-        _container[attr_name] = init_doc(getattr(_model, attr_name), item) if isinstance(item, AbstractTable) else item
+        _container[attr_name] = (
+            init_doc(getattr(_model, attr_name), item)
+            if isinstance(item, AbstractTable)
+            else item
+        )
     return _container
 
 

@@ -37,3 +37,11 @@ coh2_live_stats = ["*.toml"]
 
 [tool.setuptools_scm]
 version_file = "src/coh2_live_stats/version.py"
+
+[tool.ruff]
+extend-exclude = ["build"]
+
+[tool.ruff.format]
+docstring-code-format = true
+quote-style = "preserve"
+skip-magic-trailing-comma = true

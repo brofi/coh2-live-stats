@@ -70,8 +70,12 @@ type Leaderboard = dict[int, dict[str, any]]
 
 class CoH2API:
     URL_PLAYER = 'https://coh2-api.reliclink.com/community/leaderboard/GetPersonalStat'
-    URL_LEADERBOARDS = 'https://coh2-api.reliclink.com/community/leaderboard/getAvailableLeaderboards'
-    URL_LEADERBOARD = 'https://coh2-api.reliclink.com/community/leaderboard/getleaderboard2'
+    URL_LEADERBOARDS = (
+        'https://coh2-api.reliclink.com/community/leaderboard/getAvailableLeaderboards'
+    )
+    URL_LEADERBOARD = (
+        'https://coh2-api.reliclink.com/community/leaderboard/getleaderboard2'
+    )
 
     KEY_LEADERBOARD_NAME = 'name'
     KEY_LEADERBOARD_RANK_TOTAL = 'rank_total'
@@ -80,12 +84,22 @@ class CoH2API:
         self.http_client = AsyncClient()
         self.timeout = timeout
         self.leaderboards: Leaderboard = {
-            **{self._get_solo_leaderboard_id(m, f): {
-                self.KEY_LEADERBOARD_NAME: f'{m}_{f.name}'}
-                for m in _SoloMatchType if m != _SoloMatchType.CUSTOM for f in Faction},
-            **{self._get_team_leaderboard_id(m, t): {
-                self.KEY_LEADERBOARD_NAME: f'Team_of_{m.value + 2}_{t.name.capitalize()}'}
-                for m in _TeamMatchType for t in TeamFaction}}
+            **{
+                self._get_solo_leaderboard_id(m, f): {
+                    self.KEY_LEADERBOARD_NAME: f'{m}_{f.name}'
+                }
+                for m in _SoloMatchType
+                if m != _SoloMatchType.CUSTOM
+                for f in Faction
+            },
+            **{
+                self._get_team_leaderboard_id(m, t): {
+                    self.KEY_LEADERBOARD_NAME: f'Team_of_{m.value + 2}_{t.name.capitalize()}'
+                }
+                for m in _TeamMatchType
+                for t in TeamFaction
+            },
+        }
         LOG.info('Initialized %s[timeout=%d]', cls_name(self), self.timeout)
 
     async def get_players(self, players: list[Player]) -> list[Player]:
@@ -96,11 +110,15 @@ class CoH2API:
         r = await asyncio.gather(*(self._get_player(p.relic_id) for p in players))
         if r:
             num_players = len(players)
-            players = [self._init_player(p, num_players, j) for (p, j) in zip(players, r)]
+            players = [
+                self._init_player(p, num_players, j) for (p, j) in zip(players, r)
+            ]
         return players
 
     def _init_player(self, player: Player, num_players: int, json):
-        leaderboard_id = self._get_solo_leaderboard_id(_SoloMatchType(num_players // 2), player.faction)
+        leaderboard_id = self._get_solo_leaderboard_id(
+            _SoloMatchType(num_players // 2), player.faction
+        )
         self._set_player_stats_from_json(player, leaderboard_id, json)
         self._set_rank_total(player, leaderboard_id)
         self._set_extra_player_data_from_json(player, json)
@@ -120,7 +138,9 @@ class CoH2API:
         return 20 + __m * 2 + __t
 
     @staticmethod
-    def _get_ai_leaderboard_id(__m: _TeamMatchType, __d: _Difficulty, __t: TeamFaction) -> int:
+    def _get_ai_leaderboard_id(
+        __m: _TeamMatchType, __d: _Difficulty, __t: TeamFaction
+    ) -> int:
         return 26 + __m * 8 + __d * 2 + __t
 
     @staticmethod
@@ -142,7 +162,9 @@ class CoH2API:
 
     def _set_rank_total(self, player: Player, leaderboard_id: int):
         if player.rank_total <= 0:
-            player.rank_total = self.leaderboards[leaderboard_id][self.KEY_LEADERBOARD_RANK_TOTAL]
+            player.rank_total = self.leaderboards[leaderboard_id][
+                self.KEY_LEADERBOARD_RANK_TOTAL
+            ]
 
     @staticmethod
     def _set_extra_player_data_from_json(player: Player, json):
@@ -168,7 +190,9 @@ class CoH2API:
             for m in g['members']:
                 t.members.append(m['profile_id'])
             for s in json['leaderboardStats']:
-                lid = self._get_team_leaderboard_id(_TeamMatchType(g['type'] - 2), player.team_faction)
+                lid = self._get_team_leaderboard_id(
+                    _TeamMatchType(g['type'] - 2), player.team_faction
+                )
                 if s['statgroup_id'] == t.id and s['leaderboard_id'] == lid:
                     t.rank = s['rank']
                     t.rank_level = s['ranklevel']
@@ -182,26 +206,36 @@ class CoH2API:
 
         params = {'title': 'coh2', 'profile_ids': f'[{relic_id}]'}
         LOG.info('GET player: %s', str(URL(self.URL_PLAYER, params=params)))
-        r = await self.http_client.get(self.URL_PLAYER, params=params, timeout=self.timeout)
+        r = await self.http_client.get(
+            self.URL_PLAYER, params=params, timeout=self.timeout
+        )
         r.raise_for_status()
         return r.json()
 
     async def init_leaderboards(self):
         LOG.info('GET leaderboards: %s', list(self.leaderboards.keys()))
-        r = await asyncio.gather(*(self._get_leaderboard(_id) for _id in self.leaderboards.keys()))
+        r = await asyncio.gather(
+            *(self._get_leaderboard(_id) for _id in self.leaderboards.keys())
+        )
         if r:
             for i, _id in enumerate(self.leaderboards.keys()):
-                self.leaderboards[_id][self.KEY_LEADERBOARD_RANK_TOTAL] = r[i]['rankTotal']
+                self.leaderboards[_id][self.KEY_LEADERBOARD_RANK_TOTAL] = r[i][
+                    'rankTotal'
+                ]
         LOG.info('Initialized leaderboards: %s', self.leaderboards)
 
     async def _get_leaderboards(self):
-        r = await self.http_client.get(self.URL_LEADERBOARDS, params={'title': 'coh2'}, timeout=self.timeout)
+        r = await self.http_client.get(
+            self.URL_LEADERBOARDS, params={'title': 'coh2'}, timeout=self.timeout
+        )
         r.raise_for_status()
         return r.json()
 
     async def _get_leaderboard(self, leaderboard_id):
         params = {'title': 'coh2', 'count': 1, 'leaderboard_id': f'{leaderboard_id}'}
-        r = await self.http_client.get(self.URL_LEADERBOARD, params=params, timeout=self.timeout)
+        r = await self.http_client.get(
+            self.URL_LEADERBOARD, params=params, timeout=self.timeout
+        )
         r.raise_for_status()
         return r.json()
 

@@ -54,7 +54,10 @@ def progress_stop():
 def play_sound(soundfile: str):
     try:
         winsound.PlaySound(None, 0)  # Stop currently playing waveform sound
-        winsound.PlaySound(soundfile, winsound.SND_FILENAME | winsound.SND_NODEFAULT | winsound.SND_ASYNC)
+        winsound.PlaySound(
+            soundfile,
+            winsound.SND_FILENAME | winsound.SND_NODEFAULT | winsound.SND_ASYNC,
+        )
     except RuntimeError:
         return False
     return True

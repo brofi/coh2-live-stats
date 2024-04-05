@@ -58,7 +58,7 @@ class Player:
 
     @property
     def relative_rank(self) -> float:
-        return self.rank / self.rank_total if self.is_ranked else 0.
+        return self.rank / self.rank_total if self.is_ranked else 0.0
 
     @property
     def num_games(self) -> int:
@@ -73,10 +73,14 @@ class Player:
         return ratio(self.drops, self.num_games)
 
     def get_steam_profile_url(self):
-        return 'https://steamcommunity.com' + self.steam_profile.replace('steam', 'profiles')
+        return 'https://steamcommunity.com' + self.steam_profile.replace(
+            'steam', 'profiles'
+        )
 
     def get_prestige_level_stars(self, star="*", half_star="~"):
-        return star * int(self.prestige / 100) + half_star * round((self.prestige / 100) % 1)
+        return star * int(self.prestige / 100) + half_star * round(
+            (self.prestige / 100) % 1
+        )
 
     def estimate_rank(self, avg_relative_rank=0) -> tuple[str, int, int]:
         if self.is_ranked or self.relic_id <= 0:

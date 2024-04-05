@@ -31,7 +31,9 @@ class LoggingConfException(Exception):
 
 
 class LoggingConf:
-    CONF_PATH = Path(getattr(sys, '_MEIPASS', str(Path(__file__).parents[2]))).joinpath('logging.toml')
+    CONF_PATH = Path(getattr(sys, '_MEIPASS', str(Path(__file__).parents[2]))).joinpath(
+        'logging.toml'
+    )
 
     def __init__(self):
         with open(self.CONF_PATH, 'rb') as f:
@@ -41,16 +43,25 @@ class LoggingConf:
                 print_error('Error: Invalid TOML in logging configuration')
                 print_error(f'\tFile: {self.CONF_PATH}')
                 print_error(f'\tCause: {e.args[0]}')
-                raise LoggingConfException(f'Failed to initialize {cls_name(self)} with {self.CONF_PATH}')
+                raise LoggingConfException(
+                    f'Failed to initialize {cls_name(self)} with {self.CONF_PATH}'
+                )
 
         file_handler_conf_name = 'file'
         try:
-            filename = str(Path(self.log_conf['handlers'][file_handler_conf_name]['filename']).name)
-            self.log_file_path = Path(getattr(sys, '_MEIPASS', str(Path(__file__).parents[1]))).with_name(filename)
-            self.log_conf['handlers'][file_handler_conf_name]['filename'] = str(self.log_file_path)
+            filename = str(
+                Path(self.log_conf['handlers'][file_handler_conf_name]['filename']).name
+            )
+            self.log_file_path = Path(
+                getattr(sys, '_MEIPASS', str(Path(__file__).parents[1]))
+            ).with_name(filename)
+            self.log_conf['handlers'][file_handler_conf_name]['filename'] = str(
+                self.log_file_path
+            )
         except KeyError:
             raise LoggingConfException(
-                f'Failed to patch filename for handler named {file_handler_conf_name!r} in {self.CONF_PATH}')
+                f'Failed to patch filename for handler named {file_handler_conf_name!r} in {self.CONF_PATH}'
+            )
 
         logging.config.dictConfig(self.log_conf)
         logging.addLevelName(WARNING, 'WARN')
@@ -66,7 +77,9 @@ class LoggingConf:
         # Listener needs to be created manually, unlike when configuring the default queue handler with dictConfig
         stderr_handler = logging.getHandlerByName('stderr')
         file_handler = logging.getHandlerByName('file')
-        self.listener = QueueListener(que, stderr_handler, file_handler, respect_handler_level=True)
+        self.listener = QueueListener(
+            que, stderr_handler, file_handler, respect_handler_level=True
+        )
 
     def start(self):
         self.listener.start()

@@ -39,11 +39,20 @@ class Match:
 
     @property
     def highest_avg_rank_party(self) -> int:
-        return 0 if self.parties[0].avg_estimated_rank > self.parties[1].avg_estimated_rank else 1
+        return (
+            0
+            if self.parties[0].avg_estimated_rank > self.parties[1].avg_estimated_rank
+            else 1
+        )
 
     @property
     def highest_avg_rank_level_party(self) -> int:
-        return 0 if self.parties[0].avg_estimated_rank_level > self.parties[1].avg_estimated_rank_level else 1
+        return (
+            0
+            if self.parties[0].avg_estimated_rank_level
+            > self.parties[1].avg_estimated_rank_level
+            else 1
+        )
 
     @property
     def has_pre_made_teams(self) -> bool:
@@ -55,13 +64,13 @@ class Match:
 class _Party:
     def __init__(self, players: list[Player]):
         if not players or not 1 <= len(players) <= 4:
-            raise ValueError(f'Party must have at least 1 and at most 4 players.')
+            raise ValueError('Party must have at least 1 and at most 4 players.')
 
         self.players = players
         self.pre_made_teams: set[Team] = set()
 
-        self.min_relative_rank: float = 0.
-        self.max_relative_rank: float = 0.
+        self.min_relative_rank: float = 0.0
+        self.max_relative_rank: float = 0.0
         player_ids = [p.relic_id for p in self.players]
         sum_relative_rank = 0
         for p in self.players:
@@ -88,7 +97,11 @@ class _Party:
                 self.max_relative_rank = p.relative_rank
         avg_relative_rank = sum_relative_rank / self.size
         LOG.info('Initialized pre-made teams: %s', self.pre_made_teams)
-        LOG.info('Initialized (min, max) relative rank: (%f, %f)', self.min_relative_rank, self.max_relative_rank)
+        LOG.info(
+            'Initialized (min, max) relative rank: (%f, %f)',
+            self.min_relative_rank,
+            self.max_relative_rank,
+        )
 
         self.rank_estimates: dict[int, tuple[str, int, int]] = {}
         sum_estimates = (0, 0)
@@ -100,8 +113,11 @@ class _Party:
 
         self.avg_estimated_rank: float = sum_estimates[0] / self.size
         self.avg_estimated_rank_level: float = sum_estimates[1] / self.size
-        LOG.info('Initialized average estimated (rank, rank_level): (%f, %f)', self.avg_estimated_rank,
-                 self.avg_estimated_rank_level)
+        LOG.info(
+            'Initialized average estimated (rank, rank_level): (%f, %f)',
+            self.avg_estimated_rank,
+            self.avg_estimated_rank_level,
+        )
 
         LOG.info('Initialized %s', cls_name(self))
 

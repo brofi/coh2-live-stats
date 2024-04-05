@@ -261,5 +261,5 @@ country_set = {
     "yt": {"name": "Mayotte"},
     "za": {"name": "South Africa"},
     "zm": {"name": "Zambia"},
-    "zw": {"name": "Zimbabwe"}
+    "zw": {"name": "Zimbabwe"},
 }

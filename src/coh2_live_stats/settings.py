@@ -2,15 +2,16 @@
 #
 #  This file is part of CoH2LiveStats.
 #
-#  CoH2LiveStats is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
-#  License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
-#  later version.
+#  CoH2LiveStats is free software: you can redistribute it and/or modify it under the
+#  terms of the GNU General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later version.
 #
-#  Foobar is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-#  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#  CoH2LiveStats is distributed in the hope that it will be useful, but WITHOUT ANY
+#  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+#  PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License along with Foobar. If not,
-#  see <https://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU General Public License along with
+#  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
 import logging
 import sys
@@ -43,11 +44,11 @@ from .util import cls_name
 LOG = logging.getLogger('coh2_live_stats')
 
 # When running in PyInstaller bundle:
-# getattr(sys, '_MEIPASS', __file__): ... \CoH2LiveStats\dist\CoH2LiveStats\lib                 (_MEIPASS)
-# __file__:                           ... \CoH2LiveStats\dist\CoH2LiveStats\lib\settings.py
+# getattr(sys, '_MEIPASS', __file__): ...\dist\CoH2LiveStats\lib          (_MEIPASS)
+# __file__:                           ...\dist\CoH2LiveStats\lib\settings.py
 # When running in a normal Python process:
-# getattr(sys, '_MEIPASS', __file__): ... \CoH2LiveStats\src\coh2_live_stats\settings.py        (getattr default)
-# __file__:                           ... \CoH2LiveStats\src\coh2_live_stats\settings.py
+# getattr(sys, '_MEIPASS', __file__): ...\src\coh2_live_stats\settings.py (attr default)
+# __file__:                           ...\src\coh2_live_stats\settings.py
 
 CONFIG_PATHS = ['%USERPROFILE%', str(Path(getattr(sys, '_MEIPASS', __file__)).parent)]
 CONFIG_NAMES = [
@@ -82,7 +83,8 @@ def _serialize_path(p: Path):
     return str(p).replace(expandvars(env), env)
 
 
-# A Path that can handle variables, gets serialized as a string and must point to a file.
+# A Path that can handle variables, gets serialized as a string and must point to a
+# file.
 _PT = Annotated[
     FilePath, BeforeValidator(lambda p: expandvars(p)), PlainSerializer(_serialize_path)
 ]

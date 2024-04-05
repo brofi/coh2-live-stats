@@ -2,15 +2,16 @@
 #
 #  This file is part of CoH2LiveStats.
 #
-#  CoH2LiveStats is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
-#  License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
-#  later version.
+#  CoH2LiveStats is free software: you can redistribute it and/or modify it under the
+#  terms of the GNU General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later version.
 #
-#  Foobar is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-#  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#  CoH2LiveStats is distributed in the hope that it will be useful, but WITHOUT ANY
+#  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+#  PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License along with Foobar. If not,
-#  see <https://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU General Public License along with
+#  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
 import os
 import shutil
@@ -50,16 +51,19 @@ ffi_version = (
 )
 # see: https://learn.microsoft.com/en-us/windows/win32/menurc/vs-versioninfo
 version_info = VSVersionInfo(
-    # see: https://learn.microsoft.com/en-us/windows/win32/api/VerRsrc/ns-verrsrc-vs_fixedfileinfo
+    # see:
+    # https://learn.microsoft.com/en-us/windows/win32/api/VerRsrc/ns-verrsrc-vs_fixedfileinfo
     ffi=FixedFileInfo(filevers=ffi_version, prodvers=ffi_version, date=(0, 0)),
     kids=[
         # see: https://learn.microsoft.com/en-us/windows/win32/menurc/stringfileinfo
         StringFileInfo(
             [
-                # see (szKey, Children): https://learn.microsoft.com/en-us/windows/win32/menurc/stringtable
+                # see (szKey, Children):
+                # https://learn.microsoft.com/en-us/windows/win32/menurc/stringtable
                 StringTable(
                     '040904b0',  # Change with Translation (1200_10 = 04b0_16)
-                    # see (szKey, Value): https://learn.microsoft.com/en-us/windows/win32/menurc/string-str
+                    # see (szKey, Value):
+                    # https://learn.microsoft.com/en-us/windows/win32/menurc/string-str
                     [
                         StringStruct('CompanyName', ''),
                         StringStruct('FileDescription', app_name),

@@ -2,15 +2,16 @@
 #
 #  This file is part of CoH2LiveStats.
 #
-#  CoH2LiveStats is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
-#  License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
-#  later version.
+#  CoH2LiveStats is free software: you can redistribute it and/or modify it under the
+#  terms of the GNU General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later version.
 #
-#  Foobar is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-#  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#  CoH2LiveStats is distributed in the hope that it will be useful, but WITHOUT ANY
+#  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+#  PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License along with Foobar. If not,
-#  see <https://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU General Public License along with
+#  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
 import asyncio
 import concurrent.futures
@@ -27,10 +28,12 @@ from pydantic import ValidationError
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
-# Either use relative imports and run the project as a module from IDE Run/Debug Config (same as python -module) or
-# use these absolute imports and run it as a script, but then the package needs to be installed.
+# Either use relative imports and run the project as a module from IDE Run/Debug
+# config (same as python -module) or use these absolute imports and run it as a
+# script, but then the package needs to be installed.
 # See: Solution 1/3 in https://stackoverflow.com/a/28154841.
-# Since the creation of a virtual environment this somehow works without the project being installed.
+# Since the creation of a virtual environment this somehow works without the project
+# being installed.
 from coh2_live_stats.coh2api import CoH2API
 from coh2_live_stats.data.match import Match
 from coh2_live_stats.data.player import Player
@@ -88,8 +91,10 @@ def get_players_from_log(notify=True):
         LOG.info('Found player: %s', p)
 
     if notify:
-        # If a multiplayer match is detected (no replay, no local AI game) and it's a new match -> notify.
-        # If a multiplayer match is detected, and it's not a new match, but we haven't played a sound before -> notify.
+        # If a multiplayer match is detected (no replay, no local AI game) and it's a
+        # new match -> notify.
+        # If a multiplayer match is detected, and it's not a new match,
+        # but we haven't played a sound before -> notify.
         # The latter can happen if the playing status is written late.
         if new_match_found:
             new_match_notified = False
@@ -128,14 +133,16 @@ class LogFileEventHandler(FileSystemEventHandler):
         with open(event.src_path, 'rb', buffering=0) as f:
             h = file_digest(f, 'sha256').hexdigest()
 
-        # Getting multiple modified events on every other file write, so make sure the file contents have really
-        # changed. See: https://github.com/gorakhargosh/watchdog/issues/346
+        # Getting multiple modified events on every other file write, so make sure
+        # the file contents have really changed.
+        # See: https://github.com/gorakhargosh/watchdog/issues/346
         if self.last_hash != h:
             LOG.info('Logfile %s: %s', event.event_type, event.src_path)
             future_players: concurrent.futures.Future = (
                 asyncio.run_coroutine_threadsafe(get_players(), self.loop)
             )
-            # Don't block for future result here, since the Observer thread might need to be stopped
+            # Don't block for future result here, since the Observer thread might
+            # need to be stopped
             future_players.add_done_callback(on_players_gathered)
             self.last_hash = h
 

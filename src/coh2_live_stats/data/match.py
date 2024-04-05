@@ -2,15 +2,16 @@
 #
 #  This file is part of CoH2LiveStats.
 #
-#  CoH2LiveStats is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
-#  License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
-#  later version.
+#  CoH2LiveStats is free software: you can redistribute it and/or modify it under the
+#  terms of the GNU General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later version.
 #
-#  Foobar is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-#  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#  CoH2LiveStats is distributed in the hope that it will be useful, but WITHOUT ANY
+#  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+#  PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License along with Foobar. If not,
-#  see <https://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU General Public License along with
+#  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
 import logging
 from operator import add
@@ -74,9 +75,10 @@ class _Party:
         player_ids = [p.relic_id for p in self.players]
         sum_relative_rank = 0
         for p in self.players:
-            # There could be multiple possible pre-made teams per player. For example when players A, B and C with teams
-            # (A,B), (B,C) have no team (A,B,C). Which means either player A or C queued alone or the current match is
-            # the first match of a new team (A,B,C).
+            # There could be multiple possible pre-made teams per player. For example
+            # when players A, B and C with teams (A,B), (B,C) have no team (A,B,
+            # C). Which means either player A or C queued alone or the current match
+            # is the first match of a new team (A,B,C).
             player_pre_made_teams = []
             max_player_pre_made_team_size = 0
             for team in p.teams:

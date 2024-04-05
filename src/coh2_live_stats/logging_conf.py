@@ -2,15 +2,16 @@
 #
 #  This file is part of CoH2LiveStats.
 #
-#  CoH2LiveStats is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
-#  License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
-#  later version.
+#  CoH2LiveStats is free software: you can redistribute it and/or modify it under the
+#  terms of the GNU General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later version.
 #
-#  Foobar is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-#  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#  CoH2LiveStats is distributed in the hope that it will be useful, but WITHOUT ANY
+#  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+#  PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License along with Foobar. If not,
-#  see <https://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU General Public License along with
+#  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
 import copy
 import logging
@@ -60,7 +61,8 @@ class LoggingConf:
             )
         except KeyError:
             raise LoggingConfException(
-                f'Failed to patch filename for handler named {file_handler_conf_name!r} in {self.CONF_PATH}'
+                f'Failed to patch filename for handler named '
+                f'{file_handler_conf_name!r} in {self.CONF_PATH}'
             )
 
         logging.config.dictConfig(self.log_conf)
@@ -74,7 +76,8 @@ class LoggingConf:
         que = queue.Queue(-1)
         queue_handler = CustomQueueHandler(que)
         logging.getLogger().addHandler(queue_handler)
-        # Listener needs to be created manually, unlike when configuring the default queue handler with dictConfig
+        # Listener needs to be created manually, unlike when configuring the default
+        # queue handler with dictConfig
         stderr_handler = logging.getHandlerByName('stderr')
         file_handler = logging.getHandlerByName('file')
         self.listener = QueueListener(
@@ -90,17 +93,18 @@ class LoggingConf:
         self.listener.stop()
 
 
-# Custom Queue Handler that doesn't mess with the original record and doesn't add in exception data before any custom
-# formatter has the chance to do so. It discards the exception info but keeps the exception text string for use with
-# custom formatters.
+# Custom Queue Handler that doesn't mess with the original record and doesn't add in
+# exception data before any custom formatter has the chance to do so. It discards the
+# exception info but keeps the exception text string for use with custom formatters.
 class CustomQueueHandler(QueueHandler):
     def prepare(self, record):
         # Don't edit original record
         r = copy.copy(record)
         # If record contains exception info ...
         if record.exc_info:
-            # ... call formatter on the record copy which sets the exception text to exc_text and discard the returned
-            # message which would also contain exception data.
+            # ... call formatter on the record copy which sets the exception text to
+            # exc_text and discard the returned message which would also contain
+            # exception data.
             _ = self.format(r)
             # Save the formatted exception text ...
             et = r.exc_text
@@ -110,8 +114,8 @@ class CustomQueueHandler(QueueHandler):
             r.exc_info = None
             # ... calling the formatter again to get the message without exception data.
             msg = self.format(r)
-            # Add saved exception text after(!) generating the message to get a normal record message with its exception
-            # string saved in exc_text.
+            # Add saved exception text after(!) generating the message to get a
+            # normal record message with its exception string saved in exc_text.
             r.exc_text = et
         else:
             # Easy without exception info
@@ -127,11 +131,13 @@ class SimpleFormatter(Formatter):
     def format(self, record):
         # Save the exception text
         et = record.exc_text
-        # Don't let parent formatter add exception text. Exception info was already removed in
-        # CustomQueueHandler.prepare(), so parent formatter won't create the exception text again.
+        # Don't let parent formatter add exception text. Exception info was already
+        # removed in CustomQueueHandler.prepare(), so parent formatter won't create
+        # the exception text again.
         record.exc_text = None
         s = super().format(record)
-        # Restore exception text for other formatters that want to use it (e.g. DetailedFormatter).
+        # Restore exception text for other formatters that want to use it (e.g.
+        # DetailedFormatter).
         record.exc_text = et
         return s
 

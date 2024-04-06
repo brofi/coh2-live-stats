@@ -14,7 +14,9 @@ $ python -m venv venv
 $ .\venv\Scripts\activate.ps1
 ```
 
-* Install dependencies
+* Install optional dependencies
+* tomlkit needed for scripts/generate_settings.py
+* pyinstaller needed for scripts/pyinstaller_run.py
 
 ## Make package
 
@@ -58,23 +60,7 @@ $ coh2livestats.exe
 $ pip install pyinstaller
 ```
 
-* Run `scripts/pyinstaller_run.py` or:
-
-```console
-$ pyinstaller ^
---noconfirm ^
---name coh2livestats ^
---contents-directory lib ^
---add-data COPYING:. ^
---icon .\res\coh2_live_stats.ico ^
-.\src\coh2_live_stats\__main__.py
-```
-
-* Run `pyinstaller` with generated `.spec` file:
-
-```console
-$ pyinstaller CoH2LiveStats.spec
-```
+* Run `scripts/pyinstaller_run.py`
 
 * Run generated script:
 
@@ -82,4 +68,4 @@ $ pyinstaller CoH2LiveStats.spec
 $ .\dist\CoH2LiveStats\CoH2LiveStats.exe
 ```
 
-* Distribute archive of `.\dist\CoH2LiveStats`
+* Distribute archive `.\dist\CoH2LiveStats.zip`

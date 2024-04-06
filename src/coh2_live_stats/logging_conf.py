@@ -32,8 +32,8 @@ class LoggingConfException(Exception):
 
 
 class LoggingConf:
-    CONF_PATH = Path(getattr(sys, '_MEIPASS', str(Path(__file__).parents[2]))).joinpath(
-        'logging.toml'
+    CONF_PATH = Path(getattr(sys, '_MEIPASS', str(Path(__file__).parent))).joinpath(
+        '_logging.toml'
     )
 
     def __init__(self):

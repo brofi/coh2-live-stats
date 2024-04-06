@@ -45,11 +45,10 @@ LOG = logging.getLogger('coh2_live_stats')
 
 # When running in PyInstaller bundle:
 # getattr(sys, '_MEIPASS', __file__): ...\dist\CoH2LiveStats\lib          (_MEIPASS)
-# __file__:                           ...\dist\CoH2LiveStats\lib\settings.py
+# __file__: ...\dist\CoH2LiveStats\lib\coh2_live_stats\settings.pyc
 # When running in a normal Python process:
 # getattr(sys, '_MEIPASS', __file__): ...\src\coh2_live_stats\settings.py (attr default)
-# __file__:                           ...\src\coh2_live_stats\settings.py
-
+# __file__: ...\src\coh2_live_stats\settings.py
 CONFIG_PATHS = ['%USERPROFILE%', str(Path(getattr(sys, '_MEIPASS', __file__)).parent)]
 CONFIG_NAMES = [
     f'{p}{b}.toml' for b in ['coh2livestats', 'coh2_live_stats'] for p in ['_', '.', '']

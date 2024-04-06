@@ -16,6 +16,7 @@
 import asyncio
 import concurrent.futures
 import logging.config
+import os
 from contextlib import suppress
 from hashlib import file_digest
 from io import BytesIO
@@ -52,6 +53,7 @@ from coh2_live_stats.util import (
     cls_name,
     cls_name_parent,
     print_error,
+    is_running_in_pyinstaller,
 )
 
 LOG = logging.getLogger('coh2_live_stats')
@@ -211,6 +213,7 @@ async def main():
                 await asyncio.sleep(1)
     except LoggingConfException as e:
         print_error(e.args[0])
+        EXIT_STATUS = 1
     except TOMLDecodeError as e:
         # Should only occur if pydantic settings model is given an invalid TOML config
         LOG.error(
@@ -243,6 +246,7 @@ async def main():
         LOG.exception(
             '%s: %s', msg, _logging.log_file_path
         ) if _logging else print_error(f'{msg}.')
+        EXIT_STATUS = 1
         raise e
     finally:
         if observer:
@@ -261,6 +265,9 @@ async def main():
         )
         if _logging:
             _logging.stop()
+
+        if EXIT_STATUS > 0 and os.name == 'nt' and is_running_in_pyinstaller():
+            os.system('pause')
 
 
 def run():

@@ -114,13 +114,18 @@ def init_doc(
     return _container
 
 
-settings = SettingsFactory.create_default_settings()
+def main():
+    settings = SettingsFactory.create_default_settings()
 
-doc: TOMLDocument = document()
-for line in header_comment.splitlines():
-    doc.add(comment(line) if line else comment(''))
-doc.add(nl()).add(nl())
-init_doc(settings, doc)
+    doc: TOMLDocument = document()
+    for line in header_comment.splitlines():
+        doc.add(comment(line) if line else comment(''))
+    doc.add(nl()).add(nl())
+    init_doc(settings, doc)
 
-with open(CONFIG_FILE_DEV, 'w') as f:
-    dump(doc, f)
+    with open(CONFIG_FILE_DEV, 'w') as f:
+        dump(doc, f)
+
+
+if __name__ == '__main__':
+    main()

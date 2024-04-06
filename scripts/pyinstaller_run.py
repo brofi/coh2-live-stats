@@ -84,57 +84,63 @@ version_info = VSVersionInfo(
     ],
 )
 
-try:
-    os.mkdir(build_path)
-except FileExistsError:
-    pass
 
-with open(version_file, 'w') as f:
-    f.write(str(version_info))
+def main():
+    try:
+        os.mkdir(build_path)
+    except FileExistsError:
+        pass
 
-PyInstaller.__main__.run(
-    [
-        '--distpath',
-        str(dist_path),
-        '--workpath',
-        str(build_path),
-        '--noconfirm',
-        '--specpath',
-        str(content_root),
-        '--name',
-        app_name,
-        '--contents-directory',
-        contents_dir_name,
-        '--add-data',
-        f'{license_file_name}:.',
-        '--add-data',
-        f'{CONFIG_FILE_DEV}:.',
-        '--add-data',
-        f'{LoggingConf.CONF_PATH}:.',
-        '--add-data',
-        f'{res_path.joinpath('horn.wav')}:./res',
-        '--add-data',
-        f'{res_path.joinpath('horn_subtle.wav')}:./res',
-        '--add-data',
-        f'{res_path.joinpath('horn_epic.wav')}:./res',
-        '--icon',
-        str(res_path.joinpath('coh2_live_stats.ico')),
-        '--version-file',
-        str(version_file),
-        str(module_path.joinpath('__main__.py')),
-    ]
-)
+    with open(version_file, 'w') as f:
+        f.write(str(version_info))
 
-# Move license and config next to executable
-app_path = dist_path.joinpath(app_name)
-os.replace(
-    app_path.joinpath(contents_dir_name, license_file_name),
-    app_path.joinpath(license_file_name + '.txt'),
-)
-os.replace(
-    app_path.joinpath(contents_dir_name, CONFIG_FILE_DEV.name),
-    app_path.joinpath(CONFIG_FILE_DEV.name),
-)
+    PyInstaller.__main__.run(
+        [
+            '--distpath',
+            str(dist_path),
+            '--workpath',
+            str(build_path),
+            '--noconfirm',
+            '--specpath',
+            str(content_root),
+            '--name',
+            app_name,
+            '--contents-directory',
+            contents_dir_name,
+            '--add-data',
+            f'{license_file_name}:.',
+            '--add-data',
+            f'{CONFIG_FILE_DEV}:.',
+            '--add-data',
+            f'{LoggingConf.CONF_PATH}:.',
+            '--add-data',
+            f'{res_path.joinpath('horn.wav')}:./res',
+            '--add-data',
+            f'{res_path.joinpath('horn_subtle.wav')}:./res',
+            '--add-data',
+            f'{res_path.joinpath('horn_epic.wav')}:./res',
+            '--icon',
+            str(res_path.joinpath('coh2_live_stats.ico')),
+            '--version-file',
+            str(version_file),
+            str(module_path.joinpath('__main__.py')),
+        ]
+    )
 
-# Create distribution archive
-res = shutil.make_archive(str(app_path), 'zip', dist_path, app_name)
+    # Move license and config next to executable
+    app_path = dist_path.joinpath(app_name)
+    os.replace(
+        app_path.joinpath(contents_dir_name, license_file_name),
+        app_path.joinpath(license_file_name + '.txt'),
+    )
+    os.replace(
+        app_path.joinpath(contents_dir_name, CONFIG_FILE_DEV.name),
+        app_path.joinpath(CONFIG_FILE_DEV.name),
+    )
+
+    # Create distribution archive
+    res = shutil.make_archive(str(app_path), 'zip', dist_path, app_name)
+
+
+if __name__ == '__main__':
+    main()

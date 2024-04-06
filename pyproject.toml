@@ -9,7 +9,6 @@ dependencies = [
     "httpx",
     "prettytable",
     "pydantic-settings",
-    "requests",
     "watchdog",
 ]
 requires-python = ">=3.12"

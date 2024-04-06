@@ -65,4 +65,4 @@ def play_sound(soundfile: str):
 
 
 def print_error(*values, **kwargs):
-    print(*values, file=sys.stderr, **kwargs)
+    print('[ERROR]', *values, file=sys.stderr, **kwargs)

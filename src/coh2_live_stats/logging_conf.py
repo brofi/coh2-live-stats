@@ -37,16 +37,18 @@ class LoggingConf:
     )
 
     def __init__(self):
-        with open(self.CONF_PATH, 'rb') as f:
-            try:
+        try:
+            with open(self.CONF_PATH, 'rb') as f:
                 self.log_conf = tomllib.load(f)
-            except TOMLDecodeError as e:
-                print_error('Error: Invalid TOML in logging configuration')
-                print_error(f'\tFile: {self.CONF_PATH}')
-                print_error(f'\tCause: {e.args[0]}')
-                raise LoggingConfException(
-                    f'Failed to initialize {cls_name(self)} with {self.CONF_PATH}'
-                )
+        except FileNotFoundError as e:
+            raise LoggingConfException(f'{e.strerror}: {e.filename}')
+        except TOMLDecodeError as e:
+            print_error('Invalid TOML in logging configuration')
+            print_error(f'\tFile: {self.CONF_PATH}')
+            print_error(f'\tCause: {e.args[0]}')
+            raise LoggingConfException(
+                f'Failed to initialize {cls_name(self)} with {self.CONF_PATH}'
+            )
 
         file_handler_conf_name = 'file'
         try:

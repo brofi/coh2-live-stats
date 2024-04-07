@@ -263,7 +263,7 @@ class TomlSettings(Settings):
     @staticmethod
     def _first_valid_config() -> Path | None:
         for c in CONFIG_FILES:
-            with suppress(FileNotFoundError), open(c, 'rb') as f:
+            with suppress(FileNotFoundError), c.open('rb') as f:
                 LOG.info('Found TOML configuration: %s', c)
                 try:
                     _ = load(f)

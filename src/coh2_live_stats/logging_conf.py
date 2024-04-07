@@ -39,7 +39,7 @@ class LoggingConf:
 
     def __init__(self):
         try:
-            with open(self.CONF_PATH, 'rb') as f:
+            with self.CONF_PATH.open('rb') as f:
                 self.log_conf = tomllib.load(f)
         except FileNotFoundError as e:
             raise LoggingConfError(f'{e.strerror}: {e.filename}') from e

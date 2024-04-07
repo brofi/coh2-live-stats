@@ -15,7 +15,6 @@
 
 import json
 import sys
-from glob import glob
 from pathlib import Path
 from shutil import rmtree
 
@@ -60,9 +59,9 @@ def _get_pkg(c: Context, name='') -> Package | None:
 
 @task(pre=[_activate])
 def _install(c: Context) -> bool:
-    wheels = glob(f'{_pkg}-*.whl', root_dir=_dist_dir)
-    wheels.sort(reverse=True)
+    wheels = list(_dist_dir.glob(f'{_pkg}-*.whl'))
     if wheels:
+        wheels.sort(reverse=True)
         return _success(
             _run(c, *_pipcmd, 'install', str(_dist_dir.joinpath(wheels[0])))
         )

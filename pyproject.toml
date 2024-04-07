@@ -62,6 +62,7 @@ select = [
     "COM", # flake8-commas
     "RET", # flake8-return
     "SIM", # flake8-simplify
+    "PTH", # flake8-use-pathlib
 ]
 ignore = [
     "E501", # fomatter sometimes allows code to exceed 'line-length'

@@ -21,6 +21,7 @@ from contextlib import suppress
 from hashlib import file_digest
 from io import BytesIO
 from logging import ERROR, INFO
+from pathlib import Path
 from sys import exit
 from tomllib import TOMLDecodeError
 from typing import override
@@ -75,7 +76,7 @@ def get_players_from_log(*, notify=True):
     global new_match_notified
     player_lines = []
     # Get human player lines from log
-    with open(settings.logfile, encoding='utf-8') as f:
+    with settings.logfile.open(encoding='utf-8') as f:
         lines = f.readlines()
     pl = 0
     for i, line in enumerate(lines):
@@ -134,7 +135,7 @@ class LogFileEventHandler(FileSystemEventHandler):
             return
 
         f: BytesIO
-        with open(event.src_path, 'rb', buffering=0) as f:
+        with Path(event.src_path).open('rb', buffering=0) as f:
             h = file_digest(f, 'sha256').hexdigest()
 
         # Getting multiple modified events on every other file write, so make sure
@@ -210,7 +211,7 @@ async def main():
         observer.start()
         while True:
             # Force CoH2 to write out its collected log
-            with open(settings.logfile, mode="rb", buffering=0):
+            with settings.logfile.open(mode="rb", buffering=0):
                 await asyncio.sleep(1)
     except LoggingConfError as e:
         print_error(e.args[0])

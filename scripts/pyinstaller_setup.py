@@ -13,9 +13,7 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import shutil
-from contextlib import suppress
 from pathlib import Path
 
 import PyInstaller.__main__
@@ -87,11 +85,8 @@ version_info = VSVersionInfo(
 
 
 def bundle():
-    with suppress(FileExistsError):
-        os.mkdir(build_path)
-
-    with open(version_file, 'w') as f:
-        f.write(str(version_info))
+    build_path.mkdir(exist_ok=True)
+    version_file.write_text(str(version_info))
 
     PyInstaller.__main__.run(
         [
@@ -128,13 +123,11 @@ def bundle():
 
     # Move license and config next to executable
     app_path = dist_path.joinpath(app_name)
-    os.replace(
-        app_path.joinpath(contents_dir_name, license_file_name),
-        app_path.joinpath(license_file_name + '.txt'),
+    app_path.joinpath(contents_dir_name, license_file_name).replace(
+        app_path.joinpath(license_file_name + '.txt')
     )
-    os.replace(
-        app_path.joinpath(contents_dir_name, CONFIG_FILE_DEV.name),
-        app_path.joinpath(CONFIG_FILE_DEV.name),
+    app_path.joinpath(contents_dir_name, CONFIG_FILE_DEV.name).replace(
+        app_path.joinpath(CONFIG_FILE_DEV.name)
     )
 
     # Create distribution archive

@@ -28,7 +28,7 @@ from coh2_live_stats.settings import (
     Sound,
 )
 from pydantic import BaseModel
-from tomlkit import TOMLDocument, comment, document, dump, items, nl
+from tomlkit import TOMLDocument, comment, document, dumps, items, nl
 from tomlkit.items import AbstractTable
 
 
@@ -113,8 +113,7 @@ def default():
     doc.add(nl()).add(nl())
     init_doc(settings, doc)
 
-    with open(CONFIG_FILE_DEV, 'w') as f:
-        dump(doc, f)
+    CONFIG_FILE_DEV.write_text(dumps(doc))
 
 
 if __name__ == '__main__':

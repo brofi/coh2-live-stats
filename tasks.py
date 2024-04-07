@@ -19,7 +19,7 @@ from glob import glob
 from pathlib import Path
 from shutil import rmtree
 
-from invoke import task, Result, Context, Collection
+from invoke import Collection, Context, Result, task
 
 type Package = dict[str, str]
 

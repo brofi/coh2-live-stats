@@ -16,9 +16,9 @@
 from dataclasses import dataclass, field
 from typing import override
 
+from ..util import ratio
 from .faction import Faction, TeamFaction
 from .team import Team
-from ..util import ratio
 
 
 @dataclass(eq=False)

@@ -17,20 +17,19 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import get_args
 
-from pydantic import BaseModel
-from tomlkit import document, comment, nl, TOMLDocument, items, dump
-from tomlkit.items import AbstractTable
-
+from coh2_live_stats import __version__
 from coh2_live_stats.data.color import Color
 from coh2_live_stats.settings import (
-    SettingsFactory,
-    CONFIG_NAMES,
-    Sound,
-    Align,
     CONFIG_FILE_DEV,
+    CONFIG_NAMES,
     CONFIG_PATHS,
+    Align,
+    SettingsFactory,
+    Sound,
 )
-from coh2_live_stats import __version__
+from pydantic import BaseModel
+from tomlkit import TOMLDocument, comment, document, dump, items, nl
+from tomlkit.items import AbstractTable
 
 
 def wrap(__s: str, __w: str = "'") -> str:

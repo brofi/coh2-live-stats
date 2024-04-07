@@ -15,7 +15,7 @@
 
 from enum import Enum
 
-from prettytable.colortable import Theme, RESET_CODE
+from prettytable.colortable import RESET_CODE, Theme
 
 from coh2_live_stats.util import cls_name
 

@@ -16,9 +16,9 @@
 import logging
 from operator import add
 
+from ..util import cls_name
 from .player import Player
 from .team import Team
-from ..util import cls_name
 
 LOG = logging.getLogger('coh2_live_stats')
 

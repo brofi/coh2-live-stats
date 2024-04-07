@@ -18,7 +18,7 @@ from functools import partial
 from typing import Any
 
 from prettytable import PrettyTable
-from prettytable.colortable import Theme, ColorTable
+from prettytable.colortable import ColorTable, Theme
 
 from .data.countries import country_set
 from .data.faction import Faction

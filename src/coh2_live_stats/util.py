@@ -16,9 +16,8 @@
 import asyncio
 import os
 import sys
-from inspect import isclass
-
 import winsound
+from inspect import isclass
 
 
 def cls_name(obj: type | object) -> str:

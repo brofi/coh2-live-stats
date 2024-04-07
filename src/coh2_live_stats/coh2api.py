@@ -19,7 +19,7 @@ from enum import IntEnum
 
 from httpx import AsyncClient, URL
 
-from .data.faction import TeamFaction, Faction
+from .data.faction import Faction, TeamFaction
 from .data.player import Player
 from .data.team import Team
 from .util import cls_name

@@ -32,13 +32,13 @@ classifiers = [
 [project.optional-dependencies]
 dev = [
     "ruff >= 0.3.5",
-    "pre-commit >= 3.7.0"
+    "pre-commit >= 3.7.0",
 ]
 build = [
     "build >= 1.2.1",
     "invoke >= 2.2.0",
     "pyinstaller >= 6.5.0",
-    "tomlkit >= 0.12.4"
+    "tomlkit >= 0.12.4",
 ]
 
 [project.scripts]
@@ -51,8 +51,19 @@ coh2_live_stats = ["*.toml"]
 [tool.setuptools_scm]
 version_file = "src/coh2_live_stats/version.py"
 
-[tool.ruff]
-extend-exclude = ["build"]
+[tool.ruff.lint]
+select = [
+    "F", # Pyflakes
+    "E", "W", # pycodestyle
+    "I", # isort
+]
+ignore = [
+    # fomatter sometimes allows code to exceed 'line-length'
+    "E501",
+]
+
+[tool.ruff.lint.isort]
+classes = ["URL"]
 
 [tool.ruff.format]
 docstring-code-format = true

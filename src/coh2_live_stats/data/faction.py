@@ -15,8 +15,8 @@
 
 from enum import Enum, IntEnum
 
-from .color import Color
 from ..util import cls_name
+from .color import Color
 
 
 class Faction(Enum):

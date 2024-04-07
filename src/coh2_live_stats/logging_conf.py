@@ -19,12 +19,12 @@ import queue
 import sys
 import time
 import tomllib
-from logging import Formatter, Filter, LogRecord, WARNING, CRITICAL
+from logging import CRITICAL, WARNING, Filter, Formatter, LogRecord
 from logging.handlers import QueueHandler, QueueListener
 from pathlib import Path
 from tomllib import TOMLDecodeError
 
-from .util import print_error, cls_name
+from .util import cls_name, print_error
 
 
 class LoggingConfException(Exception):

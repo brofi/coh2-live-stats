@@ -20,13 +20,13 @@ import os
 from contextlib import suppress
 from hashlib import file_digest
 from io import BytesIO
-from logging import INFO, ERROR
+from logging import ERROR, INFO
 from sys import exit
 from tomllib import TOMLDecodeError
 
-from httpx import RequestError, HTTPStatusError
+from httpx import HTTPStatusError, RequestError
 from pydantic import ValidationError
-from watchdog.events import FileSystemEventHandler, FileSystemEvent
+from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
 # Either use relative imports and run the project as a module from IDE Run/Debug
@@ -39,21 +39,21 @@ from coh2_live_stats.coh2api import CoH2API
 from coh2_live_stats.data.match import Match
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.logging_conf import (
-    StderrHiddenFilter,
     LoggingConf,
     LoggingConfException,
+    StderrHiddenFilter,
 )
 from coh2_live_stats.output import Output
-from coh2_live_stats.settings import SettingsFactory, Settings
+from coh2_live_stats.settings import Settings, SettingsFactory
 from coh2_live_stats.util import (
-    progress_start,
-    progress_stop,
-    play_sound,
     clear,
     cls_name,
     cls_name_parent,
-    print_error,
     is_running_in_pyinstaller,
+    play_sound,
+    print_error,
+    progress_start,
+    progress_stop,
 )
 
 LOG = logging.getLogger('coh2_live_stats')

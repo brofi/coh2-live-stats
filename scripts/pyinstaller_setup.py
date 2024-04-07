@@ -18,20 +18,20 @@ import shutil
 from pathlib import Path
 
 import PyInstaller.__main__
+from coh2_live_stats import __version__, __version_tuple__
+from coh2_live_stats.logging_conf import LoggingConf
+from coh2_live_stats.settings import CONFIG_FILE_DEV
 
 # noinspection PyUnresolvedReferences
 from PyInstaller.utils.win32.versioninfo import (
+    FixedFileInfo,
     StringFileInfo,
-    StringTable,
     StringStruct,
+    StringTable,
     VarFileInfo,
     VarStruct,
+    VSVersionInfo,
 )
-from PyInstaller.utils.win32.versioninfo import VSVersionInfo, FixedFileInfo
-
-from coh2_live_stats.logging_conf import LoggingConf
-from coh2_live_stats.settings import CONFIG_FILE_DEV
-from coh2_live_stats import __version__, __version_tuple__
 
 app_name = 'CoH2LiveStats'
 license_file_name = 'COPYING'
@@ -139,7 +139,7 @@ def bundle():
     )
 
     # Create distribution archive
-    res = shutil.make_archive(str(app_path), 'zip', dist_path, app_name)
+    shutil.make_archive(str(app_path), 'zip', dist_path, app_name)
 
 
 if __name__ == '__main__':

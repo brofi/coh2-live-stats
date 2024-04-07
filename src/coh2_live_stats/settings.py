@@ -20,16 +20,16 @@ from enum import Enum
 from os.path import expandvars
 from pathlib import Path
 from tomllib import TOMLDecodeError, load
-from typing import get_args, Literal, Annotated
+from typing import Annotated, Literal, get_args
 
 from pydantic import (
-    BeforeValidator,
-    PlainSerializer,
     BaseModel,
+    BeforeValidator,
+    Field,
+    FilePath,
+    PlainSerializer,
     create_model,
     field_validator,
-    FilePath,
-    Field,
 )
 from pydantic_settings import (
     BaseSettings,

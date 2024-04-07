@@ -23,11 +23,12 @@ from logging import CRITICAL, WARNING, Filter, Formatter, LogRecord
 from logging.handlers import QueueHandler, QueueListener
 from pathlib import Path
 from tomllib import TOMLDecodeError
+from typing import override
 
 from .util import cls_name, print_error
 
 
-class LoggingConfException(Exception):
+class LoggingConfError(Exception):
     pass
 
 
@@ -41,12 +42,12 @@ class LoggingConf:
             with open(self.CONF_PATH, 'rb') as f:
                 self.log_conf = tomllib.load(f)
         except FileNotFoundError as e:
-            raise LoggingConfException(f'{e.strerror}: {e.filename}')
+            raise LoggingConfError(f'{e.strerror}: {e.filename}')
         except TOMLDecodeError as e:
             print_error('Invalid TOML in logging configuration')
             print_error(f'\tFile: {self.CONF_PATH}')
             print_error(f'\tCause: {e.args[0]}')
-            raise LoggingConfException(
+            raise LoggingConfError(
                 f'Failed to initialize {cls_name(self)} with {self.CONF_PATH}'
             )
 
@@ -62,7 +63,7 @@ class LoggingConf:
                 self.log_file_path
             )
         except KeyError:
-            raise LoggingConfException(
+            raise LoggingConfError(
                 f'Failed to patch filename for handler named '
                 f'{file_handler_conf_name!r} in {self.CONF_PATH}'
             )
@@ -99,6 +100,7 @@ class LoggingConf:
 # exception data before any custom formatter has the chance to do so. It discards the
 # exception info but keeps the exception text string for use with custom formatters.
 class CustomQueueHandler(QueueHandler):
+    @override
     def prepare(self, record):
         # Don't edit original record
         r = copy.copy(record)
@@ -130,6 +132,7 @@ class CustomQueueHandler(QueueHandler):
 
 
 class SimpleFormatter(Formatter):
+    @override
     def format(self, record):
         # Save the exception text
         et = record.exc_text
@@ -145,6 +148,7 @@ class SimpleFormatter(Formatter):
 
 
 class DetailedFormatter(Formatter):
+    @override
     def formatTime(self, record, datefmt=None):
         ct = self.converter(record.created)
         if datefmt:
@@ -161,5 +165,6 @@ class StderrHiddenFilter(Filter):
     KEY_EXTRA_HIDE = 'hide_from_stderr'
     KWARGS = {'extra': {KEY_EXTRA_HIDE: True}}
 
+    @override
     def filter(self, record: LogRecord):
         return not getattr(record, self.KEY_EXTRA_HIDE, False)

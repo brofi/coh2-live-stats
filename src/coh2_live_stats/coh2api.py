@@ -16,6 +16,7 @@
 import asyncio
 import logging
 from enum import IntEnum
+from typing import override
 
 from httpx import AsyncClient, URL
 
@@ -34,9 +35,11 @@ class _SoloMatchType(IntEnum):
     S_3V3 = 3
     S_4V4 = 4
 
+    @override
     def __repr__(self):
         return f'{cls_name(self)}.{self.name}'
 
+    @override
     def __str__(self):
         return self.name.removeprefix('S_').lower()
 
@@ -46,9 +49,11 @@ class _TeamMatchType(IntEnum):
     T_3V3 = 1
     T_4V4 = 2
 
+    @override
     def __repr__(self):
         return f'{cls_name(self)}.{self.name}'
 
+    @override
     def __str__(self):
         return self.name.removeprefix('T_').lower()
 
@@ -59,9 +64,11 @@ class _Difficulty(IntEnum):
     HARD = 2
     EXPERT = 3
 
+    @override
     def __repr__(self):
         return f'{cls_name(self)}.{self.name}'
 
+    @override
     def __str__(self):
         return self.name.lower()
 

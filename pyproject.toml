@@ -56,6 +56,7 @@ select = [
     "F", # Pyflakes
     "E", "W", # pycodestyle
     "I", # isort
+    "N", # pep8-naming
 ]
 ignore = [
     # fomatter sometimes allows code to exceed 'line-length'

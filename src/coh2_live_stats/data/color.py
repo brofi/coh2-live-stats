@@ -14,6 +14,7 @@
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
 from enum import Enum
+from typing import override
 
 from prettytable.colortable import RESET_CODE, Theme
 
@@ -38,9 +39,11 @@ class Color(Enum):
     BRIGHT_CYAN = 96
     BRIGHT_WHITE = 97
 
+    @override
     def __repr__(self):
         return cls_name(self)
 
+    @override
     def __str__(self):
         return ' '.join(self.name.lower().split('_'))
 

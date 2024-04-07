@@ -14,6 +14,7 @@
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
 from enum import Enum, IntEnum
+from typing import override
 
 from ..util import cls_name
 from .color import Color
@@ -47,9 +48,11 @@ class Faction(Enum):
                 return member
         return None
 
+    @override
     def __repr__(self):
         return f'{cls_name(self)}.{self.name}'
 
+    @override
     def __str__(self):
         return self.full_name
 
@@ -62,8 +65,10 @@ class TeamFaction(IntEnum):
     def from_faction(cls, f: Faction):
         return cls(int(f.is_allies_faction))
 
+    @override
     def __repr__(self):
         return f'{cls_name(self)}.{self.name}'
 
+    @override
     def __str__(self):
         return self.name.capitalize()

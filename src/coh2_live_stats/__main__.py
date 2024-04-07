@@ -23,6 +23,7 @@ from io import BytesIO
 from logging import ERROR, INFO
 from sys import exit
 from tomllib import TOMLDecodeError
+from typing import override
 
 from httpx import HTTPStatusError, RequestError
 from pydantic import ValidationError
@@ -40,7 +41,7 @@ from coh2_live_stats.data.match import Match
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.logging_conf import (
     LoggingConf,
-    LoggingConfException,
+    LoggingConfError,
     StderrHiddenFilter,
 )
 from coh2_live_stats.output import Output
@@ -127,6 +128,7 @@ class LogFileEventHandler(FileSystemEventHandler):
         self.loop = loop
         LOG.info('Initialized %s(%s)', cls_name(self), cls_name_parent(self))
 
+    @override
     def on_modified(self, event: FileSystemEvent) -> None:
         if event.is_directory or event.src_path != str(settings.logfile):
             return
@@ -211,7 +213,7 @@ async def main():
             # Force CoH2 to write out its collected log
             with open(settings.logfile, mode="rb", buffering=0):
                 await asyncio.sleep(1)
-    except LoggingConfException as e:
+    except LoggingConfError as e:
         print_error(e.args[0])
         EXIT_STATUS = 1
     except TOMLDecodeError as e:

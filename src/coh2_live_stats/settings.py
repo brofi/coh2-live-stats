@@ -20,7 +20,7 @@ from enum import Enum
 from os.path import expandvars
 from pathlib import Path
 from tomllib import TOMLDecodeError, load
-from typing import Annotated, Literal, get_args
+from typing import Annotated, Literal, get_args, override
 
 from pydantic import (
     BaseModel,
@@ -244,6 +244,7 @@ class Settings(BaseSettings):
 
 class TomlSettings(Settings):
     @classmethod
+    @override
     def settings_customise_sources(
         cls,
         settings_cls: type[BaseSettings],

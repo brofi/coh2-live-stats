@@ -14,6 +14,9 @@ $ python -m venv venv
 $ .\venv\Scripts\activate.ps1
 ```
 
+* Install development dependencies: `ruff`, `pre-commit`
+* Install pre-commit hooks: `pre-commit install`
+
 ## Make package `inv[oke]`
 
 * Install: `build`, `invoke`,  `pyinstaller`, `tomlkit`

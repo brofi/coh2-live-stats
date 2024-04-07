@@ -93,14 +93,14 @@ def _clean() -> bool:
         'pyinstaller_only': 'Skip setuptools build.',
     },
 )
-def build(c: Context, clean=False, pyinstaller_only=False):
+def build(c: Context, clean=False, pyinstaller_only=False) -> None:
     """Build wheel and source distribution."""
 
     # Don't fail install on first time setup
     from scripts import pyinstaller_setup, settings_generator
 
     if clean:
-        return _clean()
+        _clean()
 
     settings_generator.default()
     if not pyinstaller_only:
@@ -126,12 +126,11 @@ def install(c: Context, normal_mode=False, dev=False) -> bool:
     if pkg is None:
         print(f'Installing {_pkg} in editable mode...')
         return _install_editable(c, False, dev)
-    elif not _is_editable(pkg):
+    if not _is_editable(pkg):
         print(f'Reinstalling {_pkg} in editable mode...')
         return _install_editable(c, True, dev)
-    else:
-        print(f'{_pkg} is up to date.')
-        return True
+    print(f'{_pkg} is up to date.')
+    return True
 
 
 namespace = Collection(build, install)

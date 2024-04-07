@@ -110,7 +110,7 @@ class CoH2API:
         }
         LOG.info('Initialized %s[timeout=%d]', cls_name(self), self.timeout)
 
-    async def get_players(self, players: list[Player]) -> list[Player]:
+    async def get_players(self, players: list[Player]):
         if not self.leaderboards:
             raise ValueError('Initialize leaderboards first.')
 
@@ -137,10 +137,9 @@ class CoH2API:
 
     @staticmethod
     def _get_solo_leaderboard_id(__m: _SoloMatchType, __f: Faction) -> int:
-        if _SoloMatchType.CUSTOM == __m:
+        if __m == _SoloMatchType.CUSTOM:
             return 50 if __f == Faction.UK else __f.id
-        else:
-            return 50 + __m if __f == Faction.UK else __m * 4 + __f.id
+        return 50 + __m if __f == Faction.UK else __m * 4 + __f.id
 
     @staticmethod
     def _get_team_leaderboard_id(__m: _TeamMatchType, __t: TeamFaction) -> int:
@@ -224,7 +223,7 @@ class CoH2API:
     async def init_leaderboards(self):
         LOG.info('GET leaderboards: %s', list(self.leaderboards.keys()))
         r = await asyncio.gather(
-            *(self._get_leaderboard(_id) for _id in self.leaderboards.keys())
+            *(self._get_leaderboard(_id) for _id in self.leaderboards)
         )
         if r:
             for i, _id in enumerate(self.leaderboards.keys()):

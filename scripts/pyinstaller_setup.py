@@ -15,6 +15,7 @@
 
 import os
 import shutil
+from contextlib import suppress
 from pathlib import Path
 
 import PyInstaller.__main__
@@ -86,10 +87,8 @@ version_info = VSVersionInfo(
 
 
 def bundle():
-    try:
+    with suppress(FileExistsError):
         os.mkdir(build_path)
-    except FileExistsError:
-        pass
 
     with open(version_file, 'w') as f:
         f.write(str(version_info))

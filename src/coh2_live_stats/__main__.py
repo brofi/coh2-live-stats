@@ -153,10 +153,8 @@ class LogFileEventHandler(FileSystemEventHandler):
 
 def on_players_gathered(future_players):
     if new_match_found:
-        try:
+        with suppress(concurrent.futures.CancelledError):
             print_match(future_players.result())
-        except concurrent.futures.CancelledError:
-            pass
 
 
 async def init_leaderboards():
@@ -177,6 +175,7 @@ async def get_players(notify=True):
         finally:
             progress_indicator.cancel()
             progress_stop()
+    return None
 
 
 def print_match(players: list[Player]):

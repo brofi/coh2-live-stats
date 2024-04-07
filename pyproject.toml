@@ -59,6 +59,8 @@ select = [
     "N", # pep8-naming
     "B", # flake8-bugbear
     "COM", # flake8-commas
+    "RET", # flake8-return
+    "SIM", # flake8-simplify
 ]
 ignore = [
     "E501", # fomatter sometimes allows code to exceed 'line-length'

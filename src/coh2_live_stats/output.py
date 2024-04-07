@@ -57,7 +57,7 @@ class Output:
             for c in sorted(
                 filter(
                     lambda c: c.visible,
-                    [getattr(cols, attr) for attr in cols.model_fields.keys()],
+                    [getattr(cols, attr) for attr in cols.model_fields],
                 ),
                 key=lambda c: c.pos,
             )
@@ -155,9 +155,7 @@ class Output:
                     player.relic_id,
                     row,
                 )
-                self.table.add_row(
-                    row, divider=True if player_index == party.size - 1 else False
-                )
+                self.table.add_row(row, divider=player_index == party.size - 1)
 
             if (
                 self.settings.table.show_average

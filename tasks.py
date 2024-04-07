@@ -21,10 +21,7 @@ from shutil import rmtree
 
 from invoke import task, Result, Context, Collection
 
-from scripts import pyinstaller_setup, settings_generator
-
 type Package = dict[str, str]
-
 
 _pkg = 'coh2_live_stats'
 _pycmd = [sys.executable, '-m']
@@ -73,8 +70,12 @@ def _install(c: Context) -> bool:
 
 
 @task(_activate)
-def _install_editable(c: Context) -> bool:
-    return _success(_run(c, *_pipcmd, 'install', '--force-reinstall', '-e', '.'))
+def _install_editable(c: Context, force=False, dev=False) -> bool:
+    cmd = [*_pipcmd, 'install']
+    if force:
+        cmd += ['--force-reinstall']
+    cmd += ['-e .[build,dev]'] if dev else ['-e .']
+    return _success(_run(c, *cmd))
 
 
 def _clean() -> bool:
@@ -95,6 +96,9 @@ def _clean() -> bool:
 def build(c: Context, clean=False, pyinstaller_only=False):
     """Build wheel and source distribution."""
 
+    # Don't fail install on first time setup
+    from scripts import pyinstaller_setup, settings_generator
+
     if clean:
         return _clean()
 
@@ -104,8 +108,14 @@ def build(c: Context, clean=False, pyinstaller_only=False):
     pyinstaller_setup.bundle()
 
 
-@task(_activate, help={'normal_mode': "Don't install in editable mode."})
-def install(c: Context, normal_mode=False) -> bool:
+@task(
+    _activate,
+    help={
+        'normal_mode': "Don't install in editable mode.",
+        'dev': 'Install additional build and development dependencies (editable only).',
+    },
+)
+def install(c: Context, normal_mode=False, dev=False) -> bool:
     """Install project in editable (default) or non-editable mode."""
 
     if normal_mode:
@@ -113,9 +123,12 @@ def install(c: Context, normal_mode=False) -> bool:
         return _install(c)
 
     pkg = _get_pkg(c, _pkg)
-    if pkg is None or not _is_editable(pkg):
+    if pkg is None:
         print(f'Installing {_pkg} in editable mode...')
-        return _install_editable(c)
+        return _install_editable(c, False, dev)
+    elif not _is_editable(pkg):
+        print(f'Reinstalling {_pkg} in editable mode...')
+        return _install_editable(c, True, dev)
     else:
         print(f'{_pkg} is up to date.')
         return True

@@ -27,6 +27,12 @@ classifiers = [
     "Operating System :: Microsoft :: Windows",
     "Topic :: Games/Entertainment :: Real Time Strategy"
 ]
+
+# No better solution for this yet (https://peps.python.org/pep-0735/)
+[project.optional-dependencies]
+dev = ["ruff", "pre-commit"]
+build = ["build", "invoke", "pyinstaller", "tomlkit"]
+
 [project.scripts]
 coh2livestats = "coh2_live_stats.__main__:run"
 

@@ -1,25 +1,39 @@
 # CoH2LiveStats
 
-## Setup project
+## Development Setup
 
 * Create Virtual Environment with IDE or with:
-
 ```console
 $ python -m venv venv
 ```
 
 * Restart IDE or activate venv e.g. for PowerShell with:
-
 ```console
 $ .\venv\Scripts\activate.ps1
 ```
 
-* Install development dependencies: `ruff`, `pre-commit`
-* Install pre-commit hooks: `pre-commit install`
+* Install `invoke`:
+```console
+$ pip install invoke
+```
 
-## Make package `inv[oke]`
+* Use `inv[oke]` to once install the project in editable mode with build and development dependencies:
+```console
+$ inv install --dev
+```
 
-* Install: `build`, `invoke`,  `pyinstaller`, `tomlkit`
-* List available tasks: `inv -l`
-* Get help with: `inv [task] -h`
-* Distribute archive: `.\dist\CoH2LiveStats.zip`
+* Install `pre-commit` hooks:
+```console
+$ pre-commit install
+```
+
+* Start developing
+
+## Make package
+
+* To build package with `setuptools/build` and bundle with `PyInstaller`:
+```console
+$ inv build
+```
+* Distribution bundle: `.\dist\CoH2LiveStats.zip`
+* See `inv -l` and `inv [task] -h` for more information on available `invoke` tasks

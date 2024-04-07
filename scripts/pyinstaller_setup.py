@@ -85,7 +85,7 @@ version_info = VSVersionInfo(
 )
 
 
-def main():
+def bundle():
     try:
         os.mkdir(build_path)
     except FileExistsError:
@@ -143,4 +143,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    bundle()

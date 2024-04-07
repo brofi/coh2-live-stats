@@ -114,7 +114,7 @@ def init_doc(
     return _container
 
 
-def main():
+def default():
     settings = SettingsFactory.create_default_settings()
 
     doc: TOMLDocument = document()
@@ -128,4 +128,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    default()

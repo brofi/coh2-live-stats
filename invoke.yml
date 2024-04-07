@@ -1,0 +1,6 @@
+# See: https://docs.pyinvoke.org/en/stable/concepts/configuration.html
+
+debug: false
+run:
+  echo: false
+  hide: 'stdout'

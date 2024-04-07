@@ -29,7 +29,7 @@ from coh2_live_stats.settings import (
 )
 from pydantic import BaseModel
 from tomlkit import TOMLDocument, comment, document, dumps, items, nl
-from tomlkit.items import AbstractTable
+from tomlkit.items import AbstractTable, Comment, Trivia
 
 
 def wrap(__s: str, __w: str = "'") -> str:
@@ -109,7 +109,7 @@ def default():
 
     doc: TOMLDocument = document()
     for line in header_comment.splitlines():
-        doc.add(comment(line) if line else comment(''))
+        doc.add(comment(line) if line else Comment(Trivia(comment="#")))
     doc.add(nl()).add(nl())
     init_doc(settings, doc)
 

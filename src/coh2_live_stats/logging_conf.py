@@ -42,14 +42,14 @@ class LoggingConf:
             with open(self.CONF_PATH, 'rb') as f:
                 self.log_conf = tomllib.load(f)
         except FileNotFoundError as e:
-            raise LoggingConfError(f'{e.strerror}: {e.filename}')
+            raise LoggingConfError(f'{e.strerror}: {e.filename}') from e
         except TOMLDecodeError as e:
             print_error('Invalid TOML in logging configuration')
             print_error(f'\tFile: {self.CONF_PATH}')
             print_error(f'\tCause: {e.args[0]}')
             raise LoggingConfError(
                 f'Failed to initialize {cls_name(self)} with {self.CONF_PATH}'
-            )
+            ) from e
 
         file_handler_conf_name = 'file'
         try:
@@ -62,11 +62,11 @@ class LoggingConf:
             self.log_conf['handlers'][file_handler_conf_name]['filename'] = str(
                 self.log_file_path
             )
-        except KeyError:
+        except KeyError as e:
             raise LoggingConfError(
                 f'Failed to patch filename for handler named '
                 f'{file_handler_conf_name!r} in {self.CONF_PATH}'
-            )
+            ) from e
 
         logging.config.dictConfig(self.log_conf)
         logging.addLevelName(WARNING, 'WARN')

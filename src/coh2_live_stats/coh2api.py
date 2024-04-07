@@ -119,7 +119,8 @@ class CoH2API:
         if r:
             num_players = len(players)
             players = [
-                self._init_player(p, num_players, j) for (p, j) in zip(players, r)
+                self._init_player(p, num_players, j)
+                for (p, j) in zip(players, r, strict=True)
             ]
         return players
 

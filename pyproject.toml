@@ -60,8 +60,11 @@ select = [
     "FBT", # flake8-boolean-trap
     "B", # flake8-bugbear
     "COM", # flake8-commas
+    "ICN", # flake8-import-conventions
     "RET", # flake8-return
     "SIM", # flake8-simplify
+    "TID", # flake8-tidy-imports
+    "TCH", # flake8-type-checking
     "PTH", # flake8-use-pathlib
 ]
 ignore = [

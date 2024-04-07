@@ -16,7 +16,8 @@
 from enum import Enum, IntEnum
 from typing import override
 
-from ..util import cls_name
+from coh2_live_stats.util import cls_name
+
 from .color import Color
 
 

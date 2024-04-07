@@ -15,10 +15,14 @@
 
 import logging
 from operator import add
+from typing import TYPE_CHECKING
 
-from ..util import cls_name
+from coh2_live_stats.util import cls_name
+
 from .player import Player
-from .team import Team
+
+if TYPE_CHECKING:
+    from .team import Team
 
 LOG = logging.getLogger('coh2_live_stats')
 

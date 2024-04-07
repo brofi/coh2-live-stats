@@ -19,12 +19,11 @@ import logging.config
 import os
 from contextlib import suppress
 from hashlib import file_digest
-from io import BytesIO
 from logging import ERROR, INFO
 from pathlib import Path
 from sys import exit
 from tomllib import TOMLDecodeError
-from typing import override
+from typing import TYPE_CHECKING, override
 
 from httpx import HTTPStatusError, RequestError
 from pydantic import ValidationError
@@ -57,6 +56,9 @@ from coh2_live_stats.util import (
     progress_start,
     progress_stop,
 )
+
+if TYPE_CHECKING:
+    from io import BytesIO
 
 LOG = logging.getLogger('coh2_live_stats')
 

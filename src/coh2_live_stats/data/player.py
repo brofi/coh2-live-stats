@@ -16,7 +16,8 @@
 from dataclasses import dataclass, field
 from typing import override
 
-from ..util import ratio
+from coh2_live_stats.util import ratio
+
 from .faction import Faction, TeamFaction
 from .team import Team
 

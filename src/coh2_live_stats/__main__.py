@@ -69,7 +69,7 @@ new_match_found = False
 new_match_notified = True
 
 
-def get_players_from_log(notify=True):
+def get_players_from_log(*, notify=True):
     global last_player_line
     global new_match_found
     global new_match_notified
@@ -166,8 +166,8 @@ async def init_leaderboards():
         progress_stop()
 
 
-async def get_players(notify=True):
-    players = get_players_from_log(notify)
+async def get_players(*, notify=True):
+    players = get_players_from_log(notify=notify)
     if new_match_found:
         progress_indicator = asyncio.create_task(progress_start())
         try:

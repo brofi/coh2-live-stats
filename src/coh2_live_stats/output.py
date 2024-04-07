@@ -206,7 +206,7 @@ class Output:
                 # Unfortunately there is no custom header format and altering field
                 # names directly would mess with everything that needs them (e.g.
                 # formatting).
-                table_lines = self.table.get_string().splitlines(True)
+                table_lines = self.table.get_string().splitlines(keepends=True)
                 i = int(self.settings.table.border)
                 for h in self.table.field_names:
                     header = (

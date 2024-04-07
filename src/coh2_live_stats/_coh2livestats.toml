@@ -1,8 +1,8 @@
 # Configuration file for CoH2LiveStats
-# 
-# Generated 2024-03-30 08:01:36
-# Version 1.9.1.dev1+g3ebc4f7
-# 
+#
+# Generated 2024-04-07 23:43:18
+# Version 1.9.1.dev54+gdcd9d86.d20240407
+#
 # Valid config locations:
 #     * %USERPROFILE%
 #     * Next to executable
@@ -13,17 +13,17 @@
 #     * _coh2_live_stats.toml
 #     * .coh2_live_stats.toml
 #     * coh2_live_stats.toml
-# 
+#
 # Valid colors:
 #     * 'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan' or 'white'
 #     * 'bright_black', 'bright_red', 'bright_green', 'bright_yellow', 'bright_blue', 'bright_magenta', 'bright_cyan' or 'bright_white'
-# 
+#
 # Valid sound values:
 #     * 'horn_subtle', 'horn' or 'horn_epic'
 #     * Path to custom WAV file
-# 
+#
 # Valid alignment values: 'l', 'c' or 'r'
-# 
+#
 # Notes:
 #     * CJK characters can distort table (table.border = false and name column last is recommended)
 
@@ -65,84 +65,84 @@ uk = "YELLOW" # British Forces color
 
 [table.columns] # Output table column options
 [table.columns.faction]
-visible = true
-pos = 0
 label = "Fac"
+visible = true
 align = "l"
+pos = 0
 
 
 [table.columns.rank]
-visible = true
-pos = 0
 label = "Rank"
+visible = true
 align = "r"
+pos = 0
 
 
 [table.columns.level]
-visible = true
-pos = 0
 label = "Lvl"
+visible = true
 align = "r"
+pos = 0
 
 
 [table.columns.prestige]
-visible = false
-pos = 0
 label = "XP"
+visible = false
 align = "l"
+pos = 0
 
 
 [table.columns.win_ratio]
-visible = true
-pos = 0
 label = "W%"
+visible = true
 align = "r"
+pos = 0
 
 
 [table.columns.drop_ratio]
-visible = true
-pos = 0
 label = "D%"
+visible = true
 align = "r"
+pos = 0
 
 
 [table.columns.team]
-visible = true
-pos = 0
 label = "Team"
+visible = true
 align = "c"
+pos = 0
 
 
 [table.columns.team_rank]
-visible = true
-pos = 0
 label = "T_Rank"
+visible = true
 align = "r"
+pos = 0
 
 
 [table.columns.team_level]
-visible = true
-pos = 0
 label = "T_Level"
+visible = true
 align = "r"
+pos = 0
 
 
 [table.columns.steam_profile]
-visible = false
-pos = 0
 label = "Profile"
+visible = false
 align = "l"
+pos = 0
 
 
 [table.columns.country]
-visible = true
-pos = 0
 label = "Country"
+visible = true
 align = "l"
+pos = 0
 
 
 [table.columns.name]
-visible = true
-pos = 0
 label = "Name"
+visible = true
 align = "l"
+pos = 0

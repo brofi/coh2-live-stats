@@ -56,15 +56,6 @@ def list_inline(__s: Sequence[str]) -> str:
     )
 
 
-def color_names(bright: bool = False) -> list[str]:
-    return [
-        c.name.lower()
-        for c in Color
-        if (bright and c.name.startswith('BRIGHT_'))
-        or (not bright and not c.name.startswith('BRIGHT_'))
-    ]
-
-
 header_comment = f'''Configuration file for CoH2LiveStats
 
 Generated {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
@@ -77,8 +68,8 @@ Valid config names:
 {list_multi(CONFIG_NAMES)}
 
 Valid colors:
-{list_single(color_names())}
-{list_single(color_names(bright=True))}
+{list_single([c.name.lower() for c in Color if 30 <= c.value < 40])}
+{list_single([c.name.lower() for c in Color if 90 <= c.value < 100])}
 
 Valid sound values:
 {list_single(get_args(Sound))}

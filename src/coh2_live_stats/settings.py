@@ -20,7 +20,7 @@ from enum import Enum
 from os.path import expandvars
 from pathlib import Path
 from tomllib import TOMLDecodeError, load
-from typing import Annotated, Literal, get_args, override
+from typing import Annotated, Literal, NamedTuple, get_args, override
 
 from pydantic import (
     BaseModel,
@@ -135,25 +135,26 @@ class _TableColors(BaseModel):
         return getattr(self.faction, f.name.lower())
 
 
-class _ColumnDefaults(Enum):
-    FACTION = 'Fac', 'l', True
-    RANK = 'Rank', 'r', True
-    LEVEL = 'Lvl', 'r', True
-    PRESTIGE = 'XP', 'l', False
-    WIN_RATIO = 'W%', 'r', True
-    DROP_RATIO = 'D%', 'r', True
-    TEAM = 'Team', 'c', True
-    TEAM_RANK = 'T_Rank', 'r', True
-    TEAM_LEVEL = 'T_Level', 'r', True
-    STEAM_PROFILE = 'Profile', 'l', False
-    COUNTRY = 'Country', 'l', True
-    NAME = 'Name', 'l', True
+class _Col(NamedTuple):
+    label: str
+    visible: bool = True
+    align: Align = 'l'
+    pos: int = 0
 
-    def __init__(self, label: str, align: Align, visible: bool):
-        self.pos = 0
-        self.label = label
-        self.align = align
-        self.visible = visible
+
+class _ColumnDefaults(_Col, Enum):
+    FACTION = 'Fac'
+    RANK = _Col('Rank', align='r')
+    LEVEL = _Col('Lvl', align='r')
+    PRESTIGE = _Col('XP', visible=False)
+    WIN_RATIO = _Col('W%', align='r')
+    DROP_RATIO = _Col('D%', align='r')
+    TEAM = _Col('Team', align='c')
+    TEAM_RANK = _Col('T_Rank', align='r')
+    TEAM_LEVEL = _Col('T_Level', align='r')
+    STEAM_PROFILE = _Col('Profile', visible=False)
+    COUNTRY = 'Country'
+    NAME = 'Name'
 
 
 def _create_columns_model():
@@ -161,10 +162,10 @@ def _create_columns_model():
     for d in _ColumnDefaults:
         model_col = create_model(
             '_TableColumn',
-            visible=(bool, d.visible),
-            pos=(int, d.pos),
             label=(str, d.label),
+            visible=(bool, d.visible),
             align=(Align, d.align),
+            pos=(int, d.pos),
         )
         field_definitions[d.name.lower()] = model_col, Field(model_col())
     return create_model('_TableColumns', **field_definitions)
@@ -174,11 +175,15 @@ _TableColumns = _create_columns_model()
 
 
 class _Table(BaseModel):
-    color: bool = Field(True, description="Use color for output")
-    border: bool = Field(False, description="Draw a border around the output table")
-    show_average: bool = Field(True, description="Show team's average rank and level")
+    color: bool = Field(default=True, description="Use color for output")
+    border: bool = Field(
+        default=False, description="Draw a border around the output table"
+    )
+    show_average: bool = Field(
+        default=True, description="Show team's average rank and level"
+    )
     always_show_team: bool = Field(
-        False, description="Always show team columns, even if they're empty"
+        default=False, description="Always show team columns, even if they're empty"
     )
     drop_ratio_high_threshold: _RT = Field(
         0.05,
@@ -208,7 +213,7 @@ class _Table(BaseModel):
 
 class _Notification(BaseModel):
     play_sound: bool = Field(
-        True,
+        default=True,
         description="Play a notification sound when a new multiplayer match was found",
     )
     sound: _PT = Field(

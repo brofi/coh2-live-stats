@@ -70,7 +70,7 @@ def _install(c: Context) -> bool:
 
 
 @task(_activate)
-def _install_editable(c: Context, force=False, dev=False) -> bool:
+def _install_editable(c: Context, *, force=False, dev=False) -> bool:
     cmd = [*_pipcmd, 'install']
     if force:
         cmd += ['--force-reinstall']
@@ -93,7 +93,7 @@ def _clean() -> bool:
         'pyinstaller_only': 'Skip setuptools build.',
     },
 )
-def build(c: Context, clean=False, pyinstaller_only=False) -> None:
+def build(c: Context, *, clean=False, pyinstaller_only=False) -> None:
     """Build wheel and source distribution."""
 
     # Don't fail install on first time setup
@@ -115,7 +115,7 @@ def build(c: Context, clean=False, pyinstaller_only=False) -> None:
         'dev': 'Install additional build and development dependencies (editable only).',
     },
 )
-def install(c: Context, normal_mode=False, dev=False) -> bool:
+def install(c: Context, *, normal_mode=False, dev=False) -> bool:
     """Install project in editable (default) or non-editable mode."""
 
     if normal_mode:
@@ -125,10 +125,10 @@ def install(c: Context, normal_mode=False, dev=False) -> bool:
     pkg = _get_pkg(c, _pkg)
     if pkg is None:
         print(f'Installing {_pkg} in editable mode...')
-        return _install_editable(c, False, dev)
+        return _install_editable(c, force=False, dev=dev)
     if not _is_editable(pkg):
         print(f'Reinstalling {_pkg} in editable mode...')
-        return _install_editable(c, True, dev)
+        return _install_editable(c, force=True, dev=dev)
     print(f'{_pkg} is up to date.')
     return True
 

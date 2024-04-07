@@ -58,13 +58,15 @@ select = [
     "I", # isort
     "N", # pep8-naming
     "B", # flake8-bugbear
+    "COM", # flake8-commas
 ]
 ignore = [
-    # fomatter sometimes allows code to exceed 'line-length'
-    "E501",
+    "E501", # fomatter sometimes allows code to exceed 'line-length'
+    "COM812", # conflicts with formatter
 ]
 
 [tool.ruff.lint.isort]
+split-on-trailing-comma = false
 classes = ["URL"]
 
 [tool.ruff.format]

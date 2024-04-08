@@ -65,6 +65,7 @@ select = [
     "ICN", # flake8-import-conventions
     "LOG", # flake8-logging
     "G", # flake8-logging-format
+    "T20", # flake8-print
     "RSE", # flake8-raise
     "RET", # flake8-return
     "SIM", # flake8-simplify

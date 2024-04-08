@@ -13,6 +13,7 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
+import asyncio
 import logging
 import os
 from functools import partial
@@ -31,6 +32,7 @@ from .util import cls_name
 LOG = logging.getLogger('coh2_live_stats')
 
 
+# ruff: noqa: T201
 class Output:
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -238,6 +240,17 @@ class Output:
         else:
             _ = os.system('clear')
         self.table.clear_rows()
+
+    @staticmethod
+    async def progress_start():
+        while True:
+            for c in '/—\\|':
+                print(f'\b{c}', end='', flush=True)
+                await asyncio.sleep(0.25)
+
+    @staticmethod
+    def progress_stop():
+        print('\b \b', end='')
 
     def _format_faction(self, _, v):
         colored = self.settings.table.color

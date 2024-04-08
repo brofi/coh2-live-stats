@@ -50,8 +50,6 @@ from coh2_live_stats.util import (
     cls_name_parent,
     is_running_in_pyinstaller,
     play_sound,
-    progress_start,
-    progress_stop,
 )
 
 if TYPE_CHECKING:
@@ -158,23 +156,23 @@ def on_players_gathered(future_players):
 
 
 async def init_leaderboards():
-    progress_indicator = asyncio.create_task(progress_start())
+    progress_indicator = asyncio.create_task(output.progress_start())
     try:
         await api.init_leaderboards()
     finally:
         progress_indicator.cancel()
-        progress_stop()
+        output.progress_stop()
 
 
 async def get_players(*, notify=True):
     players = get_players_from_log(notify=notify)
     if new_match_found:
-        progress_indicator = asyncio.create_task(progress_start())
+        progress_indicator = asyncio.create_task(output.progress_start())
         try:
             return await api.get_players(players)
         finally:
             progress_indicator.cancel()
-            progress_stop()
+            output.progress_stop()
     return None
 
 

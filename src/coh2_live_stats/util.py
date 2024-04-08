@@ -13,7 +13,6 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
-import asyncio
 import sys
 import winsound
 from inspect import isclass
@@ -29,17 +28,6 @@ def cls_name_parent(obj: type | object) -> str | None:
 
 def ratio(x, total) -> float:
     return x / total if total > 0 else 0
-
-
-async def progress_start():
-    while True:
-        for c in '/—\\|':
-            print(f'\b{c}', end='', flush=True)
-            await asyncio.sleep(0.25)
-
-
-def progress_stop():
-    print('\b \b', end='')
 
 
 def play_sound(soundfile: str):

@@ -65,7 +65,3 @@ def play_sound(soundfile: str):
 
 def is_running_in_pyinstaller():
     return getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
-
-
-def print_error(*values, **kwargs):
-    print('[ERROR]', *values, file=sys.stderr, **kwargs)

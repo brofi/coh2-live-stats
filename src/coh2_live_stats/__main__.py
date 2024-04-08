@@ -52,7 +52,6 @@ from coh2_live_stats.util import (
     cls_name_parent,
     is_running_in_pyinstaller,
     play_sound,
-    print_error,
     progress_start,
     progress_stop,
 )
@@ -216,7 +215,7 @@ async def main():
             with settings.logfile.open(mode="rb", buffering=0):
                 await asyncio.sleep(1)
     except LoggingConfError as e:
-        print_error(e.args[0])
+        logging.exception(e.args[0])
         EXIT_STATUS = 1
     except TOMLDecodeError as e:
         # Should only occur if pydantic settings model is given an invalid TOML config
@@ -251,9 +250,9 @@ async def main():
         raise
     except Exception:
         msg = 'Unexpected error. Consult the log for more information'
-        LOG.exception('%s: %s', msg, _logging.logfile) if _logging else print_error(
-            f'{msg}.'
-        )
+        LOG.exception(
+            '%s: %s', msg, _logging.logfile
+        ) if _logging else logging.exception('%s.', msg)
         EXIT_STATUS = 1
         raise
     finally:

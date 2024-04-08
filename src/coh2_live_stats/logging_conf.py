@@ -26,7 +26,7 @@ from pathlib import Path
 from tomllib import TOMLDecodeError
 from typing import override
 
-from .util import cls_name, print_error
+from .util import cls_name
 
 
 class LoggingConfError(Exception):
@@ -46,9 +46,12 @@ class LoggingConf:
             msg = f'{e.strerror}: {e.filename}'
             raise LoggingConfError(msg) from e
         except TOMLDecodeError as e:
-            print_error('Invalid TOML in logging configuration')
-            print_error(f'\tFile: {self.CONF_PATH}')
-            print_error(f'\tCause: {e.args[0]}')
+            msg = (
+                'Invalid TOML in logging configuration'
+                + f'\n\tFile: {self.CONF_PATH}'
+                + f'\n\tCause: {e.args[0]}'
+            ).expandtabs(4)
+            logging.error(msg)  # noqa: TRY400 - Reraised as LoggingConfError
             msg = f'Failed to initialize {cls_name(self)} with {self.CONF_PATH}'
             raise LoggingConfError(msg) from e
 

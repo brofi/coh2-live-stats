@@ -14,7 +14,6 @@
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
 import asyncio
-import os
 import sys
 import winsound
 from inspect import isclass
@@ -30,14 +29,6 @@ def cls_name_parent(obj: type | object) -> str | None:
 
 def ratio(x, total) -> float:
     return x / total if total > 0 else 0
-
-
-def clear():
-    if os.name == 'nt':
-        _ = os.system('cls')
-        print('\b', end='')
-    else:
-        _ = os.system('clear')
 
 
 async def progress_start():

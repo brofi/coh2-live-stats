@@ -37,7 +37,6 @@ from watchdog.observers import Observer
 # Since the creation of a virtual environment this somehow works without the project
 # being installed.
 from coh2_live_stats.coh2api import CoH2API
-from coh2_live_stats.data.match import Match
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.logging_conf import (
     HiddenOutputFilter,
@@ -47,7 +46,6 @@ from coh2_live_stats.logging_conf import (
 from coh2_live_stats.output import Output
 from coh2_live_stats.settings import Settings, SettingsFactory
 from coh2_live_stats.util import (
-    clear,
     cls_name,
     cls_name_parent,
     is_running_in_pyinstaller,
@@ -156,7 +154,7 @@ class LogFileEventHandler(FileSystemEventHandler):
 def on_players_gathered(future_players):
     if new_match_found:
         with suppress(concurrent.futures.CancelledError):
-            print_match(future_players.result())
+            output.print_match(future_players.result())
 
 
 async def init_leaderboards():
@@ -180,14 +178,6 @@ async def get_players(*, notify=True):
     return None
 
 
-def print_match(players: list[Player]):
-    if not players:
-        print('Waiting for match...')
-    else:
-        clear()
-        output.print_match(Match(players))
-
-
 async def main():
     global api, settings, output, EXIT_STATUS
 
@@ -202,7 +192,7 @@ async def main():
         output = Output(settings)
         # Initial requests
         await init_leaderboards()
-        print_match(await get_players(notify=False))
+        output.print_match(await get_players(notify=False))
         # Watch log files
         handler = LogFileEventHandler(asyncio.get_running_loop())
         logfile_dir = str(settings.logfile.parent)

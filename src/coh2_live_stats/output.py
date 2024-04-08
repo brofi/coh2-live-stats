@@ -14,6 +14,7 @@
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import os
 from functools import partial
 from typing import Any
 
@@ -23,6 +24,7 @@ from prettytable.colortable import ColorTable, Theme
 from .data.countries import country_set
 from .data.faction import Faction
 from .data.match import Match
+from .data.player import Player
 from .settings import Settings
 from .util import cls_name
 
@@ -84,7 +86,14 @@ class Output:
     def _get_column_index(self, col):
         return self.table.field_names.index(col.label)
 
-    def print_match(self, match: Match):
+    def print_match(self, players: list[Player]):
+        self.clear()
+
+        if not players:
+            print('Waiting for match...')
+            return
+
+        match = Match(players)
         cols = self.settings.table.columns
         for party_index, party in enumerate(match.parties):
             for player_index, player in enumerate(party.players):
@@ -221,6 +230,14 @@ class Output:
                 print(self.table)
         else:
             LOG.warning('No table columns to print.')
+
+    def clear(self):
+        if os.name == 'nt':
+            _ = os.system('cls')
+            print('\b', end='')
+        else:
+            _ = os.system('clear')
+        self.table.clear_rows()
 
     def _format_faction(self, _, v):
         colored = self.settings.table.color

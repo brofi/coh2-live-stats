@@ -61,6 +61,7 @@ select = [
     "FBT", # flake8-boolean-trap
     "B", # flake8-bugbear
     "COM", # flake8-commas
+    "DTZ", # flake8-datetimez
     "EM", # flake8-errmsg
     "ICN", # flake8-import-conventions
     "LOG", # flake8-logging

@@ -58,7 +58,7 @@ def list_inline(__s: Sequence[str]) -> str:
 
 header_comment = f'''Configuration file for CoH2LiveStats
 
-Generated {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Generated {datetime.now().astimezone().isoformat(timespec='seconds')}
 Version {__version__}
 
 Valid config locations:

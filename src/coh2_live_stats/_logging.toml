@@ -12,15 +12,25 @@ style = '{'
 format = '[{levelname!s:<5}] [{asctime}] [{taskName!s:<7}] [{name} {module}:{lineno}:{funcName}] - {message}'
 datefmt = '%Y-%m-%dT%H:%M:%S.%f%z'
 
-[filters.stderr_hide]
-'()' = 'coh2_live_stats.logging_conf.StderrHiddenFilter'
+[filters.hidden_output_filter]
+'()' = 'coh2_live_stats.logging_conf.HiddenOutputFilter'
+
+[filters.error_filter]
+'()' = 'coh2_live_stats.logging_conf.ErrorFilter'
+
+[handlers.stdout]
+class = 'logging.StreamHandler'
+level = 'INFO'
+formatter = 'simple'
+stream = 'ext://sys.stdout'
+filters = ['hidden_output_filter', 'error_filter']
 
 [handlers.stderr]
 class = 'logging.StreamHandler'
 level = 'WARNING'
 formatter = 'simple'
 stream = 'ext://sys.stderr'
-filters = ['stderr_hide']
+filters = ['hidden_output_filter']
 
 [handlers.file]
 class = 'logging.handlers.RotatingFileHandler'

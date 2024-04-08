@@ -13,3 +13,4 @@ CoH2LiveStats.spec
 version.py
 #logs
 coh2livestats.log*
+build.log*

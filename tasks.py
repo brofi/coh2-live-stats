@@ -14,10 +14,12 @@
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
 import json
+import logging
 import sys
 from pathlib import Path
 from shutil import rmtree
 
+from coh2_live_stats.logging_conf import LoggingConf
 from invoke import Collection, Context, Result, task
 
 type Package = dict[str, str]
@@ -28,6 +30,16 @@ _pipcmd = _pycmd + ['pip', '--isolated', '--require-virtualenv']
 
 _build_dir = Path(__file__).with_name('build')
 _dist_dir = Path(__file__).with_name('dist')
+
+_logging = LoggingConf(Path('build.log'), stdout=True)
+LOG = logging.getLogger('coh2_live_stats_build')
+LOG.setLevel(logging.INFO)
+_logging.start()
+
+
+@task
+def stop_logging(_):
+    _logging.stop()
 
 
 def _run(c: Context, *args, **kwargs) -> Result | None:
@@ -78,15 +90,18 @@ def _install_editable(c: Context, *, force=False, dev=False) -> bool:
 
 
 def _clean() -> bool:
-    if _build_dir.is_dir():
-        rmtree(_build_dir)
-    if _dist_dir.is_dir():
-        rmtree(_dist_dir)
+    def err(_, path, __):
+        LOG.error('Failed to remove %s', path)
+
+    for d in _build_dir, _dist_dir:
+        if d.is_dir():
+            rmtree(d, onexc=err)
     return True
 
 
 @task(
     pre=[_activate],
+    post=[stop_logging],
     help={
         'clean': 'Remove build and distribution directories',
         'pyinstaller_only': 'Skip setuptools build.',
@@ -100,6 +115,7 @@ def build(c: Context, *, clean=False, pyinstaller_only=False) -> None:
 
     if clean:
         _clean()
+        return
 
     settings_generator.default()
     if not pyinstaller_only:
@@ -108,7 +124,8 @@ def build(c: Context, *, clean=False, pyinstaller_only=False) -> None:
 
 
 @task(
-    _activate,
+    pre=[_activate],
+    post=[stop_logging],
     help={
         'normal_mode': "Don't install in editable mode.",
         'dev': 'Install additional build and development dependencies (editable only).',
@@ -118,17 +135,17 @@ def install(c: Context, *, normal_mode=False, dev=False) -> bool:
     """Install project in editable (default) or non-editable mode."""
 
     if normal_mode:
-        print(f'Installing {_pkg} in non-editable mode...')
+        LOG.info('Installing %s in non-editable mode...', _pkg)
         return _install(c)
 
     pkg = _get_pkg(c, _pkg)
     if pkg is None:
-        print(f'Installing {_pkg} in editable mode...')
+        LOG.info('Installing %s in editable mode...', _pkg)
         return _install_editable(c, force=False, dev=dev)
     if not _is_editable(pkg):
-        print(f'Reinstalling {_pkg} in editable mode...')
+        LOG.info('Reinstalling %s in editable mode...', _pkg)
         return _install_editable(c, force=True, dev=dev)
-    print(f'{_pkg} is up to date.')
+    LOG.info('%s is up to date.', _pkg)
     return True
 
 

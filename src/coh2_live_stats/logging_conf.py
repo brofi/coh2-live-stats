@@ -38,7 +38,7 @@ class LoggingConf:
         '_logging.toml'
     )
 
-    def __init__(self, logfile: Path = None):
+    def __init__(self, logfile: Path = None, *, stdout: bool = False):
         try:
             with self.CONF_PATH.open('rb') as f:
                 self.log_conf = tomllib.load(f)
@@ -78,16 +78,17 @@ class LoggingConf:
         logging.getLogger().addHandler(queue_handler)
         # Listener needs to be created manually, unlike when configuring the default
         # queue handler with dictConfig
-        stderr_handler = logging.getHandlerByName('stderr')
-        file_handler = logging.getHandlerByName('file')
-        self.listener = QueueListener(
-            que, stderr_handler, file_handler, respect_handler_level=True
-        )
+        handlers = logging.getHandlerByName('stderr'), logging.getHandlerByName('file')
+        if stdout:
+            handlers += (logging.getHandlerByName('stdout'),)
+        self.listener = QueueListener(que, *handlers, respect_handler_level=True)
 
     def start(self):
         self.listener.start()
         logger = logging.getLogger('coh2_live_stats')
-        logger.info('Started logging with: %s', self.CONF_PATH)
+        logger.info(
+            'Started logging with: %s', self.CONF_PATH, **HiddenOutputFilter.KWARGS
+        )
 
     def stop(self):
         self.listener.stop()
@@ -158,8 +159,14 @@ class DetailedFormatter(Formatter):
         return s
 
 
-class StderrHiddenFilter(Filter):
-    KEY_EXTRA_HIDE = 'hide_from_stderr'
+class ErrorFilter(Filter):
+    @override
+    def filter(self, record: LogRecord):
+        return record.levelno < WARNING
+
+
+class HiddenOutputFilter(Filter):
+    KEY_EXTRA_HIDE = 'hide'
     KWARGS = {'extra': {KEY_EXTRA_HIDE: True}}
 
     @override

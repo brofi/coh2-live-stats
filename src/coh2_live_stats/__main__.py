@@ -40,9 +40,9 @@ from coh2_live_stats.coh2api import CoH2API
 from coh2_live_stats.data.match import Match
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.logging_conf import (
+    HiddenOutputFilter,
     LoggingConf,
     LoggingConfError,
-    StderrHiddenFilter,
 )
 from coh2_live_stats.output import Output
 from coh2_live_stats.settings import Settings, SettingsFactory
@@ -269,7 +269,7 @@ async def main():
             INFO if EXIT_STATUS == 0 else ERROR,
             'Exit with code: %d\n',
             EXIT_STATUS,
-            **StderrHiddenFilter.KWARGS,
+            **HiddenOutputFilter.KWARGS,
         )
         if _logging:
             _logging.stop()

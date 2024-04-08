@@ -251,9 +251,9 @@ async def main():
         raise
     except Exception:
         msg = 'Unexpected error. Consult the log for more information'
-        LOG.exception(
-            '%s: %s', msg, _logging.log_file_path
-        ) if _logging else print_error(f'{msg}.')
+        LOG.exception('%s: %s', msg, _logging.logfile) if _logging else print_error(
+            f'{msg}.'
+        )
         EXIT_STATUS = 1
         raise
     finally:

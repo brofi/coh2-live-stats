@@ -15,6 +15,7 @@
 
 import copy
 import logging
+import logging.config
 import queue
 import sys
 import time
@@ -37,7 +38,7 @@ class LoggingConf:
         '_logging.toml'
     )
 
-    def __init__(self):
+    def __init__(self, logfile: Path = None):
         try:
             with self.CONF_PATH.open('rb') as f:
                 self.log_conf = tomllib.load(f)
@@ -51,20 +52,18 @@ class LoggingConf:
             msg = f'Failed to initialize {cls_name(self)} with {self.CONF_PATH}'
             raise LoggingConfError(msg) from e
 
-        file_handler_conf_name = 'file'
         try:
-            filename = str(
-                Path(self.log_conf['handlers'][file_handler_conf_name]['filename']).name
-            )
-            self.log_file_path = Path(
-                getattr(sys, '_MEIPASS', str(Path(__file__).parents[1]))
-            ).with_name(filename)
-            self.log_conf['handlers'][file_handler_conf_name]['filename'] = str(
-                self.log_file_path
-            )
+            if logfile is None:
+                logfile = Path(self.log_conf['handlers']['file']['filename'])
+                logfile = Path(
+                    getattr(sys, '_MEIPASS', str(Path(__file__).parents[1]))
+                ).with_name(logfile.name)
+            self.log_conf['handlers']['file']['filename'] = str(logfile)
         except KeyError as e:
-            msg = f'Failed to patch filename for handler named {file_handler_conf_name!r} in {self.CONF_PATH}'
+            msg = f'Failed to patch handler filename in {self.CONF_PATH}'
             raise LoggingConfError(msg) from e
+
+        self.logfile = logfile
 
         logging.config.dictConfig(self.log_conf)
         logging.addLevelName(WARNING, 'WARN')

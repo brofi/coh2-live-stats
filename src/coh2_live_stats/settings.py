@@ -20,7 +20,7 @@ from enum import Enum
 from os.path import expandvars
 from pathlib import Path
 from tomllib import TOMLDecodeError, load
-from typing import Annotated, Literal, NamedTuple, get_args, override
+from typing import Annotated, Any, Literal, NamedTuple, get_args, override
 
 from pydantic import (
     BaseModel,
@@ -275,7 +275,7 @@ class TomlSettings(Settings):
 
 class SettingsFactory:
     @staticmethod
-    def create_settings(values: any = None) -> Settings:
+    def create_settings(values: Any | None = None) -> Settings:
         if values is None:
             settings = TomlSettings()
             LOG.info(

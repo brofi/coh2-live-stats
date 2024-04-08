@@ -24,7 +24,7 @@ from logging import CRITICAL, WARNING, Filter, Formatter, LogRecord
 from logging.handlers import QueueHandler, QueueListener
 from pathlib import Path
 from tomllib import TOMLDecodeError
-from typing import override
+from typing import Final, override
 
 from .util import cls_name
 
@@ -38,7 +38,7 @@ class LoggingConf:
         '_logging.toml'
     )
 
-    def __init__(self, logfile: Path = None, *, stdout: bool = False):
+    def __init__(self, logfile: Path | None = None, *, stdout: bool = False):
         try:
             with self.CONF_PATH.open('rb') as f:
                 self.log_conf = tomllib.load(f)
@@ -48,8 +48,8 @@ class LoggingConf:
         except TOMLDecodeError as e:
             msg = (
                 'Invalid TOML in logging configuration'
-                + f'\n\tFile: {self.CONF_PATH}'
-                + f'\n\tCause: {e.args[0]}'
+                f'\n\tFile: {self.CONF_PATH}'
+                f'\n\tCause: {e.args[0]}'
             ).expandtabs(4)
             logging.error(msg)  # noqa: TRY400 - Reraised as LoggingConfError
             msg = f'Failed to initialize {cls_name(self)} with {self.CONF_PATH}'
@@ -169,8 +169,8 @@ class ErrorFilter(Filter):
 
 
 class HiddenOutputFilter(Filter):
-    KEY_EXTRA_HIDE = 'hide'
-    KWARGS = {'extra': {KEY_EXTRA_HIDE: True}}
+    KEY_EXTRA_HIDE: Final[str] = 'hide'
+    KWARGS: Final[dict[str, dict[str, bool]]] = {'extra': {KEY_EXTRA_HIDE: True}}
 
     @override
     def filter(self, record: LogRecord):

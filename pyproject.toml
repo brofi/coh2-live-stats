@@ -63,6 +63,7 @@ select = [
     "COM", # flake8-commas
     "DTZ", # flake8-datetimez
     "EM", # flake8-errmsg
+    "ISC", # flake8-implicit-str-concat
     "ICN", # flake8-import-conventions
     "LOG", # flake8-logging
     "G", # flake8-logging-format
@@ -74,6 +75,7 @@ select = [
     "TCH", # flake8-type-checking
     "PTH", # flake8-use-pathlib
     "TRY", # tryceratops
+    "RUF", # Ruff-specific rules
 ]
 ignore = [
     "E501", # fomatter sometimes allows code to exceed 'line-length'

@@ -26,7 +26,7 @@ type Package = dict[str, str]
 
 _pkg = 'coh2_live_stats'
 _pycmd = [sys.executable, '-m']
-_pipcmd = _pycmd + ['pip', '--isolated', '--require-virtualenv']
+_pipcmd = [*_pycmd, 'pip', '--isolated', '--require-virtualenv']
 
 _build_dir = Path(__file__).with_name('build')
 _dist_dir = Path(__file__).with_name('dist')

@@ -30,13 +30,15 @@ LOG = logging.getLogger('coh2_live_stats')
 class Match:
     def __init__(self, players: list[Player]):
         if not players or len(players) < 2:
-            raise ValueError('No match with less than 2 players.')
+            msg = 'No match with less than 2 players.'
+            raise ValueError(msg)
 
         p0 = _Party([p for p in players if p.team_id == 0])
         p1 = _Party([p for p in players if p.team_id == 1])
 
         if p0.size != p1.size:
-            raise ValueError('Parties must be of equal size.')
+            msg = 'Parties must be of equal size.'
+            raise ValueError(msg)
 
         self.parties: tuple[_Party, _Party] = p0, p1
 
@@ -69,7 +71,8 @@ class Match:
 class _Party:
     def __init__(self, players: list[Player]):
         if not players or not 1 <= len(players) <= 4:
-            raise ValueError('Party must have at least 1 and at most 4 players.')
+            msg = 'Party must have at least 1 and at most 4 players.'
+            raise ValueError(msg)
 
         self.players = players
         self.pre_made_teams: set[Team] = set()

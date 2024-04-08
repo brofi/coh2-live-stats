@@ -112,7 +112,8 @@ class CoH2API:
 
     async def get_players(self, players: list[Player]):
         if not self.leaderboards:
-            raise ValueError('Initialize leaderboards first.')
+            msg = 'Initialize leaderboards first.'
+            raise ValueError(msg)
 
         LOG.info('GET players: %s', [p.relic_id for p in players])
         r = await asyncio.gather(*(self._get_player(p.relic_id) for p in players))

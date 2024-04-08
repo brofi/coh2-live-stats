@@ -66,9 +66,8 @@ Sound = Literal['horn_subtle', 'horn', 'horn_epic']
 def _validate_color(v: str):
     with suppress(KeyError):
         return Color[v.upper()]
-    raise ValueError(
-        f'not a color: {v!r}. Valid colors are: {', '.join([c.name for c in Color])}.'
-    )
+    msg = f'not a color: {v!r}. Valid colors are: {', '.join([c.name for c in Color])}.'
+    raise ValueError(msg)
 
 
 # Custom `Color` type for validation/serialization
@@ -267,9 +266,10 @@ class TomlSettings(Settings):
                 LOG.info('Found TOML configuration: %s', c)
                 try:
                     _ = load(f)
-                    return c
                 except TOMLDecodeError as e:
                     LOG.warning('Failed to parse TOML configuration: %s', e.args[0])
+                else:
+                    return c
         return None
 
 

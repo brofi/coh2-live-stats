@@ -220,23 +220,27 @@ async def main():
         EXIT_STATUS = 1
     except TOMLDecodeError as e:
         # Should only occur if pydantic settings model is given an invalid TOML config
-        LOG.error(
-            'Failed to parse TOML file: %s', settings.model_config.get('toml_file')
+        LOG.exception(
+            'Failed to parse TOML file: %s\n\tCause: %s'.expandtabs(4),
+            settings.model_config.get('toml_file'),
+            e.args[0],
         )
-        LOG.error('Invalid TOML: %s', e.args[0])
         EXIT_STATUS = 1
     except ValidationError as e:
         # Pydantic model validation errors
         n = e.error_count()
-        LOG.error('%d validation error%s for %s:', n, 's' if n > 1 else '', e.title)
+        msg = '%d validation error%s for %s:'
+        args = n, 's' if n > 1 else '', e.title
         for err in e.errors():
-            LOG.error('\t[%s]: %s'.expandtabs(4), '.'.join(err['loc']), err['msg'])
+            msg += '\n\t[%s]: %s'.expandtabs(4)
+            args += '.'.join(err['loc']), err['msg']
+        LOG.exception(msg, *args)
         EXIT_STATUS = 1
     except RequestError as e:
-        LOG.error('An error occurred while requesting %s.', repr(e.request.url))
+        LOG.exception('An error occurred while requesting %s.', repr(e.request.url))
         EXIT_STATUS = 1
     except HTTPStatusError as e:
-        LOG.error(
+        LOG.exception(
             "Error response %d while requesting %s.",
             e.response.status_code,
             repr(e.request.url),
@@ -245,13 +249,13 @@ async def main():
     # In asyncio `Ctrl-C` cancels the main task, which raises a Cancelled Error
     except asyncio.CancelledError:
         raise
-    except Exception as e:
+    except Exception:
         msg = 'Unexpected error. Consult the log for more information'
         LOG.exception(
             '%s: %s', msg, _logging.log_file_path
         ) if _logging else print_error(f'{msg}.')
         EXIT_STATUS = 1
-        raise e
+        raise
     finally:
         if observer:
             LOG.info(

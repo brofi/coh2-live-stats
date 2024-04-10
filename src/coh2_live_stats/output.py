@@ -36,12 +36,13 @@ LOG = logging.getLogger('coh2_live_stats')
 class Output:
     def __init__(self, settings: Settings):
         self.settings = settings
-        self.table = self._create_output_table(settings)
-        LOG.info('Initialized %s[columns=%s]', cls_name(self), self.table.field_names)
+        self.table = self._create_output_table()
+        self._set_formatters()
+        LOG.info('Initialized %s', cls_name(self))
 
-    def _create_output_table(self, settings) -> PrettyTable:
-        if settings.table.color:
-            border_color = str(settings.table.colors.border.value)
+    def _create_output_table(self) -> PrettyTable:
+        if self.settings.table.color:
+            border_color = str(self.settings.table.colors.border.value)
             table = ColorTable(
                 theme=Theme(
                     vertical_color=border_color,
@@ -52,10 +53,13 @@ class Output:
         else:
             table = PrettyTable()
 
-        table.border = settings.table.border
+        table.border = self.settings.table.border
         table.preserve_internal_border = True
 
-        cols = settings.table.columns
+        return table
+
+    def _set_field_names(self):
+        cols = self.settings.table.columns
         visible_columns = [
             (c.label, c.align)
             for c in sorted(
@@ -66,20 +70,22 @@ class Output:
                 key=lambda c: c.pos,
             )
         ]
-        table.field_names = [label for label, _ in visible_columns]
+        self.table.field_names = [label for label, _ in visible_columns]
 
         for label, align in visible_columns:
-            table.align[label] = align
+            self.table.align[label] = align
 
-        table.custom_format[cols.faction.label] = self._format_faction
-        table.custom_format[cols.rank.label] = partial(self._format_rank, 2)
-        table.custom_format[cols.level.label] = partial(self._format_rank, 1)
+        LOG.info('Output columns: %s', self.table.field_names)
+
+    def _set_formatters(self):
+        cols = self.settings.table.columns
+        self.table.custom_format[cols.faction.label] = self._format_faction
+        self.table.custom_format[cols.rank.label] = partial(self._format_rank, 2)
+        self.table.custom_format[cols.level.label] = partial(self._format_rank, 1)
         for c in cols.win_ratio, cols.drop_ratio:
-            table.custom_format[c.label] = self._format_ratio
+            self.table.custom_format[c.label] = self._format_ratio
         for c in cols.prestige, cols.country, cols.name:
-            table.custom_format[c.label] = self._format_min_max
-
-        return table
+            self.table.custom_format[c.label] = self._format_min_max
 
     def _set_column(self, row, col, val):
         if col.visible:
@@ -89,13 +95,14 @@ class Output:
         return self.table.field_names.index(col.label)
 
     def print_match(self, players: list[Player]):
-        self.clear()
+        self._clear()
 
         if not players:
             print('Waiting for match...')
             return
 
         match = Match(players)
+        self._set_field_names()
         cols = self.settings.table.columns
         for party_index, party in enumerate(match.parties):
             for player_index, player in enumerate(party.players):
@@ -233,13 +240,13 @@ class Output:
         else:
             LOG.warning('No table columns to print.')
 
-    def clear(self):
+    def _clear(self):
         if os.name == 'nt':
             _ = os.system('cls')
             print('\b', end='')
         else:
             _ = os.system('clear')
-        self.table.clear_rows()
+        self.table.clear()
 
     @staticmethod
     async def progress_start():

@@ -18,6 +18,7 @@ import concurrent.futures
 import logging.config
 import os
 from contextlib import suppress
+from functools import partial
 from hashlib import file_digest
 from logging import ERROR, INFO
 from pathlib import Path
@@ -59,15 +60,13 @@ LOG = logging.getLogger('coh2_live_stats')
 
 API_TIMEOUT = 30
 EXIT_STATUS = 0
-api: CoH2API
-settings: Settings
-output: Output
+
 last_player_line = 0
 new_match_found = False
 new_match_notified = True
 
 
-def get_players_from_log(*, notify=True):
+def get_players_from_log(settings: Settings, *, notify=True):
     global last_player_line
     global new_match_found
     global new_match_notified
@@ -121,14 +120,17 @@ def get_players_from_log(*, notify=True):
 
 
 class LogFileEventHandler(FileSystemEventHandler):
-    def __init__(self, loop):
-        self.last_hash = None
+    def __init__(self, loop, api: CoH2API, settings: Settings, output: Output):
         self.loop = loop
+        self.api = api
+        self.settings = settings
+        self.output = output
+        self.last_hash = None
         LOG.info('Initialized %s(%s)', cls_name(self), cls_name_parent(self))
 
     @override
     def on_modified(self, event: FileSystemEvent) -> None:
-        if event.is_directory or event.src_path != str(settings.logfile):
+        if event.is_directory or event.src_path != str(self.settings.logfile):
             return
 
         f: BytesIO
@@ -141,43 +143,45 @@ class LogFileEventHandler(FileSystemEventHandler):
         if self.last_hash != h:
             LOG.info('Logfile %s: %s', event.event_type, event.src_path)
             future_players: concurrent.futures.Future = (
-                asyncio.run_coroutine_threadsafe(get_players(), self.loop)
+                asyncio.run_coroutine_threadsafe(
+                    get_players(self.api, self.settings), self.loop
+                )
             )
             # Don't block for future result here, since the Observer thread might
             # need to be stopped
-            future_players.add_done_callback(on_players_gathered)
+            future_players.add_done_callback(partial(on_players_gathered, self.output))
             self.last_hash = h
 
 
-def on_players_gathered(future_players):
+def on_players_gathered(output: Output, future_players):
     if new_match_found:
         with suppress(concurrent.futures.CancelledError):
             output.print_match(future_players.result())
 
 
-async def init_leaderboards():
-    progress_indicator = asyncio.create_task(output.progress_start())
+async def init_leaderboards(api: CoH2API):
+    progress_indicator = asyncio.create_task(Output.progress_start())
     try:
         await api.init_leaderboards()
     finally:
         progress_indicator.cancel()
-        output.progress_stop()
+        Output.progress_stop()
 
 
-async def get_players(*, notify=True):
-    players = get_players_from_log(notify=notify)
+async def get_players(api: CoH2API, settings: Settings, *, notify=True):
+    players = get_players_from_log(settings, notify=notify)
     if new_match_found:
-        progress_indicator = asyncio.create_task(output.progress_start())
+        progress_indicator = asyncio.create_task(Output.progress_start())
         try:
             return await api.get_players(players)
         finally:
             progress_indicator.cancel()
-            output.progress_stop()
+            Output.progress_stop()
     return None
 
 
 async def main():
-    global api, settings, output, EXIT_STATUS
+    global EXIT_STATUS
 
     _logging = None
     api = CoH2API(API_TIMEOUT)
@@ -189,10 +193,10 @@ async def main():
         settings = SettingsFactory.create_settings()
         output = Output(settings)
         # Initial requests
-        await init_leaderboards()
-        output.print_match(await get_players(notify=False))
+        await init_leaderboards(api)
+        output.print_match(await get_players(api, settings, notify=False))
         # Watch log files
-        handler = LogFileEventHandler(asyncio.get_running_loop())
+        handler = LogFileEventHandler(asyncio.get_running_loop(), api, settings, output)
         logfile_dir = str(settings.logfile.parent)
         LOG.info('Scheduling %s for: %s', cls_name(handler), logfile_dir)
         observer.schedule(handler, logfile_dir)

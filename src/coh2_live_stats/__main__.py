@@ -17,6 +17,7 @@ import asyncio
 import concurrent.futures
 import logging.config
 import os
+import re
 from contextlib import suppress
 from functools import partial
 from hashlib import file_digest
@@ -38,6 +39,7 @@ from watchdog.observers import Observer
 # Since the creation of a virtual environment this somehow works without the project
 # being installed.
 from coh2_live_stats.coh2api import CoH2API
+from coh2_live_stats.data.faction import Faction
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.logging_conf import (
     HiddenOutputFilter,
@@ -61,34 +63,49 @@ LOG = logging.getLogger('coh2_live_stats')
 API_TIMEOUT = 30
 EXIT_STATUS = 0
 
+PLAYER_PATTERN = re.compile(
+    'GAME -- (?:Human|AI) Player: '
+    '(?P<id>\\d) (?P<name>.*) (?P<relic_id>\\d+) (?P<team>\\d) '
+    f'(?P<faction>{'|'.join([f.key_log for f in Faction])})$'
+)
+
 last_player_line = 0
 new_match_found = False
 new_match_notified = True
 
 
-def get_players_from_log(settings: Settings, *, notify=True):
+def get_players_from_log(settings: Settings, *, notify=True) -> list[Player]:
     global last_player_line
     global new_match_found
     global new_match_notified
-    player_lines = []
-    # Get human player lines from log
+
     with settings.logfile.open(encoding='utf-8') as f:
         lines = f.readlines()
+
     pl = 0
+    player_matches = []
     for i, line in enumerate(lines):
-        for sep in ['GAME -- Human Player: ', 'GAME -- AI Player: ']:
-            player_line = line.partition(sep)[2]
-            if player_line:
-                if player_line.split(' ')[0] == str(0):
-                    player_lines.clear()
-                player_lines.append(player_line.strip())
-                pl = i
+        m = PLAYER_PATTERN.search(line)
+        if m is not None:
+            if int(m.group('id')) == 0:
+                player_matches.clear()
+            player_matches.append(m)
+            pl = i
 
     new_match_found = pl != last_player_line
     last_player_line = pl
 
-    for p in player_lines:
+    players = []
+    for m in player_matches:
+        p = Player(
+            int(m.group('id')),
+            m.group('name'),
+            int(m.group('relic_id')),
+            int(m.group('team')),
+            Faction.from_log(m.group('faction')),
+        )
         LOG.info('Found player: %s', p)
+        players.append(p)
 
     if notify:
         # If a multiplayer match is detected (no replay, no local AI game) and it's a
@@ -112,11 +129,7 @@ def get_players_from_log(settings: Settings, *, notify=True):
 
             new_match_notified = True
 
-    return (
-        [Player.from_log(player_line) for player_line in player_lines]
-        if player_lines
-        else []
-    )
+    return players
 
 
 class LogFileEventHandler(FileSystemEventHandler):

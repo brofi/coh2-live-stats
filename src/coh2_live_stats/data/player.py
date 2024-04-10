@@ -124,16 +124,6 @@ class Player:
                 lvl += 1
         return lvl
 
-    @staticmethod
-    def from_log(player_line):
-        s = player_line.split(' ')
-        faction = Faction.from_log(s.pop())
-        team = int(s.pop())
-        relic_id = int(s.pop())
-        player_id = int(s.pop(0))
-        name = ' '.join(s)
-        return Player(player_id, name, relic_id, team, faction)
-
     @override
     def __eq__(self, other):
         if not isinstance(other, Player):

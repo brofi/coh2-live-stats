@@ -14,12 +14,13 @@
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
 import asyncio
-import concurrent.futures
 import logging.config
 import os
 import re
+import time
+from asyncio import AbstractEventLoop, Queue
 from contextlib import suppress
-from functools import partial
+from dataclasses import dataclass
 from hashlib import file_digest
 from logging import ERROR, INFO
 from pathlib import Path
@@ -63,83 +64,31 @@ LOG = logging.getLogger('coh2_live_stats')
 API_TIMEOUT = 30
 EXIT_STATUS = 0
 
-PLAYER_PATTERN = re.compile(
-    'GAME -- (?:Human|AI) Player: '
-    '(?P<id>\\d) (?P<name>.*) (?P<relic_id>\\d+) (?P<team>\\d) '
-    f'(?P<faction>{'|'.join([f.key_log for f in Faction])})$'
-)
 
-last_player_line = 0
-new_match_found = False
-new_match_notified = True
-
-
-def get_players_from_log(settings: Settings, *, notify=True) -> list[Player]:
-    global last_player_line
-    global new_match_found
-    global new_match_notified
-
-    with settings.logfile.open(encoding='utf-8') as f:
-        lines = f.readlines()
-
-    pl = 0
-    player_matches = []
-    for i, line in enumerate(lines):
-        m = PLAYER_PATTERN.search(line)
-        if m is not None:
-            if int(m.group('id')) == 0:
-                player_matches.clear()
-            player_matches.append(m)
-            pl = i
-
-    new_match_found = pl != last_player_line
-    last_player_line = pl
-
-    players = []
-    for m in player_matches:
-        p = Player(
-            int(m.group('id')),
-            m.group('name'),
-            int(m.group('relic_id')),
-            int(m.group('team')),
-            Faction.from_log(m.group('faction')),
-        )
-        LOG.info('Found player: %s', p)
-        players.append(p)
-
-    if notify:
-        # If a multiplayer match is detected (no replay, no local AI game) and it's a
-        # new match -> notify.
-        # If a multiplayer match is detected, and it's not a new match,
-        # but we haven't played a sound before -> notify.
-        # The latter can happen if the playing status is written late.
-        if new_match_found:
-            new_match_notified = False
-        is_mp = (
-            'Party::SetStatus - S_PLAYING' in lines[pl + 1]
-            if pl < len(lines) - 1
-            else False
-        )
-        if not new_match_notified and is_mp:
-            LOG.info('Notify new match')
-            if settings.notification.play_sound and not play_sound(
-                settings.notification.sound
-            ):
-                LOG.warning('Failed to play sound: %s', settings.notification.sound)
-
-            new_match_notified = True
-
-    return players
+@dataclass
+class LogInfo:
+    players: list[Player]
+    is_new_match: bool
+    is_multiplayer_match: bool
 
 
 class LogFileEventHandler(FileSystemEventHandler):
-    def __init__(self, loop, api: CoH2API, settings: Settings, output: Output):
+    PLAYER_PATTERN = re.compile(
+        'GAME -- (?:Human|AI) Player: '
+        '(?P<id>\\d) (?P<name>.*) (?P<relic_id>\\d+) (?P<team>\\d) '
+        f'(?P<faction>{'|'.join([f.key_log for f in Faction])})$'
+    )
+
+    def __init__(
+        self, queue: Queue[LogInfo], loop: AbstractEventLoop, settings: Settings
+    ):
+        self.queue = queue
         self.loop = loop
-        self.api = api
         self.settings = settings
-        self.output = output
-        self.last_hash = None
+        self._last_hash = None
+        self._last_player_line = 0
         LOG.info('Initialized %s(%s)', cls_name(self), cls_name_parent(self))
+        self.produce()  # kickstart
 
     @override
     def on_modified(self, event: FileSystemEvent) -> None:
@@ -153,23 +102,49 @@ class LogFileEventHandler(FileSystemEventHandler):
         # Getting multiple modified events on every other file write, so make sure
         # the file contents have really changed.
         # See: https://github.com/gorakhargosh/watchdog/issues/346
-        if self.last_hash != h:
-            LOG.info('Logfile %s: %s', event.event_type, event.src_path)
-            future_players: concurrent.futures.Future = (
-                asyncio.run_coroutine_threadsafe(
-                    get_players(self.api, self.settings), self.loop
-                )
+        if self._last_hash != h:
+            self.produce()
+            self._last_hash = h
+
+    def produce(self):
+        self.loop.call_soon_threadsafe(self.queue.put_nowait, self.parse_log())
+
+    def parse_log(self) -> LogInfo:
+        with self.settings.logfile.open(encoding='utf-8') as f:
+            lines = f.readlines()
+
+        pl = 0
+        player_matches = []
+        for i, line in enumerate(lines):
+            m = self.PLAYER_PATTERN.search(line)
+            if m is not None:
+                if int(m.group('id')) == 0:
+                    player_matches.clear()
+                player_matches.append(m)
+                pl = i
+
+        is_new_match = pl != self._last_player_line
+        self._last_player_line = pl
+
+        players = []
+        for m in player_matches:
+            p = Player(
+                int(m.group('id')),
+                m.group('name'),
+                int(m.group('relic_id')),
+                int(m.group('team')),
+                Faction.from_log(m.group('faction')),
             )
-            # Don't block for future result here, since the Observer thread might
-            # need to be stopped
-            future_players.add_done_callback(partial(on_players_gathered, self.output))
-            self.last_hash = h
+            LOG.info('Found player: %s', p)
+            players.append(p)
 
+        is_multiplayer_match = (
+            'Party::SetStatus - S_PLAYING' in lines[pl + 1]
+            if pl < len(lines) - 1
+            else False
+        )
 
-def on_players_gathered(output: Output, future_players):
-    if new_match_found:
-        with suppress(concurrent.futures.CancelledError):
-            output.print_match(future_players.result())
+        return LogInfo(players, is_new_match, is_multiplayer_match)
 
 
 async def init_leaderboards(api: CoH2API):
@@ -181,16 +156,25 @@ async def init_leaderboards(api: CoH2API):
         Output.progress_stop()
 
 
-async def get_players(api: CoH2API, settings: Settings, *, notify=True):
-    players = get_players_from_log(settings, notify=notify)
-    if new_match_found:
-        progress_indicator = asyncio.create_task(Output.progress_start())
-        try:
-            return await api.get_players(players)
-        finally:
-            progress_indicator.cancel()
-            Output.progress_stop()
-    return None
+async def get_players(api: CoH2API, players: list[Player]):
+    progress_indicator = asyncio.create_task(Output.progress_start())
+    try:
+        return await api.get_players(players)
+    finally:
+        progress_indicator.cancel()
+        Output.progress_stop()
+
+
+def notify_match(settings: Settings):
+    LOG.info('Notify new match')
+    if settings.notification.play_sound and not play_sound(settings.notification.sound):
+        LOG.warning('Failed to play sound: %s', settings.notification.sound)
+
+
+def tickle_logfile(settings: Settings):
+    while True:
+        with settings.logfile.open(mode='rb', buffering=0):
+            time.sleep(0.1)
 
 
 async def main():
@@ -203,22 +187,37 @@ async def main():
     try:
         _logging = LoggingConf()
         _logging.start()
+
+        await init_leaderboards(api)
+
         settings = SettingsFactory.create_settings()
         output = Output(settings)
-        # Initial requests
-        await init_leaderboards(api)
-        output.print_match(await get_players(api, settings, notify=False))
-        # Watch log files
-        handler = LogFileEventHandler(asyncio.get_running_loop(), api, settings, output)
+
+        queue: Queue[LogInfo] = Queue()
+        handler = LogFileEventHandler(queue, asyncio.get_running_loop(), settings)
         logfile_dir = str(settings.logfile.parent)
         LOG.info('Scheduling %s for: %s', cls_name(handler), logfile_dir)
         observer.schedule(handler, logfile_dir)
         LOG.info('Starting observer: %s[name=%s]', cls_name(observer), observer.name)
         observer.start()
-        while True:
-            # Force CoH2 to write out its collected log
-            with settings.logfile.open(mode="rb", buffering=0):
-                await asyncio.sleep(1)
+
+        notified = False
+        is_first_item = True
+        # Force CoH2 to write out its collected log
+        asyncio.get_running_loop().run_in_executor(None, tickle_logfile, settings)
+        while observer.is_alive():
+            log_info = await queue.get()
+            if log_info.is_new_match:
+                notified = False
+                players = await get_players(api, log_info.players)
+                output.print_match(players)
+            if not notified and log_info.is_multiplayer_match and not is_first_item:
+                # When the logfile playing status is written late, there are multiplayer
+                # matches that are not new but haven't been notified before.
+                notify_match(settings)
+                notified = True
+            queue.task_done()
+            is_first_item = False
     except LoggingConfError as e:
         logging.exception(e.args[0])
         EXIT_STATUS = 1

@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
-from enum import Enum
+from enum import IntEnum
 from typing import override
 
 from prettytable.colortable import RESET_CODE, Theme
@@ -21,7 +21,7 @@ from prettytable.colortable import RESET_CODE, Theme
 from coh2_live_stats.util import cls_name
 
 
-class Color(Enum):
+class Color(IntEnum):
     BLACK = 30
     RED = 31
     GREEN = 32

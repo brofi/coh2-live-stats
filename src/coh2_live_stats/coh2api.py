@@ -88,7 +88,7 @@ class CoH2API:
     KEY_LEADERBOARD_NAME = 'name'
     KEY_LEADERBOARD_RANK_TOTAL = 'rank_total'
 
-    def __init__(self, timeout=60):
+    def __init__(self, timeout=30):
         self.http_client = AsyncClient()
         self.timeout = timeout
         self.leaderboards: Leaderboard = {

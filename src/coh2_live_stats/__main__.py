@@ -19,13 +19,13 @@ import os
 import re
 import time
 from asyncio import AbstractEventLoop, Queue
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import suppress
 from dataclasses import dataclass
 from hashlib import file_digest
 from logging import ERROR, INFO
 from pathlib import Path
 from sys import exit
-from tomllib import TOMLDecodeError
 from typing import TYPE_CHECKING, override
 
 from httpx import HTTPStatusError, RequestError
@@ -42,11 +42,7 @@ from watchdog.observers import Observer
 from coh2_live_stats.coh2api import CoH2API
 from coh2_live_stats.data.faction import Faction
 from coh2_live_stats.data.player import Player
-from coh2_live_stats.logging_conf import (
-    HiddenOutputFilter,
-    LoggingConf,
-    LoggingConfError,
-)
+from coh2_live_stats.logging_conf import HiddenOutputFilter, LoggingConf
 from coh2_live_stats.output import Output
 from coh2_live_stats.settings import Settings, SettingsFactory
 from coh2_live_stats.util import (
@@ -60,9 +56,6 @@ if TYPE_CHECKING:
     from io import BytesIO
 
 LOG = logging.getLogger('coh2_live_stats')
-
-API_TIMEOUT = 30
-EXIT_STATUS = 0
 
 
 @dataclass
@@ -79,12 +72,10 @@ class LogFileEventHandler(FileSystemEventHandler):
         f'(?P<faction>{'|'.join([f.key_log for f in Faction])})$'
     )
 
-    def __init__(
-        self, queue: Queue[LogInfo], loop: AbstractEventLoop, settings: Settings
-    ):
+    def __init__(self, queue: Queue[LogInfo], loop: AbstractEventLoop, logfile: Path):
         self.queue = queue
         self.loop = loop
-        self.settings = settings
+        self.logfile = logfile
         self._last_hash = None
         self._last_player_line = 0
         LOG.info('Initialized %s(%s)', cls_name(self), cls_name_parent(self))
@@ -92,7 +83,7 @@ class LogFileEventHandler(FileSystemEventHandler):
 
     @override
     def on_modified(self, event: FileSystemEvent) -> None:
-        if event.is_directory or event.src_path != str(self.settings.logfile):
+        if event.is_directory or event.src_path != str(self.logfile):
             return
 
         f: BytesIO
@@ -110,7 +101,7 @@ class LogFileEventHandler(FileSystemEventHandler):
         self.loop.call_soon_threadsafe(self.queue.put_nowait, self.parse_log())
 
     def parse_log(self) -> LogInfo:
-        with self.settings.logfile.open(encoding='utf-8') as f:
+        with self.logfile.open(encoding='utf-8') as f:
             lines = f.readlines()
 
         pl = 0
@@ -177,34 +168,59 @@ def tickle_logfile(settings: Settings):
             time.sleep(0.1)
 
 
-async def main():
-    global EXIT_STATUS
+def log_validation_error(e: ValidationError):
+    n = e.error_count()
+    msg = '%d validation error%s for %s:'
+    args = n, 's' if n > 1 else '', e.title
+    for err in e.errors():
+        msg += '\n\t[%s]: %s'.expandtabs(4)
+        args += '.'.join(err['loc']), err['msg']
+    LOG.exception(msg, *args)
 
-    _logging = None
-    api = CoH2API(API_TIMEOUT)
+
+def start_logfile_observer(queue: Queue[LogInfo], logfile: Path) -> Observer:
     observer = Observer()
+    handler = LogFileEventHandler(queue, asyncio.get_running_loop(), logfile)
+    LOG.info('Scheduling %s for: %s', cls_name(handler), str(logfile.parent))
+    observer.schedule(handler, str(logfile.parent))
+    LOG.info('Starting observer: %s[name=%s]', cls_name(observer), observer.name)
+    observer.start()
+    return observer
+
+
+def stop_logfile_observer(observer: Observer):
+    if observer:
+        LOG.info('Stopping observer: %s[name=%s]', cls_name(observer), observer.name)
+        observer.stop()
+        observer.join()
+
+
+async def main() -> int:
+    exit_status = 0
+
+    _logging = LoggingConf()
+    _logging.start()
 
     try:
-        _logging = LoggingConf()
-        _logging.start()
-
-        await init_leaderboards(api)
-
         settings = SettingsFactory.create_settings()
-        output = Output(settings)
+    except ValidationError as e:
+        log_validation_error(e)
+        return 1
 
-        queue: Queue[LogInfo] = Queue()
-        handler = LogFileEventHandler(queue, asyncio.get_running_loop(), settings)
-        logfile_dir = str(settings.logfile.parent)
-        LOG.info('Scheduling %s for: %s', cls_name(handler), logfile_dir)
-        observer.schedule(handler, logfile_dir)
-        LOG.info('Starting observer: %s[name=%s]', cls_name(observer), observer.name)
-        observer.start()
+    api = CoH2API()
+    output = Output(settings)
 
+    queue = Queue()
+    observer = start_logfile_observer(queue, settings.logfile)
+
+    # Force CoH2 to write out its collected log
+    with ThreadPoolExecutor() as pool:
+        tickle = asyncio.get_running_loop().run_in_executor(pool, tickle_logfile)
+
+    try:
+        await init_leaderboards(api)
         notified = False
         is_first_item = True
-        # Force CoH2 to write out its collected log
-        asyncio.get_running_loop().run_in_executor(None, tickle_logfile, settings)
         while observer.is_alive():
             log_info = await queue.get()
             if log_info.is_new_match:
@@ -218,73 +234,42 @@ async def main():
                 notified = True
             queue.task_done()
             is_first_item = False
-    except LoggingConfError as e:
-        logging.exception(e.args[0])
-        EXIT_STATUS = 1
-    except TOMLDecodeError as e:
-        # Should only occur if pydantic settings model is given an invalid TOML config
-        LOG.exception(
-            'Failed to parse TOML file: %s\n\tCause: %s'.expandtabs(4),
-            settings.model_config.get('toml_file'),
-            e.args[0],
-        )
-        EXIT_STATUS = 1
-    except ValidationError as e:
-        # Pydantic model validation errors
-        n = e.error_count()
-        msg = '%d validation error%s for %s:'
-        args = n, 's' if n > 1 else '', e.title
-        for err in e.errors():
-            msg += '\n\t[%s]: %s'.expandtabs(4)
-            args += '.'.join(err['loc']), err['msg']
-        LOG.exception(msg, *args)
-        EXIT_STATUS = 1
     except RequestError as e:
         LOG.exception('An error occurred while requesting %s.', repr(e.request.url))
-        EXIT_STATUS = 1
+        exit_status = 1
     except HTTPStatusError as e:
         LOG.exception(
             "Error response %d while requesting %s.",
             e.response.status_code,
             repr(e.request.url),
         )
-        EXIT_STATUS = 1
-    # In asyncio `Ctrl-C` cancels the main task, which raises a Cancelled Error
-    except asyncio.CancelledError:
-        raise
+        exit_status = 1
     except Exception:
-        msg = 'Unexpected error. Consult the log for more information'
-        LOG.exception(
-            '%s: %s', msg, _logging.logfile
-        ) if _logging else logging.exception('%s.', msg)
-        EXIT_STATUS = 1
+        LOG.exception('Unexpected error:')
         raise
     finally:
-        if observer:
-            LOG.info(
-                'Stopping observer: %s[name=%s]', cls_name(observer), observer.name
-            )
-            observer.stop()
-            if observer.is_alive():
-                observer.join()
+        tickle.cancel()
+        stop_logfile_observer(observer)
         await api.close()
         LOG.log(
-            INFO if EXIT_STATUS == 0 else ERROR,
+            INFO if exit_status == 0 else ERROR,
             'Exit with code: %d\n',
-            EXIT_STATUS,
+            exit_status,
             **HiddenOutputFilter.KWARGS,
         )
         if _logging:
             _logging.stop()
 
-        if EXIT_STATUS > 0 and os.name == 'nt' and is_running_in_pyinstaller():
+        if exit_status > 0 and os.name == 'nt' and is_running_in_pyinstaller():
             os.system('pause')
+
+    return exit_status
 
 
 def run():
-    with suppress(asyncio.CancelledError, KeyboardInterrupt, Exception):
-        asyncio.run(main())
-    exit(EXIT_STATUS)
+    # In asyncio `Ctrl-C` cancels the main task, which raises a Cancelled Error
+    with suppress(asyncio.CancelledError, KeyboardInterrupt):
+        exit(asyncio.run(main()))
 
 
 if __name__ == '__main__':

@@ -101,15 +101,15 @@ class Player:
             return -1
 
         lvl = 0
-        if 0 < rank <= 2:
+        if 0 < rank <= 2:  # noqa: PLR2004
             lvl = 20
-        elif 2 < rank <= 13:
+        elif 2 < rank <= 13:  # noqa: PLR2004
             lvl = 19
-        elif 13 < rank <= 36:
+        elif 13 < rank <= 36:  # noqa: PLR2004
             lvl = 18
-        elif 36 < rank <= 80:
+        elif 36 < rank <= 80:  # noqa: PLR2004
             lvl = 17
-        elif 80 < rank <= 200:
+        elif 80 < rank <= 200:  # noqa: PLR2004
             lvl = 16
         else:  # build and search the rest of the ranking
             ratio_lvl_1_14 = [6, 8, 6, 5] + 3 * [10] + 2 * [7] + [6] + 4 * [5]

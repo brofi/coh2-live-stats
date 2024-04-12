@@ -17,14 +17,13 @@ import asyncio
 import logging
 import os
 from functools import partial
-from typing import Any
 
 from prettytable import PrettyTable
 from prettytable.colortable import ColorTable, Theme
 
 from .data.countries import country_set
 from .data.faction import Faction
-from .data.match import Match
+from .data.match import Match, Party
 from .data.player import Player
 from .settings import Settings
 from .util import cls_name
@@ -106,69 +105,7 @@ class Output:
         cols = self.settings.table.columns
         for party_index, party in enumerate(match.parties):
             for player_index, player in enumerate(party.players):
-                row = [''] * len(self.table.field_names)
-
-                self._set_column(row, cols.faction, player.faction)
-
-                is_high_low_lvl_player = (
-                    player.is_ranked
-                    and player.relative_rank <= party.min_relative_rank,
-                    player.is_ranked
-                    and player.relative_rank >= party.max_relative_rank,
-                )
-
-                rank_estimate = party.rank_estimates.get(player.relic_id)
-                self._set_column(
-                    row,
-                    cols.rank,
-                    (rank_estimate[0], rank_estimate[1], *is_high_low_lvl_player),
-                )
-                self._set_column(
-                    row,
-                    cols.level,
-                    (rank_estimate[0], rank_estimate[2], *is_high_low_lvl_player),
-                )
-
-                prestige = player.get_prestige_level_stars(
-                    self.settings.table.prestige_star_char,
-                    self.settings.table.prestige_half_star_char,
-                )
-                self._set_column(
-                    row, cols.prestige, (prestige, *is_high_low_lvl_player)
-                )
-
-                self._set_column(row, cols.win_ratio, player.win_ratio)
-                self._set_column(row, cols.drop_ratio, player.drop_ratio)
-
-                team_names = []
-                display_ranks = []
-                for ti, team in enumerate(party.pre_made_teams):
-                    if player.relic_id in team.members:
-                        team_names.append(chr(ti + 65))
-                        display_ranks.append(team.display_rank)
-                self._set_column(row, cols.team, ','.join(team_names))
-                self._set_column(
-                    row, cols.team_rank, ','.join(rank for (rank, _) in display_ranks)
-                )
-                self._set_column(
-                    row,
-                    cols.team_level,
-                    ','.join(level for (_, level) in display_ranks),
-                )
-
-                self._set_column(
-                    row, cols.steam_profile, player.get_steam_profile_url()
-                )
-
-                country: dict = country_set[player.country] if player.country else ''
-                self._set_column(
-                    row,
-                    cols.country,
-                    (country['name'] if country else '', *is_high_low_lvl_player),
-                )
-
-                self._set_column(row, cols.name, (player.name, *is_high_low_lvl_player))
-
+                row = self._create_player_row(party, player)
                 LOG.info(
                     'Add row (party=%d,player=%d): %s',
                     party_index,
@@ -182,36 +119,7 @@ class Output:
                 and (cols.rank.visible or cols.level.visible)
                 and len([p for p in party.players if p.relic_id > 0]) > 1
             ):
-                avg_row: list[Any] = [''] * len(self.table.field_names)
-
-                avg_rank_prefix = (
-                    '*' if party_index == match.highest_avg_rank_party else ''
-                )
-                avg_rank_level_prefix = (
-                    '*' if party_index == match.highest_avg_rank_level_party else ''
-                )
-                self._set_column(
-                    avg_row,
-                    cols.rank,
-                    (avg_rank_prefix, party.avg_estimated_rank, False, False),
-                )
-                self._set_column(
-                    avg_row,
-                    cols.level,
-                    (
-                        avg_rank_level_prefix,
-                        party.avg_estimated_rank_level,
-                        False,
-                        False,
-                    ),
-                )
-
-                if (
-                    self._get_column_index(cols.rank) != 0
-                    and self._get_column_index(cols.level) != 0
-                ):
-                    avg_row[0] = 'Avg'
-
+                avg_row = self._create_average_row(match, party, party_index)
                 LOG.info('Add average row: %s', avg_row)
                 self.table.add_row(avg_row, divider=True)
 
@@ -241,6 +149,94 @@ class Output:
                 print(self.table)
         else:
             LOG.warning('No table columns to print.')
+
+    def _create_player_row(self, party: Party, player: Player) -> list[any]:
+        cols = self.settings.table.columns
+        row: list[any] = [''] * len(self.table.field_names)
+
+        self._set_column(row, cols.faction, player.faction)
+
+        is_high_low_lvl_player = (
+            player.is_ranked and player.relative_rank <= party.min_relative_rank,
+            player.is_ranked and player.relative_rank >= party.max_relative_rank,
+        )
+
+        rank_estimate = party.rank_estimates.get(player.relic_id)
+        self._set_column(
+            row,
+            cols.rank,
+            (rank_estimate[0], rank_estimate[1], *is_high_low_lvl_player),
+        )
+        self._set_column(
+            row,
+            cols.level,
+            (rank_estimate[0], rank_estimate[2], *is_high_low_lvl_player),
+        )
+
+        prestige = player.get_prestige_level_stars(
+            self.settings.table.prestige_star_char,
+            self.settings.table.prestige_half_star_char,
+        )
+        self._set_column(row, cols.prestige, (prestige, *is_high_low_lvl_player))
+
+        self._set_column(row, cols.win_ratio, player.win_ratio)
+        self._set_column(row, cols.drop_ratio, player.drop_ratio)
+
+        team_names = []
+        display_ranks = []
+        for ti, team in enumerate(party.pre_made_teams):
+            if player.relic_id in team.members:
+                team_names.append(chr(ti + 65))
+                display_ranks.append(team.display_rank)
+        self._set_column(row, cols.team, ','.join(team_names))
+        self._set_column(
+            row, cols.team_rank, ','.join(rank for (rank, _) in display_ranks)
+        )
+        self._set_column(
+            row, cols.team_level, ','.join(level for (_, level) in display_ranks)
+        )
+
+        self._set_column(row, cols.steam_profile, player.get_steam_profile_url())
+
+        country: dict = country_set[player.country] if player.country else ''
+        self._set_column(
+            row,
+            cols.country,
+            (country['name'] if country else '', *is_high_low_lvl_player),
+        )
+
+        self._set_column(row, cols.name, (player.name, *is_high_low_lvl_player))
+
+        return row
+
+    def _create_average_row(
+        self, match: Match, party: Party, party_index: int
+    ) -> list[any]:
+        cols = self.settings.table.columns
+        avg_row: list[any] = [''] * len(self.table.field_names)
+
+        avg_rank_prefix = '*' if party_index == match.highest_avg_rank_party else ''
+        avg_rank_level_prefix = (
+            '*' if party_index == match.highest_avg_rank_level_party else ''
+        )
+        self._set_column(
+            avg_row,
+            cols.rank,
+            (avg_rank_prefix, party.avg_estimated_rank, False, False),
+        )
+        self._set_column(
+            avg_row,
+            cols.level,
+            (avg_rank_level_prefix, party.avg_estimated_rank_level, False, False),
+        )
+
+        if (
+            self._get_column_index(cols.rank) != 0
+            and self._get_column_index(cols.level) != 0
+        ):
+            avg_row[0] = 'Avg'
+
+        return avg_row
 
     def _clear(self):
         if os.name == 'nt':
@@ -272,7 +268,7 @@ class Output:
         return self.settings.table.colors.label.colorize(str(v)) if colored else str(v)
 
     def _format_rank(self, precision, _, v: any):
-        if not v or not isinstance(v, tuple) or len(v) < 4 or v[1] <= 0:
+        if not v or not isinstance(v, tuple):
             return ''
 
         v_str = ''
@@ -305,7 +301,7 @@ class Output:
         return v_str
 
     def _format_min_max(self, _, v: any):
-        if not v or not isinstance(v, tuple) or len(v) < 3:
+        if not v or not isinstance(v, tuple):
             return ''
 
         v_str = str(v[0])

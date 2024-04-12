@@ -29,19 +29,21 @@ LOG = logging.getLogger('coh2_live_stats')
 
 
 class Match:
+    MIN_SIZE = 2
+
     def __init__(self, players: list[Player]):
-        if not players or len(players) < 2:
-            msg = 'No match with less than 2 players.'
+        if not players or len(players) < self.MIN_SIZE:
+            msg = f'No match with less than {self.MIN_SIZE} players.'
             raise ValueError(msg)
 
-        p0 = _Party([p for p in players if p.team_id == 0])
-        p1 = _Party([p for p in players if p.team_id == 1])
+        p0 = Party([p for p in players if p.team_id == 0])
+        p1 = Party([p for p in players if p.team_id == 1])
 
         if p0.size != p1.size:
             msg = 'Parties must be of equal size.'
             raise ValueError(msg)
 
-        self.parties: tuple[_Party, _Party] = p0, p1
+        self.parties: tuple[Party, Party] = p0, p1
 
         LOG.info('Initialized %s', cls_name(self))
 
@@ -49,7 +51,7 @@ class Match:
     def highest_avg_rank_party(self) -> int:
         return (
             0
-            if self.parties[0].avg_estimated_rank > self.parties[1].avg_estimated_rank
+            if self.parties[0].avg_estimated_rank < self.parties[1].avg_estimated_rank
             else 1
         )
 
@@ -69,10 +71,13 @@ class Match:
         return False
 
 
-class _Party:
+class Party:
+    MIN_SIZE = 1
+    MAX_SIZE = 4
+
     def __init__(self, players: list[Player]):
-        if not players or not 1 <= len(players) <= 4:
-            msg = 'Party must have at least 1 and at most 4 players.'
+        if not players or not self.MIN_SIZE <= len(players) <= self.MAX_SIZE:
+            msg = f'Party must have at least {self.MIN_SIZE} and at most {self.MAX_SIZE} players.'
             raise ValueError(msg)
 
         self.players = players

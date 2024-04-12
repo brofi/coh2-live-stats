@@ -263,11 +263,15 @@ class TomlSettings(Settings):
     def _first_valid_config() -> Path | None:
         for c in CONFIG_FILES:
             with suppress(FileNotFoundError), c.open('rb') as f:
-                LOG.info('Found TOML configuration: %s', c)
+                LOG.info('Found TOML config: %s', c)
                 try:
                     _ = load(f)
                 except TOMLDecodeError as e:
-                    LOG.warning('Failed to parse TOML configuration: %s', e.args[0])
+                    LOG.warning(
+                        'Failed to parse TOML\n\tFile: %s\n\tCause: %s'.expandtabs(4),
+                        c,
+                        e.args[0],
+                    )
                 else:
                     return c
         return None

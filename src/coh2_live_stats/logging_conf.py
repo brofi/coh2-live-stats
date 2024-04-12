@@ -26,8 +26,6 @@ from pathlib import Path
 from tomllib import TOMLDecodeError
 from typing import Final, override
 
-from .util import cls_name
-
 
 class LoggingConfError(Exception):
     pass
@@ -51,8 +49,6 @@ class LoggingConf:
                 f'\n\tFile: {self.CONF_PATH}'
                 f'\n\tCause: {e.args[0]}'
             ).expandtabs(4)
-            logging.error(msg)  # noqa: TRY400 - Reraised as LoggingConfError
-            msg = f'Failed to initialize {cls_name(self)} with {self.CONF_PATH}'
             raise LoggingConfError(msg) from e
 
         try:

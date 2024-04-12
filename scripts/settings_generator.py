@@ -68,8 +68,8 @@ Valid config names:
 {list_multi(CONFIG_NAMES)}
 
 Valid colors:
-{list_single([c.name.lower() for c in Color if 30 <= c.value < 40])}
-{list_single([c.name.lower() for c in Color if 90 <= c.value < 100])}
+{list_single([c.name.lower() for c in Color if Color.BLACK <= c.value <= Color.WHITE])}
+{list_single([c.name.lower() for c in Color if Color.BRIGHT_BLACK <= c.value <= Color.BRIGHT_WHITE])}
 
 Valid sound values:
 {list_single(get_args(Sound))}

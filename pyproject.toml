@@ -74,6 +74,7 @@ select = [
     "TID", # flake8-tidy-imports
     "TCH", # flake8-type-checking
     "PTH", # flake8-use-pathlib
+    "PL", # Pylint
     "TRY", # tryceratops
     "RUF", # Ruff-specific rules
 ]

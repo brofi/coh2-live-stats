@@ -14,6 +14,7 @@
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import sys
 from operator import add
 from typing import TYPE_CHECKING
 
@@ -77,10 +78,10 @@ class _Party:
         self.players = players
         self.pre_made_teams: set[Team] = set()
 
-        self.min_relative_rank: float = 0.0
+        self.min_relative_rank: float = sys.maxsize
         self.max_relative_rank: float = 0.0
         player_ids = [p.relic_id for p in self.players]
-        sum_relative_rank = 0
+        relative_ranks = []
         for p in self.players:
             # There could be multiple possible pre-made teams per player. For example
             # when players A, B and C with teams (A,B), (B,C) have no team (A,B,
@@ -99,12 +100,16 @@ class _Party:
                 if len(team.members) >= max_player_pre_made_team_size:
                     self.pre_made_teams.add(team)
 
-            sum_relative_rank += p.relative_rank
-            if p.relative_rank < self.min_relative_rank:
-                self.min_relative_rank = p.relative_rank
-            if p.relative_rank > self.max_relative_rank:
-                self.max_relative_rank = p.relative_rank
-        avg_relative_rank = sum_relative_rank / self.size
+            if p.is_ranked:
+                relative_ranks.append(p.relative_rank)
+                if p.relative_rank < self.min_relative_rank:
+                    self.min_relative_rank = p.relative_rank
+                if p.relative_rank > self.max_relative_rank:
+                    self.max_relative_rank = p.relative_rank
+
+        avg_relative_rank = (
+            sum(relative_ranks) / len(relative_ranks) if relative_ranks else 0.0
+        )
         LOG.info('Initialized pre-made teams: %s', self.pre_made_teams)
         LOG.info(
             'Initialized (min, max) relative rank: (%f, %f)',

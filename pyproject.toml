@@ -55,6 +55,7 @@ version_file = "src/coh2_live_stats/version.py"
 select = [
     "F", # Pyflakes
     "E", "W", # pycodestyle
+    "C90", # mccabe
     "I", # isort
     "N", # pep8-naming
     "BLE", # flake8-blind-except

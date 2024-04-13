@@ -131,24 +131,23 @@ class Output:
 
         if len(self.table.field_names) > 0:
             if self.settings.table.color:
-                # Unfortunately there is no custom header format and altering field
-                # names directly would mess with everything that needs them (e.g.
-                # formatting).
-                table_lines = self.table.get_string().splitlines(keepends=True)
-                i = int(self.settings.table.border)
-                for h in self.table.field_names:
-                    header = (
-                        ' ' * self.table.padding_width
-                        + h
-                        + ' ' * self.table.padding_width
-                    )
-                    color_header = self.settings.table.colors.label.colorize(header)
-                    table_lines[i] = table_lines[i].replace(header, color_header)
-                print(''.join(table_lines))
+                self._print_custom_header_table()
             else:
                 print(self.table)
         else:
             LOG.warning('No table columns to print.')
+
+    def _print_custom_header_table(self):
+        # Unfortunately there is no custom header format and altering field
+        # names directly would mess with everything that needs them (e.g.
+        # formatting).
+        table_lines = self.table.get_string().splitlines(keepends=True)
+        i = int(self.settings.table.border)
+        for h in self.table.field_names:
+            header = ' ' * self.table.padding_width + h + ' ' * self.table.padding_width
+            color_header = self.settings.table.colors.label.colorize(header)
+            table_lines[i] = table_lines[i].replace(header, color_header)
+        print(''.join(table_lines))
 
     def _create_player_row(self, party: Party, player: Player) -> list[any]:
         cols = self.settings.table.columns

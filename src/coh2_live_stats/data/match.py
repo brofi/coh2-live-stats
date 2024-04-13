@@ -88,23 +88,7 @@ class Party:
         player_ids = [p.relic_id for p in self.players]
         relative_ranks = []
         for p in self.players:
-            # There could be multiple possible pre-made teams per player. For example
-            # when players A, B and C with teams (A,B), (B,C) have no team (A,B,
-            # C). Which means either player A or C queued alone or the current match
-            # is the first match of a new team (A,B,C).
-            player_pre_made_teams = []
-            max_player_pre_made_team_size = 0
-            for team in p.teams:
-                is_pre_made_team = all(member in player_ids for member in team.members)
-                if is_pre_made_team:
-                    pre_made_team_size = len(team.members)
-                    if pre_made_team_size > max_player_pre_made_team_size:
-                        max_player_pre_made_team_size = pre_made_team_size
-                    player_pre_made_teams.append(team)
-            for team in player_pre_made_teams:
-                if len(team.members) >= max_player_pre_made_team_size:
-                    self.pre_made_teams.add(team)
-
+            self.add_player_pre_made_teams(p, player_ids)
             if p.is_ranked:
                 relative_ranks.append(p.relative_rank)
                 if p.relative_rank < self.min_relative_rank:
@@ -139,6 +123,24 @@ class Party:
         )
 
         LOG.info('Initialized %s', cls_name(self))
+
+    def add_player_pre_made_teams(self, p: Player, player_ids: list[int]):
+        # There could be multiple possible pre-made teams per player. For example when
+        # players A, B and C with teams (A,B), (B,C) have no team (A,B,C). Which means
+        # either player A or C queued alone or the current match is the first match of a
+        # new team (A,B,C).
+        player_pre_made_teams = []
+        max_player_pre_made_team_size = 0
+        for team in p.teams:
+            is_pre_made_team = all(member in player_ids for member in team.members)
+            if is_pre_made_team:
+                pre_made_team_size = len(team.members)
+                if pre_made_team_size > max_player_pre_made_team_size:
+                    max_player_pre_made_team_size = pre_made_team_size
+                player_pre_made_teams.append(team)
+        for team in player_pre_made_teams:
+            if len(team.members) >= max_player_pre_made_team_size:
+                self.pre_made_teams.add(team)
 
     @property
     def size(self) -> int:

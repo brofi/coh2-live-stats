@@ -65,7 +65,9 @@ def _get_pkg(c: Context, name='') -> Package | None:
 
     res: Result = _run(c, *_pipcmd, 'list', '--format json')
     packages = list(filter(lambda p: p['name'] == name, json.loads(res.stdout)))
-    assert len(packages) <= 1
+    if len(packages) > 1:
+        msg = f'Multiple packages {name!r} detected.'
+        raise ValueError(msg)
     return packages[0] if packages else None
 
 

@@ -13,7 +13,6 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
-import sys
 import winsound
 from inspect import isclass
 
@@ -40,7 +39,3 @@ def play_sound(soundfile: str):
     except RuntimeError:
         return False
     return True
-
-
-def is_running_in_pyinstaller():
-    return getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')

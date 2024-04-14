@@ -15,7 +15,6 @@
 
 import asyncio
 import logging
-import os
 from functools import partial
 
 from prettytable import PrettyTable
@@ -238,23 +237,19 @@ class Output:
         return avg_row
 
     def _clear(self):
-        if os.name == 'nt':
-            _ = os.system('cls')
-            print('\b', end='')
-        else:
-            _ = os.system('clear')
+        print("\033[3J\033[H", end='', flush=True)
         self.table.clear()
 
     @staticmethod
     async def progress_start():
         while True:
             for c in '/—\\|':
-                print(f'\b{c}', end='', flush=True)
+                print(f'\033[D{c}', end='', flush=True)
                 await asyncio.sleep(0.25)
 
     @staticmethod
     def progress_stop():
-        print('\b \b', end='')
+        print('\033[D\033[K', end='', flush=True)
 
     def _format_faction(self, _, v):
         colored = self.settings.table.color

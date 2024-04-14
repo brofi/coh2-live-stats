@@ -15,7 +15,6 @@
 
 import asyncio
 import logging.config
-import os
 import re
 import time
 from asyncio import AbstractEventLoop, Queue
@@ -45,12 +44,7 @@ from coh2_live_stats.data.player import Player
 from coh2_live_stats.logging_conf import HiddenOutputFilter, LoggingConf
 from coh2_live_stats.output import Output
 from coh2_live_stats.settings import Settings, SettingsFactory
-from coh2_live_stats.util import (
-    cls_name,
-    cls_name_parent,
-    is_running_in_pyinstaller,
-    play_sound,
-)
+from coh2_live_stats.util import cls_name, cls_name_parent, play_sound
 
 if TYPE_CHECKING:
     from io import BytesIO
@@ -195,11 +189,6 @@ def stop_logfile_observer(observer: Observer):
         observer.join()
 
 
-def pause_exit(exit_status: int):
-    if exit_status > 0 and os.name == 'nt' and is_running_in_pyinstaller():
-        os.system('pause')
-
-
 async def main() -> int:
     exit_status = 0
 
@@ -264,8 +253,6 @@ async def main() -> int:
         )
         if _logging:
             _logging.stop()
-
-        pause_exit(exit_status)
 
     return exit_status
 

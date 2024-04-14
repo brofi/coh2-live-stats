@@ -17,8 +17,7 @@ import asyncio
 import logging.config
 import re
 import time
-from asyncio import AbstractEventLoop, Queue
-from concurrent.futures import ThreadPoolExecutor
+from asyncio import AbstractEventLoop, Event, Queue
 from contextlib import suppress
 from dataclasses import dataclass
 from hashlib import file_digest
@@ -156,9 +155,9 @@ def notify_match(settings: Settings):
         LOG.warning('Failed to play sound: %s', settings.notification.sound)
 
 
-def tickle_logfile(settings: Settings):
-    while True:
-        with settings.logfile.open(mode='rb', buffering=0):
+def tickle_logfile(logfile: Path, cancel_event: Event):
+    while not cancel_event.is_set():
+        with logfile.open(mode='rb', buffering=0):
             time.sleep(0.1)
 
 
@@ -208,8 +207,10 @@ async def main() -> int:
     observer = start_logfile_observer(queue, settings.logfile)
 
     # Force CoH2 to write out its collected log
-    with ThreadPoolExecutor() as pool:
-        tickle = asyncio.get_running_loop().run_in_executor(pool, tickle_logfile)
+    tickle_cancel_event = Event()
+    tickle_future = asyncio.get_running_loop().run_in_executor(
+        None, tickle_logfile, settings.logfile, tickle_cancel_event
+    )
 
     try:
         await init_leaderboards(api)
@@ -242,7 +243,8 @@ async def main() -> int:
         LOG.exception('Unexpected error:')
         raise
     finally:
-        tickle.cancel()
+        tickle_future.cancel()
+        tickle_cancel_event.set()
         stop_logfile_observer(observer)
         await api.close()
         LOG.log(

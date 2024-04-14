@@ -16,6 +16,7 @@
 import asyncio
 import logging
 from functools import partial
+from typing import Any
 
 from prettytable import PrettyTable
 from prettytable.colortable import ColorTable, Theme
@@ -39,6 +40,7 @@ class Output:
         LOG.info('Initialized %s', cls_name(self))
 
     def _create_output_table(self) -> PrettyTable:
+        table: PrettyTable
         if self.settings.table.color:
             border_color = str(self.settings.table.colors.border.value)
             table = ColorTable(
@@ -148,9 +150,9 @@ class Output:
             table_lines[i] = table_lines[i].replace(header, color_header)
         print(''.join(table_lines))
 
-    def _create_player_row(self, party: Party, player: Player) -> list[any]:
+    def _create_player_row(self, party: Party, player: Player) -> list[Any]:
         cols = self.settings.table.columns
-        row: list[any] = [''] * len(self.table.field_names)
+        row: list[Any] = [''] * len(self.table.field_names)
 
         self._set_column(row, cols.faction, player.faction)
 
@@ -159,7 +161,7 @@ class Output:
             player.is_ranked and player.relative_rank >= party.max_relative_rank,
         )
 
-        rank_estimate = party.rank_estimates.get(player.relic_id)
+        rank_estimate = party.rank_estimates[player.relic_id]
         self._set_column(
             row,
             cols.rank,
@@ -196,7 +198,7 @@ class Output:
 
         self._set_column(row, cols.steam_profile, player.get_steam_profile_url())
 
-        country: dict = country_set[player.country] if player.country else ''
+        country = country_set.get(player.country)
         self._set_column(
             row,
             cols.country,
@@ -209,9 +211,9 @@ class Output:
 
     def _create_average_row(
         self, match: Match, party: Party, party_index: int
-    ) -> list[any]:
+    ) -> list[Any]:
         cols = self.settings.table.columns
-        avg_row: list[any] = [''] * len(self.table.field_names)
+        avg_row: list[Any] = [''] * len(self.table.field_names)
 
         avg_rank_prefix = '*' if party_index == match.highest_avg_rank_party else ''
         avg_rank_level_prefix = (
@@ -261,7 +263,7 @@ class Output:
             )
         return self.settings.table.colors.label.colorize(str(v)) if colored else str(v)
 
-    def _format_rank(self, precision, _, v: any):
+    def _format_rank(self, precision, _, v: Any):
         if not v or not isinstance(v, tuple):
             return ''
 
@@ -294,7 +296,7 @@ class Output:
                 )
         return v_str
 
-    def _format_min_max(self, _, v: any):
+    def _format_min_max(self, _, v: Any):
         if not v or not isinstance(v, tuple):
             return ''
 

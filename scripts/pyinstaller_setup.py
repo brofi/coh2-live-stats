@@ -22,7 +22,7 @@ from coh2_live_stats.logging_conf import LoggingConf
 from coh2_live_stats.settings import CONFIG_FILE_DEV
 
 # noinspection PyUnresolvedReferences
-from PyInstaller.utils.win32.versioninfo import (
+from PyInstaller.utils.win32.versioninfo import (  # type: ignore[attr-defined]
     FixedFileInfo,
     StringFileInfo,
     StringStruct,
@@ -44,8 +44,10 @@ res_path = module_path.joinpath('res')
 version_file = build_path.joinpath('file_version_info.txt')
 
 ffi_version = (
-    *__version_tuple__[:2],
-    __version_tuple__[2] if isinstance(__version_tuple__[2], int) else 0,
+    *tuple(
+        int(__version_tuple__[i]) if isinstance(__version_tuple__[i], int) else 0
+        for i in (0, 1, 2)
+    ),
     0,
 )
 # see: https://learn.microsoft.com/en-us/windows/win32/menurc/vs-versioninfo

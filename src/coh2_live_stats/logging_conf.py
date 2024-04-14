@@ -14,15 +14,14 @@
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
 import copy
-import logging
 import logging.config
-import queue
 import sys
 import time
 import tomllib
-from logging import CRITICAL, WARNING, Filter, Formatter, LogRecord
+from logging import CRITICAL, WARNING, Filter, Formatter, Handler, LogRecord
 from logging.handlers import QueueHandler, QueueListener
 from pathlib import Path
+from queue import Queue
 from tomllib import TOMLDecodeError
 from typing import Final, override
 
@@ -72,21 +71,32 @@ class LoggingConf:
         logging.logMultiprocessing = False
 
         # Setup custom queue handler
-        que = queue.Queue(-1)
+        que: Queue = Queue(-1)
         queue_handler = CustomQueueHandler(que)
         logging.getLogger().addHandler(queue_handler)
         # Listener needs to be created manually, unlike when configuring the default
         # queue handler with dictConfig
-        handlers = logging.getHandlerByName('stderr'), logging.getHandlerByName('file')
+        handlers: tuple[Handler, ...] = (
+            self.get_handler_by_name('stderr'),
+            self.get_handler_by_name('file'),
+        )
         if stdout:
-            handlers += (logging.getHandlerByName('stdout'),)
+            handlers += (self.get_handler_by_name('stdout'),)
         self.listener = QueueListener(que, *handlers, respect_handler_level=True)
+
+    @staticmethod
+    def get_handler_by_name(name: str) -> Handler:
+        handler = logging.getHandlerByName(name)
+        if handler is None:
+            msg = f'Not a handler: {name!r}.'
+            raise LoggingConfError(msg)
+        return handler
 
     def start(self):
         self.listener.start()
         logger = logging.getLogger('coh2_live_stats')
         logger.info(
-            'Started logging with: %s', self.CONF_PATH, **HiddenOutputFilter.KWARGS
+            'Started logging with: %s', self.CONF_PATH, extra=HiddenOutputFilter.EXTRA
         )
 
     def stop(self):
@@ -166,7 +176,7 @@ class ErrorFilter(Filter):
 
 class HiddenOutputFilter(Filter):
     KEY_EXTRA_HIDE: Final[str] = 'hide'
-    KWARGS: Final[dict[str, dict[str, bool]]] = {'extra': {KEY_EXTRA_HIDE: True}}
+    EXTRA: Final[dict[str, bool]] = {KEY_EXTRA_HIDE: True}
 
     @override
     def filter(self, record: LogRecord):

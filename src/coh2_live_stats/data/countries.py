@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
-country_set = {
+country_set: dict[str, dict[str, str]] = {
     "ad": {"name": "Andorra"},
     "ae": {"name": "United Arab Emirates"},
     "af": {"name": "Afghanistan"},

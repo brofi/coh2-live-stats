@@ -24,12 +24,13 @@ from hashlib import file_digest
 from logging import ERROR, INFO
 from pathlib import Path
 from sys import exit
-from typing import TYPE_CHECKING, override
+from typing import Any, override
 
 from httpx import HTTPStatusError, RequestError
 from pydantic import ValidationError
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
+from watchdog.observers.api import BaseObserver
 
 # Either use relative imports and run the project as a module from IDE Run/Debug
 # config (same as python -module) or use these absolute imports and run it as a
@@ -44,9 +45,6 @@ from coh2_live_stats.logging_conf import HiddenOutputFilter, LoggingConf
 from coh2_live_stats.output import Output
 from coh2_live_stats.settings import Settings, SettingsFactory
 from coh2_live_stats.util import cls_name, cls_name_parent, play_sound
-
-if TYPE_CHECKING:
-    from io import BytesIO
 
 LOG = logging.getLogger('coh2_live_stats')
 
@@ -69,7 +67,7 @@ class LogFileEventHandler(FileSystemEventHandler):
         self.queue = queue
         self.loop = loop
         self.logfile = logfile
-        self._last_hash = None
+        self._last_hash = ''
         self._last_player_line = 0
         LOG.info('Initialized %s(%s)', cls_name(self), cls_name_parent(self))
         self.produce()  # kickstart
@@ -79,7 +77,7 @@ class LogFileEventHandler(FileSystemEventHandler):
         if event.is_directory or event.src_path != str(self.logfile):
             return
 
-        f: BytesIO
+        f: Any
         with Path(event.src_path).open('rb', buffering=0) as f:
             h = file_digest(f, 'sha256').hexdigest()
 
@@ -98,7 +96,7 @@ class LogFileEventHandler(FileSystemEventHandler):
             lines = f.readlines()
 
         pl = 0
-        player_matches = []
+        player_matches: list[re.Match] = []
         for i, line in enumerate(lines):
             m = self.PLAYER_PATTERN.search(line)
             if m is not None:
@@ -164,14 +162,14 @@ def tickle_logfile(logfile: Path, cancel_event: Event):
 def log_validation_error(e: ValidationError):
     n = e.error_count()
     msg = '%d validation error%s for %s:'
-    args = n, 's' if n > 1 else '', e.title
+    args: tuple[Any, ...] = n, 's' if n > 1 else '', e.title
     for err in e.errors():
         msg += '\n\t[%s]: %s'.expandtabs(4)
-        args += '.'.join(err['loc']), err['msg']
+        args += '.'.join(map(str, err['loc'])), err['msg']
     LOG.exception(msg, *args)
 
 
-def start_logfile_observer(queue: Queue[LogInfo], logfile: Path) -> Observer:
+def start_logfile_observer(queue: Queue[LogInfo], logfile: Path) -> BaseObserver:
     observer = Observer()
     handler = LogFileEventHandler(queue, asyncio.get_running_loop(), logfile)
     LOG.info('Scheduling %s for: %s', cls_name(handler), str(logfile.parent))
@@ -181,7 +179,7 @@ def start_logfile_observer(queue: Queue[LogInfo], logfile: Path) -> Observer:
     return observer
 
 
-def stop_logfile_observer(observer: Observer):
+def stop_logfile_observer(observer: BaseObserver):
     if observer:
         LOG.info('Stopping observer: %s[name=%s]', cls_name(observer), observer.name)
         observer.stop()
@@ -203,7 +201,7 @@ async def main() -> int:
     api = CoH2API()
     output = Output(settings)
 
-    queue = Queue()
+    queue: Queue = Queue()
     observer = start_logfile_observer(queue, settings.logfile)
 
     # Force CoH2 to write out its collected log
@@ -251,7 +249,7 @@ async def main() -> int:
             INFO if exit_status == 0 else ERROR,
             'Exit with code: %d\n',
             exit_status,
-            **HiddenOutputFilter.KWARGS,
+            extra=HiddenOutputFilter.EXTRA,
         )
         if _logging:
             _logging.stop()

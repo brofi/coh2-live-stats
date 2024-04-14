@@ -16,7 +16,7 @@
 import asyncio
 import logging
 from enum import IntEnum
-from typing import override
+from typing import Any, override
 
 from httpx import AsyncClient, URL
 
@@ -73,7 +73,7 @@ class _Difficulty(IntEnum):
         return self.name.lower()
 
 
-type Leaderboard = dict[int, dict[str, any]]
+Leaderboard = dict[int, dict[str, Any]]
 
 
 class CoH2API:
@@ -241,7 +241,7 @@ class CoH2API:
         return r.json()
 
     async def _get_leaderboard(self, leaderboard_id):
-        params = {'title': 'coh2', 'count': 1, 'leaderboard_id': f'{leaderboard_id}'}
+        params = {'title': 'coh2', 'count': 1, 'leaderboard_id': leaderboard_id}
         r = await self.http_client.get(
             self.URL_LEADERBOARD, params=params, timeout=self.timeout
         )

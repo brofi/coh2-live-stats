@@ -15,6 +15,7 @@
 
 import winsound
 from inspect import isclass
+from pathlib import Path
 
 
 def cls_name(obj: type | object) -> str:
@@ -29,11 +30,11 @@ def ratio(x, total) -> float:
     return x / total if total > 0 else 0
 
 
-def play_sound(soundfile: str):
+def play_sound(soundfile: Path):
     try:
         winsound.PlaySound(None, 0)  # Stop currently playing waveform sound
         winsound.PlaySound(
-            soundfile,
+            str(soundfile),
             winsound.SND_FILENAME | winsound.SND_NODEFAULT | winsound.SND_ASYNC,
         )
     except RuntimeError:

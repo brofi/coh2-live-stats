@@ -20,7 +20,15 @@ from enum import Enum
 from os.path import expandvars
 from pathlib import Path
 from tomllib import TOMLDecodeError, load
-from typing import Annotated, Any, Literal, NamedTuple, get_args, override
+from typing import (
+    TYPE_CHECKING,
+    Annotated,
+    Any,
+    Literal,
+    NamedTuple,
+    get_args,
+    override,
+)
 
 from pydantic import (
     BaseModel,
@@ -61,6 +69,12 @@ CONFIG_FILE_DEV: Path = Path(__file__).with_name(CONFIG_NAMES[0])
 
 Align = Literal['l', 'c', 'r']
 Sound = Literal['horn_subtle', 'horn', 'horn_epic']
+
+
+def _resolve_sound_name(s: Sound) -> Path:
+    return Path(getattr(sys, '_MEIPASS', str(Path(__file__).parent))).joinpath(
+        'res', f'{s}.wav'
+    )
 
 
 def _validate_color(v: str):
@@ -108,16 +122,19 @@ class _TableColorsPlayer(BaseModel):
     )
 
 
-_TableColorsFaction = create_model(
-    '_TableColorsFaction',
-    **{
-        f.name.lower(): (
-            _CT,
-            Field(f.default_color, description=f"{f.full_name} color"),
-        )
-        for f in Faction
-    },
-)
+if TYPE_CHECKING:
+    _TableColorsFaction = Any
+else:
+    _TableColorsFaction = create_model(
+        '_TableColorsFaction',
+        **{
+            f.name.lower(): (
+                _CT,
+                Field(f.default_color, description=f"{f.full_name} color"),
+            )
+            for f in Faction
+        },
+    )
 
 
 class _TableColors(BaseModel):
@@ -170,7 +187,10 @@ def _create_columns_model():
     return create_model('_TableColumns', **field_definitions)
 
 
-_TableColumns = _create_columns_model()
+if TYPE_CHECKING:
+    _TableColumns = Any
+else:
+    _TableColumns = _create_columns_model()
 
 
 class _Table(BaseModel):
@@ -216,7 +236,7 @@ class _Notification(BaseModel):
         description="Play a notification sound when a new multiplayer match was found",
     )
     sound: _PT = Field(
-        default='horn',
+        default=_resolve_sound_name('horn'),
         validate_default=True,
         description="Built-in notification sound name or full path to custom waveform audio file",
     )
@@ -224,11 +244,9 @@ class _Notification(BaseModel):
     # noinspection PyNestedDecorators
     @field_validator('sound', mode='before')
     @classmethod
-    def resolve_sound_name(cls, v) -> Path:
+    def validate_sound(cls, v) -> Path:
         if v in get_args(Sound):
-            return Path(getattr(sys, '_MEIPASS', str(Path(__file__).parent))).joinpath(
-                'res', f'{v}.wav'
-            )
+            return _resolve_sound_name(v)
         return v
 
 

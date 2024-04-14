@@ -97,9 +97,7 @@ def _serialize_path(p: Path):
 
 # A Path that can handle variables, gets serialized as a string and must point to a
 # file.
-_PT = Annotated[
-    FilePath, BeforeValidator(lambda p: expandvars(p)), PlainSerializer(_serialize_path)
-]
+_PT = Annotated[FilePath, BeforeValidator(expandvars), PlainSerializer(_serialize_path)]
 
 # Custom ratio type.
 _RT = Annotated[float, Field(ge=0, le=1)]

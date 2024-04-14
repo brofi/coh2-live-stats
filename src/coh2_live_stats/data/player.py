@@ -129,3 +129,7 @@ class Player:
         if not isinstance(other, Player):
             return NotImplemented
         return self.relic_id == other.relic_id
+
+    @override
+    def __hash__(self):
+        return hash(self.relic_id)

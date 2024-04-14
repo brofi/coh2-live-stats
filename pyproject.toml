@@ -57,6 +57,7 @@ warn_unused_ignores = true
 check_untyped_defs = true
 
 [tool.ruff.lint]
+preview = true
 select = [
     "F", # Pyflakes
     "E", "W", # pycodestyle
@@ -73,6 +74,7 @@ select = [
     "B", # flake8-bugbear
     "A", # flake8-builtins
     "COM", # flake8-commas
+    "CPY", # flake8-copyright # preview
     "C4", # flake8-comprehensions
     "DTZ", # flake8-datetimez
     "T10", # flake8-debugger
@@ -103,6 +105,7 @@ select = [
     "TRY", # tryceratops
     "FLY", # flynt
     "PERF", # Perflint
+    "FURB", # refurb # preview
     "RUF", # Ruff-specific rules
 ]
 ignore = [

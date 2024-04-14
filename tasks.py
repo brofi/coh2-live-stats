@@ -113,7 +113,7 @@ def build(c: Context, *, clean=False, pyinstaller_only=False) -> None:
     """Build wheel and source distribution."""
 
     # Don't fail install on first time setup
-    from scripts import pyinstaller_setup, settings_generator
+    from scripts import pyinstaller_setup, settings_generator  # noqa: PLC0415
 
     if clean:
         _clean()

@@ -36,11 +36,11 @@ class Faction(Enum):
 
     @property
     def is_axis_faction(self):
-        return self in [Faction.WM, Faction.OKW]
+        return self in {Faction.WM, Faction.OKW}
 
     @property
     def is_allies_faction(self):
-        return self in [Faction.SU, Faction.US, Faction.UK]
+        return self in {Faction.SU, Faction.US, Faction.UK}
 
     @classmethod
     def from_log(cls, faction_name):

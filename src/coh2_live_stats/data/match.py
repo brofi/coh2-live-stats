@@ -66,9 +66,10 @@ class Match:
 
     @property
     def has_pre_made_teams(self) -> bool:
-        if self.parties[0].pre_made_teams or self.parties[1].pre_made_teams:
-            return True
-        return False
+        return (
+            len(self.parties[0].pre_made_teams) > 0
+            or len(self.parties[1].pre_made_teams) > 0
+        )
 
 
 class Party:

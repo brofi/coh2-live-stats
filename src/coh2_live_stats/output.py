@@ -21,7 +21,7 @@ from typing import Any
 from prettytable import PrettyTable
 from prettytable.colortable import ColorTable, Theme
 
-from .data.countries import country_set
+from .data.countries import countries
 from .data.faction import Faction
 from .data.match import Match, Party
 from .data.player import Player
@@ -198,11 +198,11 @@ class Output:
 
         self._set_column(row, cols.steam_profile, player.get_steam_profile_url())
 
-        country = country_set.get(player.country)
+        country = countries.get(player.country)
         self._set_column(
             row,
             cols.country,
-            (country['name'] if country else '', *is_high_low_lvl_player),
+            (country if country is not None else '', *is_high_low_lvl_player),
         )
 
         self._set_column(row, cols.name, (player.name, *is_high_low_lvl_player))

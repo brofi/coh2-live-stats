@@ -195,6 +195,11 @@ def stop_logfile_observer(observer: Observer):
         observer.join()
 
 
+def pause_exit(exit_status: int):
+    if exit_status > 0 and os.name == 'nt' and is_running_in_pyinstaller():
+        os.system('pause')
+
+
 async def main() -> int:
     exit_status = 0
 
@@ -260,8 +265,7 @@ async def main() -> int:
         if _logging:
             _logging.stop()
 
-        if exit_status > 0 and os.name == 'nt' and is_running_in_pyinstaller():
-            os.system('pause')
+        pause_exit(exit_status)
 
     return exit_status
 

@@ -58,6 +58,7 @@ select = [
     "C90", # mccabe
     "I", # isort
     "N", # pep8-naming
+    "ASYNC", # flake8-async
     "BLE", # flake8-blind-except
     "FBT", # flake8-boolean-trap
     "B", # flake8-bugbear

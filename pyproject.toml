@@ -51,6 +51,11 @@ coh2_live_stats = ["*.toml"]
 [tool.setuptools_scm]
 version_file = "src/coh2_live_stats/version.py"
 
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+warn_unused_ignores = true
+check_untyped_defs = true
+
 [tool.ruff.lint]
 select = [
     "F", # Pyflakes

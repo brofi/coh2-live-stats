@@ -13,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
+"""Script for bundling *coh2_live_stats* using *PyInstaller*."""
+
 import shutil
 from pathlib import Path
 
@@ -86,7 +88,8 @@ version_info = VSVersionInfo(
 )
 
 
-def bundle():
+def bundle() -> None:
+    """Create a one-folder bundle of *coh2_live_stats* using *PyInstaller*."""
     build_path.mkdir(exist_ok=True)
     version_file.write_text(str(version_info))
 

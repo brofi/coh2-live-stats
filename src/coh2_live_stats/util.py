@@ -13,24 +13,42 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
+"""Utility functions."""
+
 import winsound
 from inspect import isclass
 from pathlib import Path
 
 
 def cls_name(obj: type | object) -> str:
+    """Get the class name of a class or an instance.
+
+    :param obj: class or instance
+    :return: class name
+    """
     return obj.__name__ if isclass(obj) else type(obj).__name__
 
 
 def cls_name_parent(obj: type | object) -> str | None:
+    """Get the parent class name of a class or an instance.
+
+    :param obj: class or instance
+    :return: class name
+    """
     return obj.mro()[1].__name__ if isclass(obj) else obj.__class__.mro()[1].__name__
 
 
 def ratio(x, total) -> float:
+    """X relative to total."""
     return x / total if total > 0 else 0
 
 
-def play_sound(soundfile: Path):
+def play_sound(soundfile: Path) -> bool:
+    """Plays a WAV file on windows.
+
+    :param soundfile: the WAV file to play
+    :return: whether the sound was played
+    """
     try:
         winsound.PlaySound(None, 0)  # Stop currently playing waveform sound
         winsound.PlaySound(

@@ -13,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
+"""Player module."""
+
 from dataclasses import dataclass, field
 from typing import override
 
@@ -24,6 +26,15 @@ from .team import Team
 
 @dataclass(eq=False)
 class Player:
+    """A CoH2 player.
+
+    Player data either stems from the CoH2 log file or the API.
+    The following properties are specific to a match mode for the player's faction :
+    ``wins``, ``losses``, ``drops``, ``rank``, ``rank_total``, ``rank_level``,
+    ``highest_rank``, ``highest_rank_level``, ``relative_rank``, ``num_games``,
+    ``win_ratio``, ``drop_ratio``.
+    """
+
     # Log data
     id: int
     name: str
@@ -47,45 +58,61 @@ class Player:
 
     @property
     def team_faction(self) -> TeamFaction:
+        """The ``TeamFaction`` this player belongs to."""
         # Log file team ID can't be used to determine the team faction (always 0 for
         # user's team)
         return TeamFaction.from_faction(self.faction)
 
     @property
     def is_ranked(self) -> bool:
+        """Whether this player currently has a rank."""
         return self.rank > 0 and self.rank_level > 0
 
     @property
     def has_highest_rank(self) -> bool:
+        """Whether this player has a past highest rank."""
         return self.highest_rank > 0 and self.highest_rank_level > 0
 
     @property
     def relative_rank(self) -> float:
+        """Player's rank relative to the total number of ranked players."""
         return self.rank / self.rank_total if self.is_ranked else 0.0
 
     @property
     def num_games(self) -> int:
+        """Player's total number of played games."""
         return self.wins + self.losses
 
     @property
     def win_ratio(self) -> float:
+        """Player's wins relative to the number of played games."""
         return ratio(self.wins, self.num_games)
 
     @property
     def drop_ratio(self) -> float:
+        """Player's drops relative to the number of played games."""
         return ratio(self.drops, self.num_games)
 
     def get_steam_profile_url(self):
+        """Player's steam profile URL."""
         return 'https://steamcommunity.com' + self.steam_profile.replace(
             'steam', 'profiles'
         )
 
     def get_prestige_level_stars(self, star="*", half_star="~"):
+        """Player's prestige level measured in stars."""
         return star * int(self.prestige / 100) + half_star * round(
             (self.prestige / 100) % 1
         )
 
     def estimate_rank(self, avg_relative_rank=0) -> tuple[str, int, int]:
+        """Player's estimate rank.
+
+        The player's estimate rank is either their current rank, their past highest
+        rank (+), their team's average rank (?) or the middle of the leaderboard (?).
+        :param avg_relative_rank: team average rank
+        :return: estimated rank
+        """
         if self.is_ranked or self.relic_id <= 0:
             return '', self.rank, self.rank_level
         if self.highest_rank > 0 and self.highest_rank_level > 0:

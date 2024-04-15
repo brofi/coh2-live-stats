@@ -13,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
+"""A build script based on PyInvoke."""
+
 import json
 import logging
 import sys
@@ -22,7 +24,7 @@ from shutil import rmtree
 from coh2_live_stats.logging_conf import LoggingConf
 from invoke import Collection, Context, Result, task
 
-type Package = dict[str, str]
+Package = dict[str, str]
 
 _pkg = 'coh2_live_stats'
 _pycmd = [sys.executable, '-m']
@@ -38,7 +40,7 @@ _logging.start()
 
 
 @task
-def stop_logging(_):
+def _stop_logging(_):
     _logging.stop()
 
 
@@ -60,9 +62,8 @@ def _is_editable(p: Package) -> bool:
 
 
 @task(pre=[_activate], help={'name': 'Name of the package to get.'})
-def _get_pkg(c: Context, name='') -> Package | None:
-    """Returns given package from pip or all if none is given."""
-
+def _get_pkg(c: Context, name: str) -> Package | None:
+    """Return the given package from pip."""
     res: Result = _run(c, *_pipcmd, 'list', '--format json')
     packages = list(filter(lambda p: p['name'] == name, json.loads(res.stdout)))
     if len(packages) > 1:
@@ -103,7 +104,7 @@ def _clean() -> bool:
 
 @task(
     pre=[_activate],
-    post=[stop_logging],
+    post=[_stop_logging],
     help={
         'clean': 'Remove build and distribution directories',
         'pyinstaller_only': 'Skip setuptools build.',
@@ -111,7 +112,6 @@ def _clean() -> bool:
 )
 def build(c: Context, *, clean=False, pyinstaller_only=False) -> None:
     """Build wheel and source distribution."""
-
     # Don't fail install on first time setup
     from scripts import pyinstaller_setup, settings_generator  # noqa: PLC0415
 
@@ -127,7 +127,7 @@ def build(c: Context, *, clean=False, pyinstaller_only=False) -> None:
 
 @task(
     pre=[_activate],
-    post=[stop_logging],
+    post=[_stop_logging],
     help={
         'normal_mode': "Don't install in editable mode.",
         'dev': 'Install additional build and development dependencies (editable only).',
@@ -135,7 +135,6 @@ def build(c: Context, *, clean=False, pyinstaller_only=False) -> None:
 )
 def install(c: Context, *, normal_mode=False, dev=False) -> bool:
     """Install project in editable (default) or non-editable mode."""
-
     if normal_mode:
         LOG.info('Installing %s in non-editable mode...', _pkg)
         return _install(c)

@@ -13,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
+"""CoH2 API module."""
+
 import asyncio
 import logging
 from enum import IntEnum
@@ -29,6 +31,8 @@ LOG = logging.getLogger('coh2_live_stats')
 
 
 class _SoloMatchType(IntEnum):
+    """Match types a solo player can play."""
+
     CUSTOM = 0
     S_1V1 = 1
     S_2V2 = 2
@@ -45,6 +49,12 @@ class _SoloMatchType(IntEnum):
 
 
 class _TeamMatchType(IntEnum):
+    """Match types pre-made teams can play.
+
+    A team of 2 can play 2v2s, 3v3s and 4v4s. A team of 3 can play 3v3s and 4v4s.
+    A team of 4 can play 4v4s.
+    """
+
     T_2V2 = 0
     T_3V3 = 1
     T_4V4 = 2
@@ -59,6 +69,8 @@ class _TeamMatchType(IntEnum):
 
 
 class _Difficulty(IntEnum):
+    """CoH2 AI difficulty levels."""
+
     EASY = 0
     MEDIUM = 1
     HARD = 2
@@ -77,6 +89,8 @@ Leaderboard = dict[int, dict[str, Any]]
 
 
 class CoH2API:
+    """Used to make ``async`` requests to the CoH2 API."""
+
     URL_PLAYER = 'https://coh2-api.reliclink.com/community/leaderboard/GetPersonalStat'
     URL_LEADERBOARDS = (
         'https://coh2-api.reliclink.com/community/leaderboard/getAvailableLeaderboards'
@@ -89,6 +103,10 @@ class CoH2API:
     KEY_LEADERBOARD_RANK_TOTAL = 'rank_total'
 
     def __init__(self, timeout=30):
+        """Initialize the CoH2 API.
+
+        :param timeout: number of seconds after which a request times out
+        """
         self.http_client = AsyncClient()
         self.timeout = timeout
         self.leaderboards: Leaderboard = {
@@ -111,6 +129,11 @@ class CoH2API:
         LOG.info('Initialized %s[timeout=%d]', cls_name(self), self.timeout)
 
     async def get_players(self, players: list[Player]):
+        """Initialize given players with CoH2 API data.
+
+        :param players: players to initialize with API data
+        :return: initialized players
+        """
         if not self.leaderboards:
             msg = 'Initialize leaderboards first.'
             raise ValueError(msg)
@@ -222,6 +245,7 @@ class CoH2API:
         return r.json()
 
     async def init_leaderboards(self):
+        """Initialize CoH2 leaderboards with their total amount of ranked players."""
         LOG.info('GET leaderboards: %s', list(self.leaderboards.keys()))
         r = await asyncio.gather(
             *(self._get_leaderboard(_id) for _id in self.leaderboards)
@@ -249,5 +273,6 @@ class CoH2API:
         return r.json()
 
     async def close(self):
+        """Close the HTTP Client."""
         LOG.info('Closing HTTP client: %s', cls_name(self.http_client))
         await self.http_client.aclose()

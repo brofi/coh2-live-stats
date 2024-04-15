@@ -13,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
+"""Custom logging configuration with custom handlers, formatters and filters."""
+
 import copy
 import logging.config
 import sys
@@ -27,15 +29,26 @@ from typing import Final, override
 
 
 class LoggingConfError(Exception):
-    pass
+    """Raised when an error occurred while configuring custom logging."""
 
 
 class LoggingConf:
+    """Custom logging configuration.
+
+    The custom logging configuration is initialized from the logging configuration file.
+    What cannot be done in the configuration file is done in its initialization.
+    """
+
     CONF_PATH = Path(getattr(sys, '_MEIPASS', str(Path(__file__).parent))).joinpath(
         '_logging.toml'
     )
 
     def __init__(self, logfile: Path | None = None, *, stdout: bool = False):
+        """Initialize the custom logging configuration.
+
+        :param logfile: the logging configuration file
+        :param stdout: whether to add a stdout handler
+        """
         try:
             with self.CONF_PATH.open('rb') as f:
                 self.log_conf = tomllib.load(f)
@@ -77,15 +90,15 @@ class LoggingConf:
         # Listener needs to be created manually, unlike when configuring the default
         # queue handler with dictConfig
         handlers: tuple[Handler, ...] = (
-            self.get_handler_by_name('stderr'),
-            self.get_handler_by_name('file'),
+            self._get_handler_by_name('stderr'),
+            self._get_handler_by_name('file'),
         )
         if stdout:
-            handlers += (self.get_handler_by_name('stdout'),)
+            handlers += (self._get_handler_by_name('stdout'),)
         self.listener = QueueListener(que, *handlers, respect_handler_level=True)
 
     @staticmethod
-    def get_handler_by_name(name: str) -> Handler:
+    def _get_handler_by_name(name: str) -> Handler:
         handler = logging.getHandlerByName(name)
         if handler is None:
             msg = f'Not a handler: {name!r}.'
@@ -93,6 +106,7 @@ class LoggingConf:
         return handler
 
     def start(self):
+        """Start custom logging."""
         self.listener.start()
         logger = logging.getLogger('coh2_live_stats')
         logger.info(
@@ -100,13 +114,18 @@ class LoggingConf:
         )
 
     def stop(self):
+        """Stop custom logging."""
         self.listener.stop()
 
 
-# Custom Queue Handler that doesn't mess with the original record and doesn't add in
-# exception data before any custom formatter has the chance to do so. It discards the
-# exception info but keeps the exception text string for use with custom formatters.
 class CustomQueueHandler(QueueHandler):
+    """A custom ``QueueHandler``.
+
+    This ``QueueHandler`` doesn't mess with the original record and doesn't add in
+    exception data before any custom formatter has the chance to do so. It discards the
+    exception info but keeps the exception text string for use with custom formatters.
+    """
+
     @override
     def prepare(self, record):
         # Don't edit original record
@@ -139,6 +158,8 @@ class CustomQueueHandler(QueueHandler):
 
 
 class SimpleFormatter(Formatter):
+    """A simple formatter that ignores exception data."""
+
     @override
     def format(self, record):
         # Save the exception text
@@ -155,6 +176,8 @@ class SimpleFormatter(Formatter):
 
 
 class DetailedFormatter(Formatter):
+    """A formatter that puts the milliseconds before the timezone."""
+
     @override
     def formatTime(self, record, datefmt=None):
         ct = self.converter(record.created)
@@ -169,12 +192,16 @@ class DetailedFormatter(Formatter):
 
 
 class ErrorFilter(Filter):
+    """A filter that only keeps warnings and errors."""
+
     @override
     def filter(self, record: LogRecord):
         return record.levelno < WARNING
 
 
 class HiddenOutputFilter(Filter):
+    """A filter that removes records explicitly marked as hidden via extra data."""
+
     KEY_EXTRA_HIDE: Final[str] = 'hide'
     EXTRA: Final[dict[str, bool]] = {KEY_EXTRA_HIDE: True}
 

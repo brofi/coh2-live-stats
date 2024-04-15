@@ -13,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
+"""ANSI color."""
+
 from enum import IntEnum
 from typing import override
 
@@ -22,6 +24,8 @@ from coh2_live_stats.util import cls_name
 
 
 class Color(IntEnum):
+    """Available colors with their ANSI codes."""
+
     BLACK = 30
     RED = 31
     GREEN = 32
@@ -48,4 +52,9 @@ class Color(IntEnum):
         return ' '.join(self.name.lower().split('_'))
 
     def colorize(self, s: str) -> str:
+        """Wrap the given string in an ANSI escape sequence using this color.
+
+        :param s: string to wrap
+        :return: wrapped string
+        """
         return Theme.format_code(str(self.value)) + s + RESET_CODE

@@ -13,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
+"""Output module."""
+
 import asyncio
 import logging
 from functools import partial
@@ -33,7 +35,16 @@ LOG = logging.getLogger('coh2_live_stats')
 
 # ruff: noqa: T201
 class Output:
+    """Provides an interface for outputting ``Match`` data.
+
+    Uses a ``PrettyTable`` to format the data. Heavily relies on user configuration.
+    """
+
     def __init__(self, settings: Settings):
+        """Initialize Output.
+
+        :param settings: the user configuration
+        """
         self.settings = settings
         self.table = self._create_output_table()
         self._set_formatters()
@@ -94,7 +105,11 @@ class Output:
     def _get_column_index(self, col):
         return self.table.field_names.index(col.label)
 
-    def print_match(self, players: list[Player]):
+    def print_match(self, players: list[Player]) -> None:
+        """Print a match.
+
+        :param players: players participating in the match to print
+        """
         self._clear()
 
         if not players:
@@ -244,6 +259,7 @@ class Output:
 
     @staticmethod
     async def progress_start():
+        """Print an indeterminate progress bar."""
         while True:
             for c in '/—\\|':
                 print(f'\033[D{c}', end='', flush=True)
@@ -251,6 +267,7 @@ class Output:
 
     @staticmethod
     def progress_stop():
+        """Remove leftovers from progress bar."""
         print('\033[D\033[K', end='', flush=True)
 
     def _format_faction(self, _, v):

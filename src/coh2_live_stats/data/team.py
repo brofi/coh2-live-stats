@@ -13,12 +13,16 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
+"""Team module."""
+
 from dataclasses import dataclass, field
 from typing import override
 
 
 @dataclass
 class Team:
+    """A CoH2 (pre-made) team with its members and stats."""
+
     id: int = -1
     members: list[int] = field(default_factory=list)
     rank: int = -1
@@ -28,6 +32,7 @@ class Team:
 
     @property
     def display_rank(self):
+        """The team's rank as it should be displayed."""
         if self.rank > 0 and self.rank_level > 0:
             return str(self.rank), str(self.rank_level)
         if self.highest_rank > 0 and self.highest_rank_level > 0:

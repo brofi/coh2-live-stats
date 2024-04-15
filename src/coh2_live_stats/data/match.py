@@ -13,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
+"""Match and Party."""
+
 import logging
 import sys
 from operator import add
@@ -29,9 +31,16 @@ LOG = logging.getLogger('coh2_live_stats')
 
 
 class Match:
+    """A match manages two ``Party`` objects."""
+
     MIN_SIZE = 2
 
     def __init__(self, players: list[Player]):
+        """Initialize a match with the given players.
+
+        The players must have team IDs set, allowing them to be split up into parties.
+        :param players: players participating in this match
+        """
         if not players or len(players) < self.MIN_SIZE:
             msg = f'No match with less than {self.MIN_SIZE} players.'
             raise ValueError(msg)
@@ -49,6 +58,10 @@ class Match:
 
     @property
     def highest_avg_rank_party(self) -> int:
+        """The party ID of the party with the highest average rank.
+
+        :return: party ID
+        """
         return (
             0
             if self.parties[0].avg_estimated_rank < self.parties[1].avg_estimated_rank
@@ -57,6 +70,10 @@ class Match:
 
     @property
     def highest_avg_rank_level_party(self) -> int:
+        """The party ID of the party with the highest average rank level.
+
+        :return: party ID
+        """
         return (
             0
             if self.parties[0].avg_estimated_rank_level
@@ -66,6 +83,7 @@ class Match:
 
     @property
     def has_pre_made_teams(self) -> bool:
+        """Whether there are any pre-made teams in this match."""
         return (
             len(self.parties[0].pre_made_teams) > 0
             or len(self.parties[1].pre_made_teams) > 0
@@ -73,10 +91,23 @@ class Match:
 
 
 class Party:
+    """A group of players opposing another group of players in a ``Match``.
+
+    A party in CoH2 has at least 1 and at most 4 players (given the match modes 1v1,
+    2v2, 3v3 and 4v4). A party can have multiple pre-made teams (groups of players
+    searching for a match together). A party holds statistics such as the minimum and
+    maximum (relative) ranks of its players as well as their estimated ranks and the
+    average estimated rank.
+    """
+
     MIN_SIZE = 1
     MAX_SIZE = 4
 
     def __init__(self, players: list[Player]):
+        """Initialize a party.
+
+        :param players: players playing together as a ``Party`` in a ``Match``
+        """
         if not players or not self.MIN_SIZE <= len(players) <= self.MAX_SIZE:
             msg = f'Party must have at least {self.MIN_SIZE} and at most {self.MAX_SIZE} players.'
             raise ValueError(msg)
@@ -89,7 +120,7 @@ class Party:
         player_ids = [p.relic_id for p in self.players]
         relative_ranks = []
         for p in self.players:
-            self.add_player_pre_made_teams(p, player_ids)
+            self._add_player_pre_made_teams(p, player_ids)
             if p.is_ranked:
                 relative_ranks.append(p.relative_rank)
                 if p.relative_rank < self.min_relative_rank:
@@ -125,7 +156,7 @@ class Party:
 
         LOG.info('Initialized %s', cls_name(self))
 
-    def add_player_pre_made_teams(self, p: Player, player_ids: list[int]):
+    def _add_player_pre_made_teams(self, p: Player, player_ids: list[int]):
         # There could be multiple possible pre-made teams per player. For example when
         # players A, B and C with teams (A,B), (B,C) have no team (A,B,C). Which means
         # either player A or C queued alone or the current match is the first match of a
@@ -145,4 +176,5 @@ class Party:
 
     @property
     def size(self) -> int:
+        """Number of players in this party."""
         return len(self.players)

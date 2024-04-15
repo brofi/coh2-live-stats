@@ -13,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
+"""Application settings model and validation."""
+
 import logging
 import sys
 from contextlib import suppress
@@ -249,6 +251,8 @@ class _Notification(BaseModel):
 
 
 class Settings(BaseSettings):
+    """Pydantic model for application settings."""
+
     logfile: _PT = Field(
         Path.home().joinpath(
             'Documents', 'My Games', 'Company of Heroes 2', 'warnings.log'
@@ -263,6 +267,8 @@ class Settings(BaseSettings):
 
 
 class TomlSettings(Settings):
+    """Pydantic model for application settings backed by a user configuration."""
+
     @classmethod
     @override
     def settings_customise_sources(
@@ -294,8 +300,19 @@ class TomlSettings(Settings):
 
 
 class SettingsFactory:
+    """Creates settings."""
+
     @staticmethod
     def create_settings(values: Any | None = None) -> Settings:
+        """Create a settings model.
+
+        The settings model is initialized with its default values, overwritten by the
+        given non-default values. If the given non-default values are empty, the created
+        settings represent the default settings, if they are ``None``, the created
+        settings get initialized with non-default values from the user configuration.
+        :param values: non-default values
+        :return: settings model
+        """
         if values is None:
             settings = TomlSettings()
             LOG.info(
@@ -308,4 +325,5 @@ class SettingsFactory:
 
     @staticmethod
     def create_default_settings() -> Settings:
+        """Create default settings."""
         return SettingsFactory.create_settings({})

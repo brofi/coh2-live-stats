@@ -13,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
+"""Main module."""
+
 import asyncio
 import logging.config
 import re
@@ -51,26 +53,40 @@ LOG = logging.getLogger('coh2_live_stats')
 
 @dataclass
 class LogInfo:
+    """Data parsed from a CoH2 log file."""
+
     players: list[Player]
     is_new_match: bool
     is_multiplayer_match: bool
 
 
 class LogFileEventHandler(FileSystemEventHandler):
+    """A handler scheduled with a *watchdog* observer.
+
+    This handler parses a CoH2 log file upon change and puts the resulting ``LogInfo``
+    in its ``Queue`` for consumers to process.
+    """
+
     PLAYER_PATTERN = re.compile(
         'GAME -- (?:Human|AI) Player: '
         '(?P<id>\\d) (?P<name>.*) (?P<relic_id>\\d+) (?P<team>\\d) '
         f'(?P<faction>{'|'.join([f.key_log for f in Faction])})$'
     )
 
-    def __init__(self, queue: Queue[LogInfo], loop: AbstractEventLoop, logfile: Path):
+    def __init__(self, loop: AbstractEventLoop, queue: Queue[LogInfo], logfile: Path):
+        """Initialize a logfile handler.
+
+        :param loop: the ``async`` event loop to run queue operations on
+        :param queue: the ``async`` queue to store parsed log file information in
+        :param logfile: the log file to watch
+        """
         self.queue = queue
         self.loop = loop
         self.logfile = logfile
         self._last_hash = ''
         self._last_player_line = 0
         LOG.info('Initialized %s(%s)', cls_name(self), cls_name_parent(self))
-        self.produce()  # kickstart
+        self._produce()  # kickstart
 
     @override
     def on_modified(self, event: FileSystemEvent) -> None:
@@ -85,13 +101,13 @@ class LogFileEventHandler(FileSystemEventHandler):
         # the file contents have really changed.
         # See: https://github.com/gorakhargosh/watchdog/issues/346
         if self._last_hash != h:
-            self.produce()
+            self._produce()
             self._last_hash = h
 
-    def produce(self):
-        self.loop.call_soon_threadsafe(self.queue.put_nowait, self.parse_log())
+    def _produce(self) -> None:
+        self.loop.call_soon_threadsafe(self.queue.put_nowait, self._parse_log())
 
-    def parse_log(self) -> LogInfo:
+    def _parse_log(self) -> LogInfo:
         with self.logfile.open(encoding='utf-8') as f:
             lines = f.readlines()
 
@@ -129,7 +145,7 @@ class LogFileEventHandler(FileSystemEventHandler):
         return LogInfo(players, is_new_match, is_multiplayer_match)
 
 
-async def init_leaderboards(api: CoH2API):
+async def _init_leaderboards(api: CoH2API):
     progress_indicator = asyncio.create_task(Output.progress_start())
     try:
         await api.init_leaderboards()
@@ -138,7 +154,7 @@ async def init_leaderboards(api: CoH2API):
         Output.progress_stop()
 
 
-async def get_players(api: CoH2API, players: list[Player]):
+async def _get_players(api: CoH2API, players: list[Player]):
     progress_indicator = asyncio.create_task(Output.progress_start())
     try:
         return await api.get_players(players)
@@ -147,19 +163,19 @@ async def get_players(api: CoH2API, players: list[Player]):
         Output.progress_stop()
 
 
-def notify_match(settings: Settings):
+def _notify_match(settings: Settings):
     LOG.info('Notify new match')
     if settings.notification.play_sound and not play_sound(settings.notification.sound):
         LOG.warning('Failed to play sound: %s', settings.notification.sound)
 
 
-def tickle_logfile(logfile: Path, cancel_event: Event):
+def _tickle_logfile(logfile: Path, cancel_event: Event):
     while not cancel_event.is_set():
         with logfile.open(mode='rb', buffering=0):
             time.sleep(0.1)
 
 
-def log_validation_error(e: ValidationError):
+def _log_validation_error(e: ValidationError):
     n = e.error_count()
     msg = '%d validation error%s for %s:'
     args: tuple[Any, ...] = n, 's' if n > 1 else '', e.title
@@ -169,9 +185,9 @@ def log_validation_error(e: ValidationError):
     LOG.exception(msg, *args)
 
 
-def start_logfile_observer(queue: Queue[LogInfo], logfile: Path) -> BaseObserver:
+def _start_logfile_observer(queue: Queue[LogInfo], logfile: Path) -> BaseObserver:
     observer = Observer()
-    handler = LogFileEventHandler(queue, asyncio.get_running_loop(), logfile)
+    handler = LogFileEventHandler(asyncio.get_running_loop(), queue, logfile)
     LOG.info('Scheduling %s for: %s', cls_name(handler), str(logfile.parent))
     observer.schedule(handler, str(logfile.parent))
     LOG.info('Starting observer: %s[name=%s]', cls_name(observer), observer.name)
@@ -179,7 +195,7 @@ def start_logfile_observer(queue: Queue[LogInfo], logfile: Path) -> BaseObserver
     return observer
 
 
-def stop_logfile_observer(observer: BaseObserver):
+def _stop_logfile_observer(observer: BaseObserver):
     if observer:
         LOG.info('Stopping observer: %s[name=%s]', cls_name(observer), observer.name)
         observer.stop()
@@ -187,6 +203,7 @@ def stop_logfile_observer(observer: BaseObserver):
 
 
 async def main() -> int:
+    """Set up and run the *coh2_live_stats* main loop."""
     exit_status = 0
 
     _logging = LoggingConf()
@@ -195,35 +212,35 @@ async def main() -> int:
     try:
         settings = SettingsFactory.create_settings()
     except ValidationError as e:
-        log_validation_error(e)
+        _log_validation_error(e)
         return 1
 
     api = CoH2API()
     output = Output(settings)
 
     queue: Queue = Queue()
-    observer = start_logfile_observer(queue, settings.logfile)
+    observer = _start_logfile_observer(queue, settings.logfile)
 
     # Force CoH2 to write out its collected log
     tickle_cancel_event = Event()
     tickle_future = asyncio.get_running_loop().run_in_executor(
-        None, tickle_logfile, settings.logfile, tickle_cancel_event
+        None, _tickle_logfile, settings.logfile, tickle_cancel_event
     )
 
     try:
-        await init_leaderboards(api)
+        await _init_leaderboards(api)
         notified = False
         is_first_item = True
         while observer.is_alive():
             log_info = await queue.get()
             if log_info.is_new_match:
                 notified = False
-                players = await get_players(api, log_info.players)
+                players = await _get_players(api, log_info.players)
                 output.print_match(players)
             if not notified and log_info.is_multiplayer_match and not is_first_item:
                 # When the logfile playing status is written late, there are multiplayer
                 # matches that are not new but haven't been notified before.
-                notify_match(settings)
+                _notify_match(settings)
                 notified = True
             queue.task_done()
             is_first_item = False
@@ -243,7 +260,7 @@ async def main() -> int:
     finally:
         tickle_future.cancel()
         tickle_cancel_event.set()
-        stop_logfile_observer(observer)
+        _stop_logfile_observer(observer)
         await api.close()
         LOG.log(
             INFO if exit_status == 0 else ERROR,
@@ -258,6 +275,7 @@ async def main() -> int:
 
 
 def run():
+    """Run the event loop. Main entry point."""
     # In asyncio `Ctrl-C` cancels the main task, which raises a Cancelled Error
     with suppress(asyncio.CancelledError, KeyboardInterrupt):
         exit(asyncio.run(main()))

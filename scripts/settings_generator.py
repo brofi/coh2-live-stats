@@ -13,6 +13,14 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
+"""Script for generating a TOML settings file.
+
+The settings file is generated from the *coh2_live_stats* *pydantic* settings model.
+The resulting TOML file has all the application settings default values in it, so using
+it without changing some values has no effect. *Pydantic* ``Field`` descriptions are
+used as comments.
+"""
+
 from collections.abc import Sequence
 from datetime import datetime
 from typing import get_args
@@ -32,25 +40,25 @@ from tomlkit import TOMLDocument, comment, document, dumps, items, nl
 from tomlkit.items import AbstractTable, Comment, Trivia
 
 
-def wrap(__s: str, __w: str = "'") -> str:
+def _wrap(__s: str, __w: str = "'") -> str:
     return f"{__w}{__s}{__w}"
 
 
-def bullet(__s: str, __c: str = '*', __indent: int = 4):
+def _bullet(__s: str, __c: str = '*', __indent: int = 4):
     return f"{' ' * __indent}{__c} {__s}"
 
 
-def list_multi(__seq: Sequence[str]) -> str:
-    return '\n'.join(map(bullet, __seq))
+def _list_multi(__seq: Sequence[str]) -> str:
+    return '\n'.join(map(_bullet, __seq))
 
 
-def list_single(__seq: Sequence[str]) -> str:
-    return bullet(list_inline(__seq))
+def _list_single(__seq: Sequence[str]) -> str:
+    return _bullet(_list_inline(__seq))
 
 
-def list_inline(__s: Sequence[str]) -> str:
+def _list_inline(__s: Sequence[str]) -> str:
     return (
-        ' or '.join((', '.join(wrap(s) for s in __s[:-1]), wrap(__s[-1])))
+        ' or '.join((', '.join(_wrap(s) for s in __s[:-1]), _wrap(__s[-1])))
         if len(__s) > 1
         else str(__s)[1:-1]
     )
@@ -62,33 +70,33 @@ Generated {datetime.now().astimezone().isoformat(timespec='seconds')}
 Version {__version__}
 
 Valid config locations:
-{list_multi(CONFIG_PATHS[:-1])}
-{bullet('Next to executable')}
+{_list_multi(CONFIG_PATHS[:-1])}
+{_bullet('Next to executable')}
 Valid config names:
-{list_multi(CONFIG_NAMES)}
+{_list_multi(CONFIG_NAMES)}
 
 Valid colors:
-{list_single([c.name.lower() for c in Color if Color.BLACK <= c.value <= Color.WHITE])}
-{list_single([c.name.lower() for c in Color if Color.BRIGHT_BLACK <= c.value <= Color.BRIGHT_WHITE])}
+{_list_single([c.name.lower() for c in Color if Color.BLACK <= c.value <= Color.WHITE])}
+{_list_single([c.name.lower() for c in Color if Color.BRIGHT_BLACK <= c.value <= Color.BRIGHT_WHITE])}
 
 Valid sound values:
-{list_single(get_args(Sound))}
-{bullet('Path to custom WAV file')}
+{_list_single(get_args(Sound))}
+{_bullet('Path to custom WAV file')}
 
-Valid alignment values: {list_inline(get_args(Align))}
+Valid alignment values: {_list_inline(get_args(Align))}
 
 Notes:
-{bullet('CJK characters can distort table (table.border = false and name column last is recommended)')}'''
+{_bullet('CJK characters can distort table (table.border = false and name column last is recommended)')}'''
 
 
-def create_doc(_model: BaseModel) -> TOMLDocument:
+def _create_doc(_model: BaseModel) -> TOMLDocument:
     _doc: TOMLDocument = document()
     for _k, _v in _model.model_dump().items():
         _doc.add(_k, _v)
     return _doc
 
 
-def init_doc(
+def _init_doc(
     _model: BaseModel, _container: TOMLDocument | AbstractTable
 ) -> TOMLDocument:
     for attr_name, field_info in _model.model_fields.items():
@@ -97,7 +105,7 @@ def init_doc(
         if field_info.description:
             item.comment(field_info.description)
         _container[attr_name] = (
-            init_doc(getattr(_model, attr_name), item)
+            _init_doc(getattr(_model, attr_name), item)
             if isinstance(item, AbstractTable)
             else item
         )
@@ -105,13 +113,14 @@ def init_doc(
 
 
 def default():
+    """Create a TOML settings file from the default application settings."""
     settings = SettingsFactory.create_default_settings()
 
     doc: TOMLDocument = document()
     for line in header_comment.splitlines():
         doc.add(comment(line) if line else Comment(Trivia(comment="#")))
     doc.add(nl()).add(nl())
-    init_doc(settings, doc)
+    _init_doc(settings, doc)
 
     CONFIG_FILE_DEV.write_text(dumps(doc))
 

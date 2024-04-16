@@ -31,7 +31,7 @@ class Team:
     highest_rank_level: int = -1
 
     @property
-    def display_rank(self):
+    def display_rank(self) -> tuple[str, str]:
         """The team's rank as it should be displayed."""
         if self.rank > 0 and self.rank_level > 0:
             return str(self.rank), str(self.rank_level)
@@ -40,11 +40,11 @@ class Team:
         return ('-',) * 2
 
     @override
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Team):
             return NotImplemented
         return self.id == other.id
 
     @override
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.id)

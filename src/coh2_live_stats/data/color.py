@@ -44,11 +44,11 @@ class Color(IntEnum):
     BRIGHT_WHITE = 97
 
     @override
-    def __repr__(self):
+    def __repr__(self) -> str:
         return cls_name(self)
 
     @override
-    def __str__(self):
+    def __str__(self) -> str:
         return ' '.join(self.name.lower().split('_'))
 
     def colorize(self, s: str) -> str:

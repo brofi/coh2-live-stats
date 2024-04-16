@@ -38,7 +38,7 @@ def cls_name_parent(obj: type | object) -> str | None:
     return obj.mro()[1].__name__ if isclass(obj) else obj.__class__.mro()[1].__name__
 
 
-def ratio(x, total) -> float:
+def ratio(x: float, total: float) -> float:
     """X relative to total."""
     return x / total if total > 0 else 0
 

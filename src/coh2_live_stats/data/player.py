@@ -93,19 +93,19 @@ class Player:
         """Player's drops relative to the number of played games."""
         return ratio(self.drops, self.num_games)
 
-    def get_steam_profile_url(self):
+    def get_steam_profile_url(self) -> str:
         """Player's steam profile URL."""
         return 'https://steamcommunity.com' + self.steam_profile.replace(
             'steam', 'profiles'
         )
 
-    def get_prestige_level_stars(self, star="*", half_star="~"):
+    def get_prestige_level_stars(self, star: str = "*", half_star: str = "~") -> str:
         """Player's prestige level measured in stars."""
         return star * int(self.prestige / 100) + half_star * round(
             (self.prestige / 100) % 1
         )
 
-    def estimate_rank(self, avg_relative_rank=0) -> tuple[str, int, int]:
+    def estimate_rank(self, avg_relative_rank: float = 0) -> tuple[str, int, int]:
         """Player's estimate rank.
 
         The player's estimate rank is either their current rank, their past highest
@@ -123,7 +123,7 @@ class Player:
         avg_rank = round(self.rank_total / 2)
         return '?', avg_rank, self._rank_level_from_rank(avg_rank)
 
-    def _rank_level_from_rank(self, rank):
+    def _rank_level_from_rank(self, rank: int) -> int:
         if rank <= 0 or self.rank_total <= 0:
             return -1
 
@@ -152,11 +152,11 @@ class Player:
         return lvl
 
     @override
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Player):
             return NotImplemented
         return self.relic_id == other.relic_id
 
     @override
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.relic_id)

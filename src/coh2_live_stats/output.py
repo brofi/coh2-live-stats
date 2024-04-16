@@ -18,7 +18,7 @@
 import asyncio
 import logging
 from functools import partial
-from typing import Any
+from typing import Any, Literal, Protocol, override
 
 from prettytable import PrettyTable
 from prettytable.colortable import ColorTable, Theme
@@ -30,6 +30,16 @@ from .data.player import Player
 from .settings import Settings
 from .util import cls_name
 
+Empty = Literal[''] | None
+
+
+class SupportsStr(Protocol):
+    """An ABC with one abstract method __str__."""
+
+    @override
+    def __str__(self) -> str: ...
+
+
 LOG = logging.getLogger('coh2_live_stats')
 
 
@@ -40,7 +50,7 @@ class Output:
     Uses a ``PrettyTable`` to format the data. Heavily relies on user configuration.
     """
 
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings) -> None:
         """Initialize Output.
 
         :param settings: the user configuration
@@ -69,7 +79,7 @@ class Output:
 
         return table
 
-    def _set_field_names(self):
+    def _set_field_names(self) -> None:
         cols = self.settings.table.columns
         visible_columns = [
             (c.label, c.align)
@@ -88,7 +98,7 @@ class Output:
 
         LOG.info('Output columns: %s', self.table.field_names)
 
-    def _set_formatters(self):
+    def _set_formatters(self) -> None:
         cols = self.settings.table.columns
         self.table.custom_format[cols.faction.label] = self._format_faction
         self.table.custom_format[cols.rank.label] = partial(self._format_rank, 2)
@@ -98,11 +108,11 @@ class Output:
         for c in cols.prestige, cols.country, cols.name:
             self.table.custom_format[c.label] = self._format_min_max
 
-    def _set_column(self, row, col, val):
+    def _set_column(self, row: list[SupportsStr], col: Any, val: SupportsStr) -> None:  # noqa: ANN401
         if col.visible:
             row[self._get_column_index(col)] = val
 
-    def _get_column_index(self, col):
+    def _get_column_index(self, col: Any) -> int:  # noqa: ANN401
         return self.table.field_names.index(col.label)
 
     def print_match(self, players: list[Player]) -> None:
@@ -153,7 +163,7 @@ class Output:
         else:
             LOG.warning('No table columns to print.')
 
-    def _print_custom_header_table(self):
+    def _print_custom_header_table(self) -> None:
         # Unfortunately there is no custom header format and altering field
         # names directly would mess with everything that needs them (e.g.
         # formatting).
@@ -165,9 +175,9 @@ class Output:
             table_lines[i] = table_lines[i].replace(header, color_header)
         print(''.join(table_lines))
 
-    def _create_player_row(self, party: Party, player: Player) -> list[Any]:
+    def _create_player_row(self, party: Party, player: Player) -> list[SupportsStr]:
         cols = self.settings.table.columns
-        row: list[Any] = [''] * len(self.table.field_names)
+        row: list[SupportsStr] = [''] * len(self.table.field_names)
 
         self._set_column(row, cols.faction, player.faction)
 
@@ -226,9 +236,9 @@ class Output:
 
     def _create_average_row(
         self, match: Match, party: Party, party_index: int
-    ) -> list[Any]:
+    ) -> list[SupportsStr]:
         cols = self.settings.table.columns
-        avg_row: list[Any] = [''] * len(self.table.field_names)
+        avg_row: list[SupportsStr] = [''] * len(self.table.field_names)
 
         avg_rank_prefix = '*' if party_index == match.highest_avg_rank_party else ''
         avg_rank_level_prefix = (
@@ -253,12 +263,12 @@ class Output:
 
         return avg_row
 
-    def _clear(self):
+    def _clear(self) -> None:
         print("\033[3J\033[H", end='', flush=True)
         self.table.clear()
 
     @staticmethod
-    async def progress_start():
+    async def progress_start() -> None:
         """Print an indeterminate progress bar."""
         while True:
             for c in '/—\\|':
@@ -266,11 +276,11 @@ class Output:
                 await asyncio.sleep(0.25)
 
     @staticmethod
-    def progress_stop():
+    def progress_stop() -> None:
         """Remove leftovers from progress bar."""
         print('\033[D\033[K', end='', flush=True)
 
-    def _format_faction(self, _, v):
+    def _format_faction(self, _: str, v: Faction | str) -> str:
         colored = self.settings.table.color
         if isinstance(v, Faction):
             return (
@@ -278,12 +288,11 @@ class Output:
                 if colored
                 else v.name
             )
-        return self.settings.table.colors.label.colorize(str(v)) if colored else str(v)
+        return self.settings.table.colors.label.colorize(v) if colored else v
 
-    def _format_rank(self, precision, _, v: Any):
-        if not v or not isinstance(v, tuple):
-            return ''
-
+    def _format_rank(
+        self, precision: int, _: str, v: tuple[str, int | float, bool, bool]
+    ) -> str:
         v_str = ''
         if isinstance(v[1], float):
             v_str = f'{v[0]}{v[1]:.{precision}f}'
@@ -291,30 +300,31 @@ class Output:
             v_str = f'{v[0]}{v[1]}'
         return self._format_min_max(_, (v_str, v[2], v[3]))
 
-    def _format_ratio(self, f, v):
-        v_str = ''
+    def _format_ratio(self, f: str, v: float | Empty) -> str:
+        if not v:
+            return ''
+
         colored = self.settings.table.color
-        if isinstance(v, float):
-            v_str = f'{v:.0%}'
-            if (
-                colored
-                and f == self.settings.table.columns.drop_ratio.label
-                and v >= self.settings.table.drop_ratio_high_threshold
-            ):
-                v_str = self.settings.table.colors.player.high_drop_rate.colorize(v_str)
-            elif f == self.settings.table.columns.win_ratio.label:
-                v_str = self._format_min_max(
-                    f,
-                    (
-                        v_str,
-                        v >= self.settings.table.win_ratio_high_threshold,
-                        v < self.settings.table.win_ratio_low_threshold,
-                    ),
-                )
+        v_str = f'{v:.0%}'
+        if (
+            colored
+            and f == self.settings.table.columns.drop_ratio.label
+            and v >= self.settings.table.drop_ratio_high_threshold
+        ):
+            v_str = self.settings.table.colors.player.high_drop_rate.colorize(v_str)
+        elif f == self.settings.table.columns.win_ratio.label:
+            v_str = self._format_min_max(
+                f,
+                (
+                    v_str,
+                    v >= self.settings.table.win_ratio_high_threshold,
+                    v < self.settings.table.win_ratio_low_threshold,
+                ),
+            )
         return v_str
 
-    def _format_min_max(self, _, v: Any):
-        if not v or not isinstance(v, tuple):
+    def _format_min_max(self, _: str, v: tuple[str, bool, bool] | Empty) -> str:
+        if not v:
             return ''
 
         v_str = str(v[0])

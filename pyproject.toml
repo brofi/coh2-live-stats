@@ -67,6 +67,7 @@ select = [
     "D", # pydocstyle
     "UP", # pyupgrade
     "YTT", # flake8-2020
+    "ANN", # flake8-annotations
     "ASYNC", # flake8-async
     "TRIO", # flake8-trio
     "S", # flake8-bandit

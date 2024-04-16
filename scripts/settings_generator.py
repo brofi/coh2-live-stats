@@ -44,7 +44,7 @@ def _wrap(__s: str, __w: str = "'") -> str:
     return f"{__w}{__s}{__w}"
 
 
-def _bullet(__s: str, __c: str = '*', __indent: int = 4):
+def _bullet(__s: str, __c: str = '*', __indent: int = 4) -> str:
     return f"{' ' * __indent}{__c} {__s}"
 
 
@@ -112,7 +112,7 @@ def _init_doc(
     return _container
 
 
-def default():
+def default() -> None:
     """Create a TOML settings file from the default application settings."""
     settings = SettingsFactory.create_default_settings()
 

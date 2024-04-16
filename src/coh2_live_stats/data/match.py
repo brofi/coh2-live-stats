@@ -35,7 +35,7 @@ class Match:
 
     MIN_SIZE = 2
 
-    def __init__(self, players: list[Player]):
+    def __init__(self, players: list[Player]) -> None:
         """Initialize a match with the given players.
 
         The players must have team IDs set, allowing them to be split up into parties.
@@ -103,7 +103,7 @@ class Party:
     MIN_SIZE = 1
     MAX_SIZE = 4
 
-    def __init__(self, players: list[Player]):
+    def __init__(self, players: list[Player]) -> None:
         """Initialize a party.
 
         :param players: players playing together as a ``Party`` in a ``Match``
@@ -156,7 +156,7 @@ class Party:
 
         LOG.info('Initialized %s', cls_name(self))
 
-    def _add_player_pre_made_teams(self, p: Player, player_ids: list[int]):
+    def _add_player_pre_made_teams(self, p: Player, player_ids: list[int]) -> None:
         # There could be multiple possible pre-made teams per player. For example when
         # players A, B and C with teams (A,B), (B,C) have no team (A,B,C). Which means
         # either player A or C queued alone or the current match is the first match of a

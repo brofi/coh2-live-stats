@@ -16,7 +16,7 @@
 """Faction and TeamFaction."""
 
 from enum import Enum, IntEnum
-from typing import override
+from typing import Self, override
 
 from coh2_live_stats.util import cls_name
 
@@ -32,7 +32,9 @@ class Faction(Enum):
     US = 3, 'aef', 'US Forces', Color.BLUE
     UK = 4, 'british', 'British Forces', Color.YELLOW
 
-    def __init__(self, _id, key_log, full_name, default_color: Color = Color.WHITE):
+    def __init__(
+        self, _id: int, key_log: str, full_name: str, default_color: Color = Color.WHITE
+    ) -> None:
         """Initialize a faction.
 
         :param _id: id as used by Relic
@@ -46,17 +48,17 @@ class Faction(Enum):
         self.default_color = default_color
 
     @property
-    def is_axis_faction(self):
+    def is_axis_faction(self) -> bool:
         """Whether this faction is an Axis faction."""
         return self in {Faction.WM, Faction.OKW}
 
     @property
-    def is_allies_faction(self):
+    def is_allies_faction(self) -> bool:
         """Whether this faction is an Allies faction."""
         return self in {Faction.SU, Faction.US, Faction.UK}
 
     @classmethod
-    def from_log(cls, faction_name):
+    def from_log(cls, faction_name: str) -> Self:
         """Get faction from its log file identifier.
 
         :param faction_name: the log file identifier
@@ -65,14 +67,15 @@ class Faction(Enum):
         for member in cls:
             if member.key_log == faction_name:
                 return member
-        return None
+        msg = f'Not a log file identifier: {faction_name!r}'
+        raise ValueError(msg)
 
     @override
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{cls_name(self)}.{self.name}'
 
     @override
-    def __str__(self):
+    def __str__(self) -> str:
         return self.full_name
 
 
@@ -83,7 +86,7 @@ class TeamFaction(IntEnum):
     ALLIES = 1
 
     @classmethod
-    def from_faction(cls, f: Faction):
+    def from_faction(cls, f: Faction) -> Self:
         """Get the ``TeamFaction`` from a given ``Faction``.
 
         :param f: the ``Faction`` for which to get the ``TeamFaction``
@@ -92,9 +95,9 @@ class TeamFaction(IntEnum):
         return cls(int(f.is_allies_faction))
 
     @override
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{cls_name(self)}.{self.name}'
 
     @override
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name.capitalize()

@@ -79,7 +79,7 @@ def _resolve_sound_name(s: Sound) -> Path:
     )
 
 
-def _validate_color(v: str):
+def _validate_color(v: str) -> Color:
     with suppress(KeyError):
         return Color[v.upper()]
     msg = f'not a color: {v!r}. Valid colors are: {', '.join([c.name for c in Color])}.'
@@ -92,7 +92,7 @@ _CT = Annotated[
 ]
 
 
-def _serialize_path(p: Path):
+def _serialize_path(p: Path) -> str:
     env = '%USERPROFILE%'
     return str(p).replace(expandvars(env), env)
 
@@ -173,7 +173,7 @@ class _ColumnDefaults(_Col, Enum):
     NAME = 'Name'
 
 
-def _create_columns_model():
+def _create_columns_model() -> type[BaseModel]:
     field_definitions = {}
     for d in _ColumnDefaults:
         model_col = create_model(
@@ -237,17 +237,16 @@ class _Notification(BaseModel):
     )
     sound: _PT = Field(
         default=_resolve_sound_name('horn'),
-        validate_default=True,
         description="Built-in notification sound name or full path to custom waveform audio file",
     )
 
     # noinspection PyNestedDecorators
     @field_validator('sound', mode='before')
     @classmethod
-    def validate_sound(cls, v) -> Path:
+    def validate_sound(cls, v: str) -> Path:
         if v in get_args(Sound):
-            return _resolve_sound_name(v)
-        return v
+            return _resolve_sound_name(v)  # type: ignore[arg-type]
+        return Path(v)
 
 
 class Settings(BaseSettings):
@@ -303,7 +302,7 @@ class SettingsFactory:
     """Creates settings."""
 
     @staticmethod
-    def create_settings(values: Any | None = None) -> Settings:
+    def create_settings(values: dict[str, Any] | None = None) -> Settings:
         """Create a settings model.
 
         The settings model is initialized with its default values, overwritten by the

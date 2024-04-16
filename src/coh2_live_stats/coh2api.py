@@ -40,11 +40,11 @@ class _SoloMatchType(IntEnum):
     S_4V4 = 4
 
     @override
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{cls_name(self)}.{self.name}'
 
     @override
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name.removeprefix('S_').lower()
 
 
@@ -60,11 +60,11 @@ class _TeamMatchType(IntEnum):
     T_4V4 = 2
 
     @override
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{cls_name(self)}.{self.name}'
 
     @override
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name.removeprefix('T_').lower()
 
 
@@ -77,11 +77,11 @@ class _Difficulty(IntEnum):
     EXPERT = 3
 
     @override
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{cls_name(self)}.{self.name}'
 
     @override
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name.lower()
 
 
@@ -102,7 +102,7 @@ class CoH2API:
     KEY_LEADERBOARD_NAME = 'name'
     KEY_LEADERBOARD_RANK_TOTAL = 'rank_total'
 
-    def __init__(self, timeout=30):
+    def __init__(self, timeout: int = 30) -> None:
         """Initialize the CoH2 API.
 
         :param timeout: number of seconds after which a request times out
@@ -128,7 +128,7 @@ class CoH2API:
         }
         LOG.info('Initialized %s[timeout=%d]', cls_name(self), self.timeout)
 
-    async def get_players(self, players: list[Player]):
+    async def get_players(self, players: list[Player]) -> list[Player]:
         """Initialize given players with CoH2 API data.
 
         :param players: players to initialize with API data
@@ -148,7 +148,9 @@ class CoH2API:
             ]
         return players
 
-    def _init_player(self, player: Player, num_players: int, json):
+    def _init_player(
+        self, player: Player, num_players: int, json: dict[str, Any]
+    ) -> Player:
         leaderboard_id = self._get_solo_leaderboard_id(
             _SoloMatchType(num_players // 2), player.faction
         )
@@ -176,7 +178,9 @@ class CoH2API:
         return 26 + __m * 8 + __d * 2 + __t
 
     @staticmethod
-    def _set_player_stats_from_json(player: Player, leaderboard_id: int, json):
+    def _set_player_stats_from_json(
+        player: Player, leaderboard_id: int, json: dict[str, Any]
+    ) -> None:
         if not json:
             return
 
@@ -192,14 +196,14 @@ class CoH2API:
                 player.highest_rank_level = s['highestranklevel']
                 return
 
-    def _set_rank_total(self, player: Player, leaderboard_id: int):
+    def _set_rank_total(self, player: Player, leaderboard_id: int) -> None:
         if player.rank_total <= 0:
             player.rank_total = self.leaderboards[leaderboard_id][
                 self.KEY_LEADERBOARD_RANK_TOTAL
             ]
 
     @staticmethod
-    def _set_extra_player_data_from_json(player: Player, json):
+    def _set_extra_player_data_from_json(player: Player, json: dict[str, Any]) -> None:
         if not json:
             return
 
@@ -211,7 +215,7 @@ class CoH2API:
                     player.country = m['country']
                     return
 
-    def _set_teams_from_json(self, player: Player, json):
+    def _set_teams_from_json(self, player: Player, json: dict[str, Any]) -> None:
         if not json:
             return
 
@@ -232,7 +236,7 @@ class CoH2API:
                     t.highest_rank_level = s['highestranklevel']
             player.teams.append(t)
 
-    async def _get_player(self, relic_id):
+    async def _get_player(self, relic_id: int) -> dict[str, Any]:
         if relic_id <= 0:
             return {}
 
@@ -244,7 +248,7 @@ class CoH2API:
         r.raise_for_status()
         return r.json()
 
-    async def init_leaderboards(self):
+    async def init_leaderboards(self) -> None:
         """Initialize CoH2 leaderboards with their total amount of ranked players."""
         LOG.info('GET leaderboards: %s', list(self.leaderboards.keys()))
         r = await asyncio.gather(
@@ -257,22 +261,26 @@ class CoH2API:
                 ]
         LOG.info('Initialized leaderboards: %s', self.leaderboards)
 
-    async def _get_leaderboards(self):
+    async def _get_leaderboards(self) -> dict[str, Any]:
         r = await self.http_client.get(
             self.URL_LEADERBOARDS, params={'title': 'coh2'}, timeout=self.timeout
         )
         r.raise_for_status()
         return r.json()
 
-    async def _get_leaderboard(self, leaderboard_id):
-        params = {'title': 'coh2', 'count': 1, 'leaderboard_id': leaderboard_id}
+    async def _get_leaderboard(self, leaderboard_id: int) -> dict[str, Any]:
+        params: dict[str, str | int] = {
+            'title': 'coh2',
+            'count': 1,
+            'leaderboard_id': leaderboard_id,
+        }
         r = await self.http_client.get(
             self.URL_LEADERBOARD, params=params, timeout=self.timeout
         )
         r.raise_for_status()
         return r.json()
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the HTTP Client."""
         LOG.info('Closing HTTP client: %s', cls_name(self.http_client))
         await self.http_client.aclose()

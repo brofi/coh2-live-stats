@@ -25,7 +25,7 @@ from logging.handlers import QueueHandler, QueueListener
 from pathlib import Path
 from queue import Queue
 from tomllib import TOMLDecodeError
-from typing import Final, override
+from typing import Any, Final, override
 
 
 class LoggingConfError(Exception):
@@ -43,7 +43,7 @@ class LoggingConf:
         '_logging.toml'
     )
 
-    def __init__(self, logfile: Path | None = None, *, stdout: bool = False):
+    def __init__(self, logfile: Path | None = None, *, stdout: bool = False) -> None:
         """Initialize the custom logging configuration.
 
         :param logfile: the logging configuration file
@@ -105,7 +105,7 @@ class LoggingConf:
             raise LoggingConfError(msg)
         return handler
 
-    def start(self):
+    def start(self) -> None:
         """Start custom logging."""
         self.listener.start()
         logger = logging.getLogger('coh2_live_stats')
@@ -113,7 +113,7 @@ class LoggingConf:
             'Started logging with: %s', self.CONF_PATH, extra=HiddenOutputFilter.EXTRA
         )
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop custom logging."""
         self.listener.stop()
 
@@ -127,7 +127,7 @@ class CustomQueueHandler(QueueHandler):
     """
 
     @override
-    def prepare(self, record):
+    def prepare(self, record: LogRecord) -> Any:
         # Don't edit original record
         r = copy.copy(record)
         # If record contains exception info ...
@@ -161,7 +161,7 @@ class SimpleFormatter(Formatter):
     """A simple formatter that ignores exception data."""
 
     @override
-    def format(self, record):
+    def format(self, record: LogRecord) -> str:
         # Save the exception text
         et = record.exc_text
         # Don't let parent formatter add exception text. Exception info was already
@@ -179,7 +179,7 @@ class DetailedFormatter(Formatter):
     """A formatter that puts the milliseconds before the timezone."""
 
     @override
-    def formatTime(self, record, datefmt=None):
+    def formatTime(self, record: LogRecord, datefmt: str | None = None) -> str:
         ct = self.converter(record.created)
         if datefmt:
             # Replace %f (only supported by datetime) with milliseconds
@@ -195,7 +195,7 @@ class ErrorFilter(Filter):
     """A filter that only keeps warnings and errors."""
 
     @override
-    def filter(self, record: LogRecord):
+    def filter(self, record: LogRecord) -> bool | LogRecord:
         return record.levelno < WARNING
 
 
@@ -206,5 +206,5 @@ class HiddenOutputFilter(Filter):
     EXTRA: Final[dict[str, bool]] = {KEY_EXTRA_HIDE: True}
 
     @override
-    def filter(self, record: LogRecord):
+    def filter(self, record: LogRecord) -> bool | LogRecord:
         return not getattr(record, self.KEY_EXTRA_HIDE, False)

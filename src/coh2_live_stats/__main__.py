@@ -73,7 +73,9 @@ class LogFileEventHandler(FileSystemEventHandler):
         f'(?P<faction>{'|'.join([f.key_log for f in Faction])})$'
     )
 
-    def __init__(self, loop: AbstractEventLoop, queue: Queue[LogInfo], logfile: Path):
+    def __init__(
+        self, loop: AbstractEventLoop, queue: Queue[LogInfo], logfile: Path
+    ) -> None:
         """Initialize a logfile handler.
 
         :param loop: the ``async`` event loop to run queue operations on
@@ -145,7 +147,7 @@ class LogFileEventHandler(FileSystemEventHandler):
         return LogInfo(players, is_new_match, is_multiplayer_match)
 
 
-async def _init_leaderboards(api: CoH2API):
+async def _init_leaderboards(api: CoH2API) -> None:
     progress_indicator = asyncio.create_task(Output.progress_start())
     try:
         await api.init_leaderboards()
@@ -154,7 +156,7 @@ async def _init_leaderboards(api: CoH2API):
         Output.progress_stop()
 
 
-async def _get_players(api: CoH2API, players: list[Player]):
+async def _get_players(api: CoH2API, players: list[Player]) -> list[Player]:
     progress_indicator = asyncio.create_task(Output.progress_start())
     try:
         return await api.get_players(players)
@@ -163,19 +165,19 @@ async def _get_players(api: CoH2API, players: list[Player]):
         Output.progress_stop()
 
 
-def _notify_match(settings: Settings):
+def _notify_match(settings: Settings) -> None:
     LOG.info('Notify new match')
     if settings.notification.play_sound and not play_sound(settings.notification.sound):
         LOG.warning('Failed to play sound: %s', settings.notification.sound)
 
 
-def _tickle_logfile(logfile: Path, cancel_event: Event):
+def _tickle_logfile(logfile: Path, cancel_event: Event) -> None:
     while not cancel_event.is_set():
         with logfile.open(mode='rb', buffering=0):
             time.sleep(0.1)
 
 
-def _log_validation_error(e: ValidationError):
+def _log_validation_error(e: ValidationError) -> None:
     n = e.error_count()
     msg = '%d validation error%s for %s:'
     args: tuple[Any, ...] = n, 's' if n > 1 else '', e.title
@@ -195,7 +197,7 @@ def _start_logfile_observer(queue: Queue[LogInfo], logfile: Path) -> BaseObserve
     return observer
 
 
-def _stop_logfile_observer(observer: BaseObserver):
+def _stop_logfile_observer(observer: BaseObserver) -> None:
     if observer:
         LOG.info('Stopping observer: %s[name=%s]', cls_name(observer), observer.name)
         observer.stop()
@@ -274,7 +276,7 @@ async def main() -> int:
     return exit_status
 
 
-def run():
+def run() -> None:
     """Run the event loop. Main entry point."""
     # In asyncio `Ctrl-C` cancels the main task, which raises a Cancelled Error
     with suppress(asyncio.CancelledError, KeyboardInterrupt):

@@ -18,8 +18,10 @@
 import json
 import logging
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from shutil import rmtree
+from typing import Any
 
 from coh2_live_stats.logging_conf import LoggingConf
 from invoke import Collection, Context, Result, task
@@ -40,15 +42,15 @@ _logging.start()
 
 
 @task
-def _stop_logging(_):
+def _stop_logging(_: Context) -> None:
     _logging.stop()
 
 
-def _run(c: Context, *args, **kwargs) -> Result | None:
+def _run(c: Context, *args: str, **kwargs: Any) -> Result | None:  # noqa: ANN401
     return c.run(' '.join(args), **kwargs)
 
 
-def _success(res: Result) -> bool:
+def _success(res: Result | None) -> bool:
     return res is not None and res.return_code == 0
 
 
@@ -64,11 +66,13 @@ def _is_editable(p: Package) -> bool:
 @task(pre=[_activate], help={'name': 'Name of the package to get.'})
 def _get_pkg(c: Context, name: str) -> Package | None:
     """Return the given package from pip."""
-    res: Result = _run(c, *_pipcmd, 'list', '--format json')
-    packages = list(filter(lambda p: p['name'] == name, json.loads(res.stdout)))
-    if len(packages) > 1:
-        msg = f'Multiple packages {name!r} detected.'
-        raise ValueError(msg)
+    res = _run(c, *_pipcmd, 'list', '--format json')
+    packages: list[Package] = []
+    if res is not None:
+        packages = list(filter(lambda p: p['name'] == name, json.loads(res.stdout)))
+        if len(packages) > 1:
+            msg = f'Multiple packages {name!r} detected.'
+            raise ValueError(msg)
     return packages[0] if packages else None
 
 
@@ -84,7 +88,7 @@ def _install(c: Context) -> bool:
 
 
 @task(_activate)
-def _install_editable(c: Context, *, force=False, dev=False) -> bool:
+def _install_editable(c: Context, *, force: bool = False, dev: bool = False) -> bool:
     cmd = [*_pipcmd, 'install']
     if force:
         cmd += ['--force-reinstall']
@@ -93,7 +97,7 @@ def _install_editable(c: Context, *, force=False, dev=False) -> bool:
 
 
 def _clean() -> bool:
-    def err(_, path, __):
+    def err(_: Callable[[str], Any], path: str, __: Exception) -> None:
         LOG.error('Failed to remove %s', path)
 
     for d in _build_dir, _dist_dir:
@@ -110,7 +114,7 @@ def _clean() -> bool:
         'pyinstaller_only': 'Skip setuptools build.',
     },
 )
-def build(c: Context, *, clean=False, pyinstaller_only=False) -> None:
+def build(c: Context, *, clean: bool = False, pyinstaller_only: bool = False) -> None:
     """Build wheel and source distribution."""
     # Don't fail install on first time setup
     from scripts import pyinstaller_setup, settings_generator  # noqa: PLC0415
@@ -133,7 +137,7 @@ def build(c: Context, *, clean=False, pyinstaller_only=False) -> None:
         'dev': 'Install additional build and development dependencies (editable only).',
     },
 )
-def install(c: Context, *, normal_mode=False, dev=False) -> bool:
+def install(c: Context, *, normal_mode: bool = False, dev: bool = False) -> bool:
     """Install project in editable (default) or non-editable mode."""
     if normal_mode:
         LOG.info('Installing %s in non-editable mode...', _pkg)

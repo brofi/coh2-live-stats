@@ -110,15 +110,15 @@ _Char = Annotated[str, Field(min_length=1, max_length=1)]
 
 class _TableColorsPlayer(BaseModel):
     high_drop_rate: _CT = Field(
-        Color.RED, description="Color for a high player drop ratio"
+        Color.RED, description='Color for a high player drop ratio'
     )
     high: _CT = Field(
         Color.BRIGHT_WHITE,
-        description="Color for highest ranked player and high win ratio",
+        description='Color for highest ranked player and high win ratio',
     )
     low: _CT = Field(
         Color.BRIGHT_BLACK,
-        description="Color for lowest ranked player and low win ratio",
+        description='Color for lowest ranked player and low win ratio',
     )
 
 
@@ -130,7 +130,7 @@ else:
         **{
             f.name.lower(): (
                 _CT,
-                Field(f.default_color, description=f"{f.full_name} color"),
+                Field(f.default_color, description=f'{f.full_name} color'),
             )
             for f in Faction
         },
@@ -138,13 +138,13 @@ else:
 
 
 class _TableColors(BaseModel):
-    border: _CT = Field(Color.BRIGHT_BLACK, description="Output table border color")
-    label: _CT = Field(Color.BRIGHT_BLACK, description="Output table header color")
+    border: _CT = Field(Color.BRIGHT_BLACK, description='Output table border color')
+    label: _CT = Field(Color.BRIGHT_BLACK, description='Output table header color')
     player: _TableColorsPlayer = Field(
-        _TableColorsPlayer(), description="Player-specific color options"
+        _TableColorsPlayer(), description='Player-specific color options'
     )
     faction: _TableColorsFaction = Field(
-        _TableColorsFaction(), description="Faction colors"
+        _TableColorsFaction(), description='Faction colors'
     )
 
     def get_faction_color(self, f: Faction) -> Color:
@@ -194,9 +194,9 @@ else:
 
 
 class _Table(BaseModel):
-    color: bool = Field(default=True, description="Use color for output")
+    color: bool = Field(default=True, description='Use color for output')
     border: bool = Field(
-        default=False, description="Draw a border around the output table"
+        default=False, description='Draw a border around the output table'
     )
     show_average: bool = Field(
         default=True, description="Show team's average rank and level"
@@ -217,27 +217,27 @@ class _Table(BaseModel):
         description="Win ratios are considered low if they're lower than this value (used for color)",
     )
     prestige_star_char: _Char = Field(
-        '*', description="Character to use for one prestige level star"
+        '*', description='Character to use for one prestige level star'
     )
     prestige_half_star_char: _Char = Field(
-        '~', description="Character to use for a half prestige level star"
+        '~', description='Character to use for a half prestige level star'
     )
     colors: _TableColors = Field(
-        _TableColors(), description="Output table color options"
+        _TableColors(), description='Output table color options'
     )
     columns: _TableColumns = Field(
-        _TableColumns(), description="Output table column options"
+        _TableColumns(), description='Output table column options'
     )
 
 
 class _Notification(BaseModel):
     play_sound: bool = Field(
         default=True,
-        description="Play a notification sound when a new multiplayer match was found",
+        description='Play a notification sound when a new multiplayer match was found',
     )
     sound: _PT = Field(
         default=_resolve_sound_name('horn'),
-        description="Built-in notification sound name or full path to custom waveform audio file",
+        description='Built-in notification sound name or full path to custom waveform audio file',
     )
 
     # noinspection PyNestedDecorators
@@ -257,12 +257,12 @@ class Settings(BaseSettings):
             'Documents', 'My Games', 'Company of Heroes 2', 'warnings.log'
         ),
         validate_default=True,
-        description="Path to observed Company of Heroes 2 log file (supports OS environment variables)",
+        description='Path to observed Company of Heroes 2 log file (supports OS environment variables)',
     )
     notification: _Notification = Field(
-        _Notification(), description="Notification sound options"
+        _Notification(), description='Notification sound options'
     )
-    table: _Table = Field(_Table(), description="Output table options")
+    table: _Table = Field(_Table(), description='Output table options')
 
 
 class TomlSettings(Settings):

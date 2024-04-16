@@ -41,7 +41,7 @@ from tomlkit.items import AbstractTable, Comment, Trivia
 
 
 def _wrap(__s: str, __w: str = "'") -> str:
-    return f"{__w}{__s}{__w}"
+    return f'{__w}{__s}{__w}'
 
 
 def _bullet(__s: str, __c: str = '*', __indent: int = 4) -> str:
@@ -64,7 +64,7 @@ def _list_inline(__s: Sequence[str]) -> str:
     )
 
 
-header_comment = f'''Configuration file for CoH2LiveStats
+header_comment = f"""Configuration file for CoH2LiveStats
 
 Generated {datetime.now().astimezone().isoformat(timespec='seconds')}
 Version {__version__}
@@ -86,7 +86,7 @@ Valid sound values:
 Valid alignment values: {_list_inline(get_args(Align))}
 
 Notes:
-{_bullet('CJK characters can distort table (table.border = false and name column last is recommended)')}'''
+{_bullet('CJK characters can distort table (table.border = false and name column last is recommended)')}"""
 
 
 def _create_doc(_model: BaseModel) -> TOMLDocument:
@@ -118,7 +118,7 @@ def default() -> None:
 
     doc: TOMLDocument = document()
     for line in header_comment.splitlines():
-        doc.add(comment(line) if line else Comment(Trivia(comment="#")))
+        doc.add(comment(line) if line else Comment(Trivia(comment='#')))
     doc.add(nl()).add(nl())
     _init_doc(settings, doc)
 

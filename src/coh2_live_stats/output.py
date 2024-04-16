@@ -264,7 +264,7 @@ class Output:
         return avg_row
 
     def _clear(self) -> None:
-        print("\033[3J\033[H", end='', flush=True)
+        print('\033[3J\033[H', end='', flush=True)
         self.table.clear()
 
     @staticmethod

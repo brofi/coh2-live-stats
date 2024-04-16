@@ -251,7 +251,7 @@ async def main() -> int:
         exit_status = 1
     except HTTPStatusError as e:
         LOG.exception(
-            "Error response %d while requesting %s.",
+            'Error response %d while requesting %s.',
             e.response.status_code,
             repr(e.request.url),
         )

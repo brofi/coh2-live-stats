@@ -99,7 +99,7 @@ class Player:
             'steam', 'profiles'
         )
 
-    def get_prestige_level_stars(self, star: str = "*", half_star: str = "~") -> str:
+    def get_prestige_level_stars(self, star: str = '*', half_star: str = '~') -> str:
         """Player's prestige level measured in stars."""
         return star * int(self.prestige / 100) + half_star * round(
             (self.prestige / 100) % 1

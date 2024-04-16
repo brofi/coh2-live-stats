@@ -49,6 +49,10 @@ def play_sound(soundfile: Path) -> bool:
     :param soundfile: the WAV file to play
     :return: whether the sound was played
     """
+    # When using SND_ASYNC there is no RuntimeError for non-existing files without a
+    # default sound.
+    if not (soundfile.is_file() and soundfile.suffix == '.wav'):
+        return False
     try:
         winsound.PlaySound(None, 0)  # Stop currently playing waveform sound
         winsound.PlaySound(
@@ -57,4 +61,5 @@ def play_sound(soundfile: Path) -> bool:
         )
     except RuntimeError:
         return False
-    return True
+    else:
+        return True

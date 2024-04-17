@@ -16,6 +16,7 @@
 """Utility functions."""
 
 import winsound
+from contextlib import suppress
 from inspect import isclass
 from pathlib import Path
 
@@ -43,6 +44,12 @@ def ratio(x: float, total: float) -> float:
     return x / total if total > 0 else 0
 
 
+def stop_sound() -> None:
+    """Stop currently playing waveform sound."""
+    with suppress(RuntimeError):
+        winsound.PlaySound(None, 0)
+
+
 def play_sound(soundfile: Path) -> bool:
     """Plays a WAV file on windows.
 
@@ -53,8 +60,9 @@ def play_sound(soundfile: Path) -> bool:
     # default sound.
     if not (soundfile.is_file() and soundfile.suffix == '.wav'):
         return False
+
+    stop_sound()
     try:
-        winsound.PlaySound(None, 0)  # Stop currently playing waveform sound
         winsound.PlaySound(
             str(soundfile),
             winsound.SND_FILENAME | winsound.SND_NODEFAULT | winsound.SND_ASYNC,

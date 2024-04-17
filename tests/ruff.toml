@@ -1,0 +1,17 @@
+extend = "../pyproject.toml"
+lint.ignore = [
+    "E501", # fomatter sometimes allows code to exceed 'line-length'
+    "TD001", "TD002", "TD003", # no invalid tag and missing author or issue link
+    "TRY003", # too restrictive
+    "D203", # use D211 instead
+    "D213", # use D212 instead
+    # conflicts with formatter
+    "W191", "E111", "E114", "E117",
+    "D206", "D300",
+    "COM812", "COM819",
+    "ISC001", "ISC002",
+    # testing
+    "D100", "D101", "D102", "D103",
+    "S101",
+    "PLC2701",
+]

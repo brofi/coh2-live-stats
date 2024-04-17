@@ -38,6 +38,8 @@ build = [
     "build >= 1.2.1",
     "invoke >= 2.2.0",
     "pyinstaller >= 6.5.0",
+    "pytest >= 8.1.1",
+    "pytest-asyncio >= 0.23.6",
     "tomlkit >= 0.12.4",
 ]
 
@@ -91,7 +93,7 @@ select = [
     "T20", # flake8-print
     "PYI", # flake8-pyi
     "PT", # flake8-pytest-style
-    "Q", # flake8-quotes
+    "Q004", # flake8-quotes
     "RSE", # flake8-raise
     "RET", # flake8-return
     "SLF", # flake8-self
@@ -120,10 +122,13 @@ ignore = [
     # conflicts with formatter
     "W191", "E111", "E114", "E117",
     "D206", "D300",
-    "Q000", "Q001", "Q002", "Q003",
     "COM812", "COM819",
     "ISC001", "ISC002"
 ]
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
 
 [tool.ruff.lint.isort]
 split-on-trailing-comma = false

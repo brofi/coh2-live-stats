@@ -44,12 +44,12 @@ from pydantic import (
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
+    SettingsConfigDict,
     TomlConfigSettingsSource,
 )
 
 from .data.color import Color
 from .data.faction import Faction
-from .util import cls_name
 
 LOG = logging.getLogger('coh2_live_stats')
 
@@ -206,15 +206,18 @@ class _Table(BaseModel):
     )
     drop_ratio_high_threshold: _RT = Field(
         0.05,
-        description="Drop ratios are considered high if they're higher than or equal this value (used for color)",
+        description="Drop ratios are considered high if they're higher than or equal "
+        'this value (used for color)',
     )
     win_ratio_high_threshold: _RT = Field(
         0.6,
-        description="Win ratios are considered high if they're higher than or equal this value (used for color)",
+        description="Win ratios are considered high if they're higher than or equal "
+        'this value (used for color)',
     )
     win_ratio_low_threshold: _RT = Field(
         0.5,
-        description="Win ratios are considered low if they're lower than this value (used for color)",
+        description="Win ratios are considered low if they're lower than this value "
+        '(used for color)',
     )
     prestige_star_char: _Char = Field(
         '*', description='Character to use for one prestige level star'
@@ -237,7 +240,8 @@ class _Notification(BaseModel):
     )
     sound: _PT = Field(
         default=_resolve_sound_name('horn'),
-        description='Built-in notification sound name or full path to custom waveform audio file',
+        description='Built-in notification sound name or full path to custom waveform '
+        'audio file',
     )
 
     # noinspection PyNestedDecorators
@@ -257,7 +261,8 @@ class Settings(BaseSettings):
             'Documents', 'My Games', 'Company of Heroes 2', 'warnings.log'
         ),
         validate_default=True,
-        description='Path to observed Company of Heroes 2 log file (supports OS environment variables)',
+        description='Path to observed Company of Heroes 2 log file (supports OS '
+        'environment variables)',
     )
     notification: _Notification = Field(
         _Notification(), description='Notification sound options'
@@ -267,6 +272,19 @@ class Settings(BaseSettings):
 
 class TomlSettings(Settings):
     """Pydantic model for application settings backed by a user configuration."""
+
+    def __init__(self, config: Path | None = None, **values: Any) -> None:  # noqa: ANN401
+        """Initialize ``TomlSettings``.
+
+        :param config: config file or ``None`` to use the first valid config
+        :param values: values that overwrite the default values
+        """
+        TomlSettings.model_config = SettingsConfigDict(
+            toml_file=config
+            if config is not None
+            else TomlSettings._first_valid_config()
+        )
+        super().__init__(**values)
 
     @classmethod
     @override
@@ -278,7 +296,7 @@ class TomlSettings(Settings):
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> tuple[PydanticBaseSettingsSource, ...]:
-        return (TomlConfigSettingsSource(settings_cls, cls._first_valid_config()),)
+        return (TomlConfigSettingsSource(settings_cls),)
 
     @staticmethod
     def _first_valid_config() -> Path | None:
@@ -296,33 +314,3 @@ class TomlSettings(Settings):
                 else:
                     return c
         return None
-
-
-class SettingsFactory:
-    """Creates settings."""
-
-    @staticmethod
-    def create_settings(values: dict[str, Any] | None = None) -> Settings:
-        """Create a settings model.
-
-        The settings model is initialized with its default values, overwritten by the
-        given non-default values. If the given non-default values are empty, the created
-        settings represent the default settings, if they are ``None``, the created
-        settings get initialized with non-default values from the user configuration.
-        :param values: non-default values
-        :return: settings model
-        """
-        if values is None:
-            settings = TomlSettings()
-            LOG.info(
-                'Loading %s[file=%s]',
-                cls_name(settings),
-                settings.model_config.get('toml_file'),
-            )
-            return settings
-        return Settings(**values)
-
-    @staticmethod
-    def create_default_settings() -> Settings:
-        """Create default settings."""
-        return SettingsFactory.create_settings({})

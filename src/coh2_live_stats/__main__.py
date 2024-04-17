@@ -45,7 +45,7 @@ from coh2_live_stats.data.faction import Faction
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.logging_conf import HiddenOutputFilter, LoggingConf
 from coh2_live_stats.output import Output
-from coh2_live_stats.settings import Settings, SettingsFactory
+from coh2_live_stats.settings import Settings, TomlSettings
 from coh2_live_stats.util import cls_name, cls_name_parent, play_sound
 
 LOG = logging.getLogger('coh2_live_stats')
@@ -212,7 +212,12 @@ async def main() -> int:
     _logging.start()
 
     try:
-        settings = SettingsFactory.create_settings()
+        settings = TomlSettings()
+        LOG.info(
+            'Loaded %s[file=%s]',
+            cls_name(settings),
+            settings.model_config.get('toml_file'),
+        )
     except ValidationError as e:
         _log_validation_error(e)
         return 1

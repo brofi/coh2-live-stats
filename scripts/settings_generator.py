@@ -32,7 +32,7 @@ from coh2_live_stats.settings import (
     CONFIG_NAMES,
     CONFIG_PATHS,
     Align,
-    SettingsFactory,
+    Settings,
     Sound,
 )
 from pydantic import BaseModel
@@ -114,7 +114,7 @@ def _init_doc(
 
 def default() -> None:
     """Create a TOML settings file from the default application settings."""
-    settings = SettingsFactory.create_default_settings()
+    settings = Settings()
 
     doc: TOMLDocument = document()
     for line in header_comment.splitlines():

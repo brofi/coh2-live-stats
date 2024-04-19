@@ -134,10 +134,6 @@ class CoH2API:
         :param players: players to initialize with API data
         :return: initialized players
         """
-        if not self.leaderboards:
-            msg = 'Initialize leaderboards first.'
-            raise ValueError(msg)
-
         LOG.info('GET players: %s', [p.relic_id for p in players])
         r = await asyncio.gather(*(self._get_player(p.relic_id) for p in players))
         if r:
@@ -197,10 +193,11 @@ class CoH2API:
                 return
 
     def _set_rank_total(self, player: Player, leaderboard_id: int) -> None:
-        if player.rank_total <= 0:
-            player.rank_total = self.leaderboards[leaderboard_id][
-                self.KEY_LEADERBOARD_RANK_TOTAL
-            ]
+        rank_total = self.leaderboards[leaderboard_id].get(
+            self.KEY_LEADERBOARD_RANK_TOTAL
+        )
+        if player.rank_total <= 0 and rank_total is not None:
+            player.rank_total = rank_total
 
     @staticmethod
     def _set_extra_player_data_from_json(player: Player, json: dict[str, Any]) -> None:

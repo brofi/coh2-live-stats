@@ -110,7 +110,7 @@ class LogFileEventHandler(FileSystemEventHandler):
         self.loop.call_soon_threadsafe(self.queue.put_nowait, self._parse_log())
 
     def _parse_log(self) -> LogInfo:
-        with self.logfile.open(encoding='utf-8') as f:
+        with self.logfile.open(encoding='utf-8', errors='replace') as f:
             lines = f.readlines()
 
         pl = 0

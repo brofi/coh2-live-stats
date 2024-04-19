@@ -210,6 +210,7 @@ class CoH2API:
         for g in json['statGroups']:
             for m in g['members']:
                 if m['profile_id'] == player.relic_id:
+                    player.name = m['alias']
                     player.steam_profile = m['name']
                     player.prestige = m['level']
                     player.country = m['country']

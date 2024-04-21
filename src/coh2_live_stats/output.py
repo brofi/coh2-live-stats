@@ -103,8 +103,8 @@ class Output:
         self.table.custom_format[cols.faction.label] = self._format_faction
         self.table.custom_format[cols.rank.label] = partial(self._format_rank, 2)
         self.table.custom_format[cols.level.label] = partial(self._format_rank, 1)
-        for c in cols.win_ratio, cols.drop_ratio:
-            self.table.custom_format[c.label] = self._format_ratio
+        self.table.custom_format[cols.win_ratio.label] = partial(self._format_ratio, 0)
+        self.table.custom_format[cols.drop_ratio.label] = partial(self._format_ratio, 2)
         for c in cols.prestige, cols.country, cols.name:
             self.table.custom_format[c.label] = self._format_min_max
 
@@ -300,12 +300,12 @@ class Output:
             v_str = f'{v[0]}{v[1]}'
         return self._format_min_max(_, (v_str, v[2], v[3]))
 
-    def _format_ratio(self, f: str, v: float | None) -> str:
+    def _format_ratio(self, precision: int, f: str, v: float | None) -> str:
         if v is None:
             return ''
 
         colored = self.settings.table.color
-        v_str = f'{v:.0%}'
+        v_str = f'{v:.{precision}%}'
         if (
             colored
             and f == self.settings.table.columns.drop_ratio.label

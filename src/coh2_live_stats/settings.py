@@ -164,7 +164,7 @@ class _ColumnDefaults(_Col, Enum):
     LEVEL = _Col('Lvl', align='r')
     PRESTIGE = _Col('XP', visible=False)
     WIN_RATIO = _Col('W%', align='r')
-    DROP_RATIO = _Col('D%', align='r')
+    DROP_RATIO = _Col('Drop%', align='r')
     TEAM = _Col('Team', align='c')
     TEAM_RANK = _Col('T_Rank', align='r')
     TEAM_LEVEL = _Col('T_Level', align='r')

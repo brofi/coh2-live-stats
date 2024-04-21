@@ -1,7 +1,7 @@
 # Configuration file for CoH2LiveStats
 #
-# Generated 2024-04-08T13:27:45+02:00
-# Version 1.9.1.dev63+gc527dfa.d20240408
+# Generated 2024-04-21T21:29:05+02:00
+# Version 1.9.1.dev91+g1da2c55.d20240420
 #
 # Valid config locations:
 #     * %USERPROFILE%
@@ -100,7 +100,7 @@ pos = 0
 
 
 [table.columns.drop_ratio]
-label = "D%"
+label = "Drop%"
 visible = true
 align = "r"
 pos = 0

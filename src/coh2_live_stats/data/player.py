@@ -84,12 +84,12 @@ class Player:
         return self.wins + self.losses
 
     @property
-    def win_ratio(self) -> float:
+    def win_ratio(self) -> float | None:
         """Player's wins relative to the number of played games."""
         return ratio(self.wins, self.num_games)
 
     @property
-    def drop_ratio(self) -> float:
+    def drop_ratio(self) -> float | None:
         """Player's drops relative to the number of played games."""
         return ratio(self.drops, self.num_games)
 

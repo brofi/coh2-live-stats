@@ -234,6 +234,27 @@ class Output:
 
         return row
 
+    def _has_average_row_label(self) -> bool:
+        cols = self.settings.table.columns
+        return (
+            (
+                cols.rank.label in self.table.field_names
+                and self._get_column_index(cols.rank) > 0
+                and cols.level.label not in self.table.field_names
+            )
+            or (
+                cols.level.label in self.table.field_names
+                and self._get_column_index(cols.level) > 0
+                and cols.rank.label not in self.table.field_names
+            )
+            or (
+                cols.rank.label in self.table.field_names
+                and cols.level.label in self.table.field_names
+                and self._get_column_index(cols.rank) > 0
+                and self._get_column_index(cols.level) > 0
+            )
+        )
+
     def _create_average_row(
         self, match: Match, party: Party, party_index: int
     ) -> list[SupportsStr]:
@@ -255,10 +276,7 @@ class Output:
             (avg_rank_level_prefix, party.avg_estimated_rank_level, False, False),
         )
 
-        if (
-            self._get_column_index(cols.rank) != 0
-            and self._get_column_index(cols.level) != 0
-        ):
+        if self._has_average_row_label():
             avg_row[0] = 'Avg'
 
         return avg_row

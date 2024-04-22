@@ -300,8 +300,8 @@ class Output:
             v_str = f'{v[0]}{v[1]}'
         return self._format_min_max(_, (v_str, v[2], v[3]))
 
-    def _format_ratio(self, precision: int, f: str, v: float | None) -> str:
-        if v is None:
+    def _format_ratio(self, precision: int, f: str, v: float | Empty) -> str:
+        if not isinstance(v, float):
             return ''
 
         colored = self.settings.table.color

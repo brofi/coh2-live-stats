@@ -18,7 +18,7 @@
 import asyncio
 import logging
 from functools import partial
-from typing import Any, Literal, Protocol, override
+from typing import Any, Final, Literal, Protocol, override
 
 from prettytable import PrettyTable
 from prettytable.colortable import ColorTable, Theme
@@ -49,6 +49,9 @@ class Output:
 
     Uses a ``PrettyTable`` to format the data. Heavily relies on user configuration.
     """
+
+    ERR_NO_MATCH: Final[str] = 'Waiting for match...'
+    ERR_NO_COLUMNS: Final[str] = 'No table columns to print.'
 
     def __init__(self, settings: Settings) -> None:
         """Initialize Output.
@@ -110,9 +113,10 @@ class Output:
 
     def _set_column(self, row: list[SupportsStr], col: Any, val: SupportsStr) -> None:  # noqa: ANN401
         if col.visible:
-            row[self._get_column_index(col)] = val
+            row[self.get_column_index(col)] = val
 
-    def _get_column_index(self, col: Any) -> int:  # noqa: ANN401
+    def get_column_index(self, col: Any) -> int:  # noqa: ANN401
+        """Return the index into ``PrettyTable`` field names for a given column."""
         return self.table.field_names.index(col.label)
 
     def print_match(self, players: list[Player]) -> None:
@@ -123,12 +127,40 @@ class Output:
         self._clear()
 
         if not players:
-            print('Waiting for match...')
+            print(Output.ERR_NO_MATCH)
             return
 
+        self.init_table(players)
+        table = self.table_string()
+        if table:
+            print(table)
+        else:
+            LOG.warning(Output.ERR_NO_COLUMNS)
+
+    def table_string(self) -> str:
+        """Return string representation of output table."""
+        if len(self.table.field_names) > 0:
+            if self.settings.table.color:
+                return self._custom_header_table()
+            return self.table.get_string()
+        return ''
+
+    def _custom_header_table(self) -> str:
+        # Unfortunately there is no custom header format and altering field
+        # names directly would mess with everything that needs them (e.g.
+        # formatting).
+        table_lines = self.table.get_string().splitlines(keepends=True)
+        i = int(self.settings.table.border)
+        for h in self.table.field_names:
+            header = ' ' * self.table.padding_width + h + ' ' * self.table.padding_width
+            color_header = self.settings.table.colors.label.colorize(header)
+            table_lines[i] = table_lines[i].replace(header, color_header)
+        return ''.join(table_lines)
+
+    def init_table(self, players: list[Player]) -> None:
+        """Initialize output table with match data."""
         match = Match(players)
         self._set_field_names()
-        cols = self.settings.table.columns
         for party_index, party in enumerate(match.parties):
             for player_index, player in enumerate(party.players):
                 row = self._create_player_row(party, player)
@@ -140,40 +172,24 @@ class Output:
                 )
                 self.table.add_row(row, divider=player_index == party.size - 1)
 
-            if (
-                self.settings.table.show_average
-                and (cols.rank.visible or cols.level.visible)
-                and len([p for p in party.players if p.relic_id > 0]) > 1
-            ):
+            if self.has_average_row(party):
                 avg_row = self._create_average_row(match, party, party_index)
                 LOG.info('Add average row: %s', avg_row)
                 self.table.add_row(avg_row, divider=True)
 
-        if not self.settings.table.always_show_team and not match.has_pre_made_teams:
-            for col in cols.team, cols.team_rank, cols.team_level:
-                if col.visible:
-                    LOG.info('Deleting column %r', col.label)
-                    self.table.del_column(col.label)
+        if not self.has_team_columns(match):
+            self._remove_team_columns()
 
-        if len(self.table.field_names) > 0:
-            if self.settings.table.color:
-                self._print_custom_header_table()
-            else:
-                print(self.table)
-        else:
-            LOG.warning('No table columns to print.')
+    def has_team_columns(self, match: Match) -> bool:
+        """Whether to include columns for the team, team rank and team level."""
+        return self.settings.table.always_show_team or match.has_pre_made_teams
 
-    def _print_custom_header_table(self) -> None:
-        # Unfortunately there is no custom header format and altering field
-        # names directly would mess with everything that needs them (e.g.
-        # formatting).
-        table_lines = self.table.get_string().splitlines(keepends=True)
-        i = int(self.settings.table.border)
-        for h in self.table.field_names:
-            header = ' ' * self.table.padding_width + h + ' ' * self.table.padding_width
-            color_header = self.settings.table.colors.label.colorize(header)
-            table_lines[i] = table_lines[i].replace(header, color_header)
-        print(''.join(table_lines))
+    def _remove_team_columns(self) -> None:
+        cols = self.settings.table.columns
+        for col in cols.team, cols.team_rank, cols.team_level:
+            if col.visible:
+                LOG.info('Deleting column %r', col.label)
+                self.table.del_column(col.label)
 
     def _create_player_row(self, party: Party, player: Player) -> list[SupportsStr]:
         cols = self.settings.table.columns
@@ -234,24 +250,33 @@ class Output:
 
         return row
 
+    def has_average_row(self, party: Party) -> bool:
+        """Whether an average row should be created for the given ``Party``."""
+        cols = self.settings.table.columns
+        return (
+            self.settings.table.show_average
+            and (cols.rank.visible or cols.level.visible)
+            and len([p for p in party.players if p.relic_id > 0]) > 1
+        )
+
     def _has_average_row_label(self) -> bool:
         cols = self.settings.table.columns
         return (
             (
                 cols.rank.label in self.table.field_names
-                and self._get_column_index(cols.rank) > 0
+                and self.get_column_index(cols.rank) > 0
                 and cols.level.label not in self.table.field_names
             )
             or (
                 cols.level.label in self.table.field_names
-                and self._get_column_index(cols.level) > 0
+                and self.get_column_index(cols.level) > 0
                 and cols.rank.label not in self.table.field_names
             )
             or (
                 cols.rank.label in self.table.field_names
                 and cols.level.label in self.table.field_names
-                and self._get_column_index(cols.rank) > 0
-                and self._get_column_index(cols.level) > 0
+                and self.get_column_index(cols.rank) > 0
+                and self.get_column_index(cols.level) > 0
             )
         )
 

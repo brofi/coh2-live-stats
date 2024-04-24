@@ -119,12 +119,14 @@ class Player:
             return '+', self.highest_rank, self.highest_rank_level
         if avg_relative_rank > 0:
             avg_rank = round(avg_relative_rank * self.rank_total)
-            return '?', avg_rank, self._rank_level_from_rank(avg_rank)
+            return '?', avg_rank, self.rank_level_from_rank(avg_rank, self.rank_total)
         avg_rank = round(self.rank_total / 2)
-        return '?', avg_rank, self._rank_level_from_rank(avg_rank)
+        return '?', avg_rank, self.rank_level_from_rank(avg_rank, self.rank_total)
 
-    def _rank_level_from_rank(self, rank: int) -> int:
-        if rank <= 0 or self.rank_total <= 0:
+    @staticmethod
+    def rank_level_from_rank(rank: int, rank_total: int) -> int:
+        """Calculate the corresponding level for the given rank."""
+        if rank <= 0 or rank_total <= 0:
             return -1
 
         lvl = 0
@@ -140,11 +142,11 @@ class Player:
             lvl = 16
         else:  # build and search the rest of the ranking
             ratio_lvl_1_14 = [6, 8, 6, 5] + 3 * [10] + 2 * [7] + [6] + 4 * [5]
-            n_top_200 = min(200, self.rank_total)
-            remain = self.rank_total - n_top_200
+            n_top_200 = min(200, rank_total)
+            remain = rank_total - n_top_200
             ranking = []
             for r in ratio_lvl_1_14:
-                n = min(round(self.rank_total * (r / 100)), max(0, remain))
+                n = min(round(rank_total * (r / 100)), max(0, remain))
                 ranking.append(remain + n_top_200)
                 remain -= n
             while lvl < len(ranking) and rank <= ranking[lvl]:

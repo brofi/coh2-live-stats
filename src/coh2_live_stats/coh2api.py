@@ -109,23 +109,23 @@ class CoH2API:
         """
         self.http_client = AsyncClient()
         self.timeout = timeout
-        self.leaderboards: Leaderboard = {
-            **{
-                self._get_solo_leaderboard_id(m, f): {
-                    self.KEY_LEADERBOARD_NAME: f'{m}_{f.name}'
-                }
-                for m in _SoloMatchType
-                if m != _SoloMatchType.CUSTOM
-                for f in Faction
-            },
-            **{
-                self._get_team_leaderboard_id(m, t): {
-                    self.KEY_LEADERBOARD_NAME: f'Team_of_{m.value + 2}_{t.name.capitalize()}'
-                }
-                for m in _TeamMatchType
-                for t in TeamFaction
-            },
+        self.solo_leaderboards: Leaderboard = {
+            self.get_solo_leaderboard_id(m, f): {
+                self.KEY_LEADERBOARD_NAME: f'{m}_{f.name}'
+            }
+            for m in _SoloMatchType
+            if m != _SoloMatchType.CUSTOM
+            for f in Faction
         }
+        self.team_leaderboards: Leaderboard = {
+            self.get_team_leaderboard_id(m, t): {
+                self.KEY_LEADERBOARD_NAME: f'Team_of_{m.value + 2}_{t.name.capitalize()}'
+            }
+            for m in _TeamMatchType
+            for t in TeamFaction
+        }
+        self.leaderboards: Leaderboard = self.solo_leaderboards | self.team_leaderboards
+
         LOG.info('Initialized %s[timeout=%d]', cls_name(self), self.timeout)
 
     async def get_players(self, players: list[Player]) -> list[Player]:
@@ -147,7 +147,7 @@ class CoH2API:
     def _init_player(
         self, player: Player, num_players: int, json: dict[str, Any]
     ) -> Player:
-        leaderboard_id = self._get_solo_leaderboard_id(
+        leaderboard_id = self.get_solo_leaderboard_id(
             _SoloMatchType(num_players // 2), player.faction
         )
         self._set_player_stats_from_json(player, leaderboard_id, json)
@@ -158,19 +158,38 @@ class CoH2API:
         return player
 
     @staticmethod
-    def _get_solo_leaderboard_id(__m: _SoloMatchType, __f: Faction) -> int:
+    def get_solo_leaderboard_id(__m: _SoloMatchType, __f: Faction) -> int:
+        """Relic leaderboard ID for games played solo.
+
+        :param __m: type of the match played
+        :param __f: faction the match is played with
+        :return: leaderboard ID
+        """
         if __m == _SoloMatchType.CUSTOM:
             return 50 if __f == Faction.UK else __f.id
         return 50 + __m if __f == Faction.UK else __m * 4 + __f.id
 
     @staticmethod
-    def _get_team_leaderboard_id(__m: _TeamMatchType, __t: TeamFaction) -> int:
+    def get_team_leaderboard_id(__m: _TeamMatchType, __t: TeamFaction) -> int:
+        """Relic leaderboard ID for team games.
+
+        :param __m: type of the match played
+        :param __t: team faction the match is played for
+        :return: leaderboard ID
+        """
         return 20 + __m * 2 + __t
 
     @staticmethod
-    def _get_ai_leaderboard_id(
+    def get_ai_leaderboard_id(
         __m: _TeamMatchType, __d: _Difficulty, __t: TeamFaction
     ) -> int:
+        """Relic leaderboard ID for AI games.
+
+        :param __m: type of the match played
+        :param __d: difficulty of the match played
+        :param __t: team faction the match is played for
+        :return: leaderboard ID
+        """
         return 26 + __m * 8 + __d * 2 + __t
 
     @staticmethod
@@ -224,7 +243,7 @@ class CoH2API:
             for m in g['members']:
                 t.members.append(m['profile_id'])
             for s in json['leaderboardStats']:
-                lid = self._get_team_leaderboard_id(
+                lid = self.get_team_leaderboard_id(
                     _TeamMatchType(g['type'] - 2), player.team_faction
                 )
                 if s['statgroup_id'] == t.id and s['leaderboard_id'] == lid:
@@ -248,18 +267,23 @@ class CoH2API:
 
     async def init_leaderboards(self) -> None:
         """Initialize CoH2 leaderboards with their total amount of ranked players."""
-        LOG.info('GET leaderboards: %s', list(self.leaderboards.keys()))
+        LOG.info('GET leaderboards: %s', list(self.leaderboards))
         r = await asyncio.gather(
             *(self._get_leaderboard(_id) for _id in self.leaderboards)
         )
         if r:
-            for i, _id in enumerate(self.leaderboards.keys()):
+            for i, _id in enumerate(self.leaderboards):
                 self.leaderboards[_id][self.KEY_LEADERBOARD_RANK_TOTAL] = r[i][
                     'rankTotal'
                 ]
         LOG.info('Initialized leaderboards: %s', self.leaderboards)
 
-    async def _get_leaderboards(self) -> dict[str, Any]:
+    async def get_leaderboards(self) -> dict[str, Any]:
+        """Get leaderboard data for all available CoH2 leaderboards.
+
+        Includes match types, races, factions and leaderboard regions as defined by
+        Relic.
+        """
         r = await self.http_client.get(
             self.URL_LEADERBOARDS, params={'title': 'coh2'}, timeout=self.timeout
         )

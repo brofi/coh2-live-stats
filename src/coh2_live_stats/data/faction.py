@@ -15,6 +15,8 @@
 
 """Faction and TeamFaction."""
 
+from __future__ import annotations
+
 from enum import Enum, IntEnum
 from typing import Self, override
 
@@ -50,12 +52,31 @@ class Faction(Enum):
     @property
     def is_axis_faction(self) -> bool:
         """Whether this faction is an Axis faction."""
-        return self in {Faction.WM, Faction.OKW}
+        return self in self.axis_factions()
 
     @property
     def is_allies_faction(self) -> bool:
         """Whether this faction is an Allies faction."""
-        return self in {Faction.SU, Faction.US, Faction.UK}
+        return self in self.allies_factions()
+
+    @staticmethod
+    def allies_factions() -> list[Faction]:
+        """Allies factions."""
+        return [Faction.SU, Faction.US, Faction.UK]
+
+    @staticmethod
+    def axis_factions() -> list[Faction]:
+        """Axis factions."""
+        return [Faction.WM, Faction.OKW]
+
+    @classmethod
+    def from_team_faction(cls, team_faction: TeamFaction) -> list[Faction]:
+        """Get factions belonging to given team faction."""
+        return (
+            cls.axis_factions()
+            if team_faction == TeamFaction.AXIS
+            else cls.allies_factions()
+        )
 
     @classmethod
     def from_log(cls, faction_name: str) -> Self:

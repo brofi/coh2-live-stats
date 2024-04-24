@@ -41,6 +41,9 @@ LOG = logging.getLogger('coh2_live_stats_build')
 LOG.setLevel(logging.INFO)
 _logging.start()
 
+logging.getLogger('PyInstaller').setLevel(logging.INFO)
+logging.getLogger('PyInstaller.__main__').setLevel(logging.INFO)
+
 
 @task
 def _stop_logging(_: Context) -> None:

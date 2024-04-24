@@ -23,8 +23,23 @@ from pathlib import Path
 from shutil import rmtree
 from typing import Any
 
-from coh2_live_stats.logging_conf import LoggingConf
 from invoke import Collection, Context, Result, task
+
+try:
+    from coh2_live_stats.logging_conf import LoggingConf
+except ImportError:
+    LoggingConf = None
+
+try:
+    from scripts import settings_generator
+except ImportError:
+    settings_generator = None
+
+try:
+    from scripts import pyinstaller_setup
+except ImportError:
+    pyinstaller_setup = None
+
 
 Package = dict[str, str]
 
@@ -36,10 +51,13 @@ _pytest_cmd = [*_pycmd, 'pytest', '--verbose', '--no-header', '--no-summary', '-
 _build_dir = Path(__file__).with_name('build')
 _dist_dir = Path(__file__).with_name('dist')
 
-_logging = LoggingConf(Path('build.log'), stdout=True)
+_logging = None
+if LoggingConf is not None:
+    _logging = LoggingConf(Path('build.log'), stdout=True)
+    _logging.start()
+
 LOG = logging.getLogger('coh2_live_stats_build')
 LOG.setLevel(logging.INFO)
-_logging.start()
 
 logging.getLogger('PyInstaller').setLevel(logging.INFO)
 logging.getLogger('PyInstaller.__main__').setLevel(logging.INFO)
@@ -47,7 +65,8 @@ logging.getLogger('PyInstaller.__main__').setLevel(logging.INFO)
 
 @task
 def _stop_logging(_: Context) -> None:
-    _logging.stop()
+    if _logging is not None:
+        _logging.stop()
 
 
 def _run(c: Context, *args: str, **kwargs: Any) -> Result | None:  # noqa: ANN401
@@ -97,7 +116,7 @@ def _install_editable(c: Context, *, force: bool = False, dev: bool = False) -> 
     if force:
         cmd += ['--force-reinstall']
     cmd += ['-e .[build,dev]'] if dev else ['-e .']
-    return _success(_run(c, *cmd))
+    return _success(_run(c, *cmd, hide=False))
 
 
 def _clean() -> bool:
@@ -120,9 +139,6 @@ def _clean() -> bool:
 )
 def build(c: Context, *, clean: bool = False, pyinstaller_only: bool = False) -> None:
     """Build wheel and source distribution."""
-    # Don't fail install on first time setup
-    from scripts import pyinstaller_setup, settings_generator  # noqa: PLC0415
-
     if clean:
         _clean()
         return
@@ -132,10 +148,12 @@ def build(c: Context, *, clean: bool = False, pyinstaller_only: bool = False) ->
         LOG.error('Failed to run tests. Run pytest for more info.')
         return
 
-    settings_generator.default()
+    if settings_generator is not None:
+        settings_generator.default()
     if not pyinstaller_only:
         _run(c, *_pycmd, 'build', hide=False)
-    pyinstaller_setup.bundle()
+    if pyinstaller_setup is not None:
+        pyinstaller_setup.bundle()
 
 
 @task(

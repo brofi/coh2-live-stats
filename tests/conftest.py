@@ -13,11 +13,8 @@
 #  You should have received a copy of the GNU General Public License along with
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
-import asyncio
-from asyncio import AbstractEventLoop
-from collections.abc import Generator
 from random import choice, randint, sample
-from typing import Any, Final
+from typing import Final
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
@@ -30,21 +27,6 @@ MIN_XP: Final[int] = 0
 MAX_XP: Final[int] = 18785964
 MIN_XP_LEVEL: Final[int] = 1
 MAX_XP_LEVEL: Final[int] = 300
-
-
-@pytest.fixture(scope='session')
-def event_loop() -> Generator[AbstractEventLoop, Any, None]:
-    """Redefines the pytest-asyncio event_loop fixture with a broader scope.
-
-    Also needed when using ``@pytest_asyncio.fixture`` with a broader scope than
-    `function`. See docs:
-    `respx <https://lundberg.github.io/respx/examples/#custom-fixtures/>`_,
-    `pytest-asyncio
-    <https://pytest-asyncio.readthedocs.io/en/latest/reference/decorators/index.html>`_.
-    """
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest.fixture

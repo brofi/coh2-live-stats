@@ -88,14 +88,14 @@ def test_initial_parse(queue: Queue) -> None:
     assert queue.qsize() == 1
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope='module')
 async def test_initial_parse_empty(queue: Queue) -> None:
     log_info: LogInfo = await queue.get()
     queue.task_done()
     assert log_info == LogInfo([], is_new_match=False, is_multiplayer_match=False)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope='module')
 @pytest.mark.usefixtures('_equality')
 async def test_parse_new_match(
     queue: Queue, logfile: Path, now: str, players1: list[Player]
@@ -106,7 +106,7 @@ async def test_parse_new_match(
     assert log_info == LogInfo(players1, is_new_match=True, is_multiplayer_match=False)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope='module')
 @pytest.mark.usefixtures('_equality')
 async def test_parse_next_match(
     queue: Queue, logfile: Path, now: str, players2: list[Player]
@@ -117,7 +117,7 @@ async def test_parse_next_match(
     assert log_info == LogInfo(players2, is_new_match=True, is_multiplayer_match=False)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope='module')
 @pytest.mark.usefixtures('_equality', '_log_playing')
 async def test_parse_now_playing_match(queue: Queue, players2: list[Player]) -> None:
     log_info: LogInfo = await queue.get()

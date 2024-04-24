@@ -600,7 +600,7 @@ async def api() -> AsyncGenerator[CoH2API, Any]:
     await api.close()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope='module')
 async def test_init_leaderboard(
     mocked_api: MockRouter,  # noqa: ARG001
     api: CoH2API,
@@ -750,7 +750,7 @@ def _leaderboard_stats_json(
     }
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope='module')
 @pytest.mark.usefixtures('_equality')
 async def test_get_players(
     mocked_api: MockRouter,  # noqa: ARG001

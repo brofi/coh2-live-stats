@@ -9,8 +9,9 @@ src/coh2_live_stats.egg-info/
 ## pyinstaller build
 build/
 CoH2LiveStats.spec
-## setuptools-scm
+## generated
 version.py
+_coh2livestats.toml
 #logs
 coh2livestats.log*
 build.log*

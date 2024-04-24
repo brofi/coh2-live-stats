@@ -86,7 +86,7 @@ class LogFileEventHandler(FileSystemEventHandler):
         self.loop = loop
         self.logfile = logfile
         self._last_hash = ''
-        self._last_player_line = 0
+        self._last_player_line = -1
         LOG.info('Initialized %s(%s)', cls_name(self), cls_name_parent(self))
         self._produce()  # kickstart
 

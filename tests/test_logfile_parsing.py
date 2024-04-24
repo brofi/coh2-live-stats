@@ -92,7 +92,7 @@ def test_initial_parse(queue: Queue) -> None:
 async def test_initial_parse_empty(queue: Queue) -> None:
     log_info: LogInfo = await queue.get()
     queue.task_done()
-    assert log_info == LogInfo([], is_new_match=False, is_multiplayer_match=False)
+    assert log_info == LogInfo([], is_new_match=True, is_multiplayer_match=False)
 
 
 @pytest.mark.asyncio(scope='module')

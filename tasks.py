@@ -31,6 +31,7 @@ Package = dict[str, str]
 _pkg = 'coh2_live_stats'
 _pycmd = [sys.executable, '-m']
 _pipcmd = [*_pycmd, 'pip', '--isolated', '--require-virtualenv']
+_pytest_cmd = [*_pycmd, 'pytest', '--verbose', '--no-header', '--no-summary', '--tb=no']
 
 _build_dir = Path(__file__).with_name('build')
 _dist_dir = Path(__file__).with_name('dist')
@@ -121,6 +122,11 @@ def build(c: Context, *, clean: bool = False, pyinstaller_only: bool = False) ->
 
     if clean:
         _clean()
+        return
+
+    res = _run(c, *_pytest_cmd, hide=False, warn=True)
+    if res is None or res.return_code > 0:
+        LOG.error('Failed to run tests. Run pytest for more info.')
         return
 
     settings_generator.default()

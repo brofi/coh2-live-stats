@@ -45,7 +45,7 @@ class Color(IntEnum):
 
     @override
     def __repr__(self) -> str:
-        return cls_name(self)
+        return f'{cls_name(self)}.{self.name}'
 
     @override
     def __str__(self) -> str:

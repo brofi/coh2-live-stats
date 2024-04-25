@@ -132,12 +132,9 @@ def _clean() -> bool:
 @task(
     pre=[_activate],
     post=[_stop_logging],
-    help={
-        'clean': 'Remove build and distribution directories',
-        'pyinstaller_only': 'Skip setuptools build.',
-    },
+    help={'clean': 'Remove build and distribution directories'},
 )
-def build(c: Context, *, clean: bool = False, pyinstaller_only: bool = False) -> None:
+def build(c: Context, *, clean: bool = False) -> None:
     """Build wheel and source distribution."""
     if clean:
         _clean()
@@ -150,8 +147,9 @@ def build(c: Context, *, clean: bool = False, pyinstaller_only: bool = False) ->
 
     if settings_generator is not None:
         settings_generator.default()
-    if not pyinstaller_only:
-        _run(c, *_pycmd, 'build', hide=False)
+
+    _run(c, *_pycmd, 'build', hide=False)
+
     if pyinstaller_setup is not None:
         pyinstaller_setup.bundle()
 

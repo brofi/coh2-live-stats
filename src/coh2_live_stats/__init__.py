@@ -14,8 +14,3 @@
 #  CoH2LiveStats. If not, see <https://www.gnu.org/licenses/>.
 
 """Main package."""
-
-from coh2_live_stats.version import version, version_tuple
-
-__version__ = version
-__version_tuple__ = version_tuple

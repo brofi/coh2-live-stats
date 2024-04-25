@@ -22,10 +22,8 @@ used as comments.
 """
 
 from collections.abc import Sequence
-from datetime import datetime
 from typing import get_args
 
-from coh2_live_stats import __version__
 from coh2_live_stats.data.color import Color
 from coh2_live_stats.settings import (
     CONFIG_FILE_DEV,
@@ -65,9 +63,6 @@ def _list_inline(__s: Sequence[str]) -> str:
 
 
 header_comment = f"""Configuration file for CoH2LiveStats
-
-Generated {datetime.now().astimezone().isoformat(timespec='seconds')}
-Version {__version__}
 
 Valid config locations:
 {_list_multi(CONFIG_PATHS[:-1])}

@@ -19,7 +19,6 @@ import shutil
 from pathlib import Path
 
 import PyInstaller.__main__
-from coh2_live_stats import __version__, __version_tuple__
 from coh2_live_stats.logging_conf import LoggingConf
 from coh2_live_stats.settings import CONFIG_FILE_DEV
 
@@ -45,51 +44,48 @@ module_path = content_root.joinpath('src', 'coh2_live_stats')
 res_path = module_path.joinpath('res')
 version_file = build_path.joinpath('file_version_info.txt')
 
-ffi_version = (
-    *tuple(
-        int(__version_tuple__[i]) if isinstance(__version_tuple__[i], int) else 0
-        for i in (0, 1, 2)
-    ),
-    0,
-)
-# see: https://learn.microsoft.com/en-us/windows/win32/menurc/vs-versioninfo
-version_info = VSVersionInfo(
-    # see:
-    # https://learn.microsoft.com/en-us/windows/win32/api/VerRsrc/ns-verrsrc-vs_fixedfileinfo
-    ffi=FixedFileInfo(filevers=ffi_version, prodvers=ffi_version, date=(0, 0)),
-    kids=[
-        # see: https://learn.microsoft.com/en-us/windows/win32/menurc/stringfileinfo
-        StringFileInfo(
-            [
-                # see (szKey, Children):
-                # https://learn.microsoft.com/en-us/windows/win32/menurc/stringtable
-                StringTable(
-                    '040904b0',  # Change with Translation (1200_10 = 04b0_16)
-                    # see (szKey, Value):
-                    # https://learn.microsoft.com/en-us/windows/win32/menurc/string-str
-                    [
-                        StringStruct('CompanyName', ''),
-                        StringStruct('FileDescription', app_name),
-                        StringStruct('FileVersion', __version__),
-                        StringStruct('InternalName', exec_name),
-                        StringStruct(
-                            'LegalCopyright', 'Copyright (C) 2024 Andreas Becker.'
-                        ),
-                        StringStruct('OriginalFilename', exec_name),
-                        StringStruct('ProductName', app_name),
-                        StringStruct('ProductVersion', __version__),
-                    ],
-                )
-            ]
-        ),
-        # see: https://learn.microsoft.com/en-us/windows/win32/menurc/varfileinfo-block
-        VarFileInfo([VarStruct('Translation', [0x0409, 1200])]),
-    ],
-)
-
 
 def bundle() -> None:
     """Create a one-folder bundle of *coh2_live_stats* using *PyInstaller*."""
+    from coh2_live_stats.version import version, version_tuple  # noqa: PLC0415
+
+    ffi_version = (*tuple(x if isinstance(x, int) else 0 for x in version_tuple[:3]), 0)
+    # see: https://learn.microsoft.com/en-us/windows/win32/menurc/vs-versioninfo
+    version_info = VSVersionInfo(
+        # see:
+        # https://learn.microsoft.com/en-us/windows/win32/api/VerRsrc/ns-verrsrc-vs_fixedfileinfo
+        ffi=FixedFileInfo(filevers=ffi_version, prodvers=ffi_version, date=(0, 0)),
+        kids=[
+            # see: https://learn.microsoft.com/en-us/windows/win32/menurc/stringfileinfo
+            StringFileInfo(
+                [
+                    # see (szKey, Children):
+                    # https://learn.microsoft.com/en-us/windows/win32/menurc/stringtable
+                    StringTable(
+                        '040904b0',  # Change with Translation (1200_10 = 04b0_16)
+                        # see (szKey, Value):
+                        # https://learn.microsoft.com/en-us/windows/win32/menurc/string-str
+                        [
+                            StringStruct('CompanyName', ''),
+                            StringStruct('FileDescription', app_name),
+                            StringStruct('FileVersion', version),
+                            StringStruct('InternalName', exec_name),
+                            StringStruct(
+                                'LegalCopyright', 'Copyright (C) 2024 Andreas Becker.'
+                            ),
+                            StringStruct('OriginalFilename', exec_name),
+                            StringStruct('ProductName', app_name),
+                            StringStruct('ProductVersion', version),
+                        ],
+                    )
+                ]
+            ),
+            # see:
+            # https://learn.microsoft.com/en-us/windows/win32/menurc/varfileinfo-block
+            VarFileInfo([VarStruct('Translation', [0x0409, 1200])]),
+        ],
+    )
+
     build_path.mkdir(exist_ok=True)
     version_file.write_text(str(version_info))
 
@@ -136,7 +132,12 @@ def bundle() -> None:
     )
 
     # Create distribution archive
-    shutil.make_archive(str(app_path), 'zip', dist_path, app_name)
+    shutil.make_archive(
+        str(dist_path.joinpath(f'{app_name}-bundle-{version}')),
+        'zip',
+        dist_path,
+        app_name,
+    )
 
 
 if __name__ == '__main__':

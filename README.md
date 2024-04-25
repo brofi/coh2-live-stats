@@ -1,4 +1,6 @@
-# CoH2LiveStats
+# CoH2 Live Stats
+
+Show match stats of a currently played, replayed or last played Company of Heroes 2 match.
 
 ## Development
 

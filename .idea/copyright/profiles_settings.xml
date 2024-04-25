@@ -1,8 +1,0 @@
-<component name="CopyrightManager">
-  <settings default="GPL3">
-    <LanguageOptions name="Python">
-      <option name="fileTypeOverride" value="3" />
-      <option name="block" value="false" />
-    </LanguageOptions>
-  </settings>
-</component>

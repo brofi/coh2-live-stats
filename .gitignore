@@ -1,5 +1,5 @@
 # PyCharm
-.idea/workspace.xml
+.idea/
 # virtual environment
 venv/
 # build

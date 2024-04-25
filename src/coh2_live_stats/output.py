@@ -197,9 +197,12 @@ class Output:
 
         self._set_column(row, cols.faction, player.faction)
 
-        is_high_low_lvl_player = (
-            player.is_ranked and player.relative_rank <= party.min_relative_rank,
-            player.is_ranked and player.relative_rank >= party.max_relative_rank,
+        is_high_low_lvl_player = tuple(
+            party.size > 1 and player.is_ranked and cond
+            for cond in (
+                player.relative_rank <= party.min_relative_rank,
+                player.relative_rank >= party.max_relative_rank,
+            )
         )
 
         rank_estimate = party.rank_estimates[player.relic_id]

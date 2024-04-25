@@ -123,10 +123,8 @@ class Party:
             self._add_player_pre_made_teams(p, player_ids)
             if p.is_ranked:
                 relative_ranks.append(p.relative_rank)
-                if p.relative_rank < self.min_relative_rank:
-                    self.min_relative_rank = p.relative_rank
-                if p.relative_rank > self.max_relative_rank:
-                    self.max_relative_rank = p.relative_rank
+                self.min_relative_rank = min(self.min_relative_rank, p.relative_rank)
+                self.max_relative_rank = max(self.max_relative_rank, p.relative_rank)
 
         avg_relative_rank = (
             sum(relative_ranks) / len(relative_ranks) if relative_ranks else 0.0
@@ -167,8 +165,9 @@ class Party:
             is_pre_made_team = all(member in player_ids for member in team.members)
             if is_pre_made_team:
                 pre_made_team_size = len(team.members)
-                if pre_made_team_size > max_player_pre_made_team_size:
-                    max_player_pre_made_team_size = pre_made_team_size
+                max_player_pre_made_team_size = max(
+                    max_player_pre_made_team_size, pre_made_team_size
+                )
                 player_pre_made_teams.append(team)
         for team in player_pre_made_teams:
             if len(team.members) >= max_player_pre_made_team_size:

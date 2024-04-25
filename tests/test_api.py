@@ -726,7 +726,7 @@ def _leaderboard_stats_json(
     from_date = datetime.datetime(2013, 6, 25, tzinfo=datetime.UTC)
     to_date = datetime.datetime(today.year, today.month, today.day, tzinfo=datetime.UTC)
     if rank == -1:
-        to_date = to_date - datetime.timedelta(days=14)
+        to_date -= datetime.timedelta(days=14)
     last_match_date = random.randint(
         int(from_date.timestamp()), int(to_date.timestamp())
     )

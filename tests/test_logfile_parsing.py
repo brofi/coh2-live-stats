@@ -39,7 +39,7 @@ def logfile() -> Generator[Path, Any, None]:
 
 
 @pytest_asyncio.fixture(scope='module')
-async def queue(logfile: Path) -> AsyncGenerator[Queue, Any]:
+async def queue(logfile: Path) -> AsyncGenerator[Queue, Any]:  # noqa: RUF029 (need loop)
     queue: Queue = Queue()
     observer = Observer()
     observer.schedule(

@@ -28,6 +28,7 @@ from pathlib import Path
 from sys import exit
 from typing import Any, override
 
+from colorama import just_fix_windows_console
 from httpx import HTTPStatusError, RequestError
 from pydantic import ValidationError
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
@@ -207,6 +208,7 @@ def _stop_logfile_observer(observer: BaseObserver) -> None:
 async def main() -> int:
     """Set up and run the *coh2_live_stats* main loop."""
     exit_status = 0
+    just_fix_windows_console()
 
     _logging = LoggingConf()
     _logging.start()

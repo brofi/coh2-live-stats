@@ -141,7 +141,7 @@ class _TableColors(BaseModel):
     border: _CT = Field(Color.BRIGHT_BLACK, description='Output table border color')
     label: _CT = Field(Color.BRIGHT_BLACK, description='Output table header color')
     player: _TableColorsPlayer = Field(
-        _TableColorsPlayer(), description='Player-specific color options'
+        _TableColorsPlayer(), description='Player-specific color settings'
     )
     faction: _TableColorsFaction = Field(
         _TableColorsFaction(), description='Faction colors'
@@ -156,34 +156,60 @@ class _Col(NamedTuple):
     visible: bool = True
     align: Align = 'l'
     pos: int = 0
+    description: str = ''
 
 
 class _ColumnDefaults(_Col, Enum):
-    FACTION = 'Fac'
-    RANK = _Col('Rank', align='r')
-    LEVEL = _Col('Lvl', align='r')
-    PRESTIGE = _Col('XP', visible=False)
-    WIN_RATIO = _Col('W%', align='r')
-    DROP_RATIO = _Col('Drop%', align='r')
-    TEAM = _Col('Team', align='c')
-    TEAM_RANK = _Col('T_Rank', align='r')
-    TEAM_LEVEL = _Col('T_Level', align='r')
-    STEAM_PROFILE = _Col('Profile', visible=False)
-    COUNTRY = 'Country'
-    NAME = 'Name'
+    FACTION = _Col('Fac', description='Player faction')
+    RANK = _Col(
+        'Rank',
+        align='r',
+        description='Leaderboard rank if the player currently has a rank or highest '
+        'known rank (indicator: +) if available or estimated rank (indicator: ?)',
+    )
+    LEVEL = _Col(
+        'Lvl', align='r', description='Rank level representing the leaderboard rank'
+    )
+    PRESTIGE = _Col('XP', visible=False, description='Experience expressed in stars')
+    WIN_RATIO = _Col('W%', align='r', description='Percentage of games won')
+    DROP_RATIO = _Col('Drop%', align='r', description='Percentage of games dropped')
+    TEAM = _Col(
+        'Team', align='c', description='The pre-made team the player is part of if any'
+    )
+    TEAM_RANK = _Col(
+        'T_Rank', align='r', description='The current rank of the pre-made team if any'
+    )
+    TEAM_LEVEL = _Col(
+        'T_Level',
+        align='r',
+        description='The current rank level of the pre-made team if any',
+    )
+    STEAM_PROFILE = _Col('Profile', visible=False, description='Steam profile URL')
+    COUNTRY = _Col('Country', description='Player country')
+    NAME = _Col('Name', description='Player name')
 
 
 def _create_columns_model() -> type[BaseModel]:
     field_definitions = {}
     for d in _ColumnDefaults:
+        col_name = d.name.lower()
         model_col = create_model(
             '_TableColumn',
-            label=(str, d.label),
-            visible=(bool, d.visible),
-            align=(Align, d.align),
-            pos=(int, d.pos),
+            label=(str, Field(d.label, description=f'`{col_name}` header')),
+            visible=(
+                bool,
+                Field(d.visible, description=f'Whether to show the `{col_name}`'),
+            ),
+            align=(Align, Field(d.align, description=f'`{col_name}` alignment')),
+            pos=(
+                int,
+                Field(
+                    d.pos, description=f'`{col_name}` position used for column ordering'
+                ),
+            ),
         )
-        field_definitions[d.name.lower()] = model_col, Field(model_col())
+        field_col = Field(model_col(), description=d.description)
+        field_definitions[col_name] = model_col, field_col
     return create_model('_TableColumns', **field_definitions)
 
 
@@ -226,11 +252,9 @@ class _Table(BaseModel):
         '~', description='Character to use for a half prestige level star'
     )
     colors: _TableColors = Field(
-        _TableColors(), description='Output table color options'
+        _TableColors(), description='Output table color settings'
     )
-    columns: _TableColumns = Field(
-        _TableColumns(), description='Output table column options'
-    )
+    columns: _TableColumns = Field(_TableColumns(), description='Output table columns')
 
 
 class _Notification(BaseModel):
@@ -265,9 +289,9 @@ class Settings(BaseSettings):
         'environment variables)',
     )
     notification: _Notification = Field(
-        _Notification(), description='Notification sound options'
+        _Notification(), description='Notification sound settings'
     )
-    table: _Table = Field(_Table(), description='Output table options')
+    table: _Table = Field(_Table(), description='Output table settings')
 
 
 class TomlSettings(Settings):

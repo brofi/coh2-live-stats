@@ -55,7 +55,7 @@ def players1() -> list[Player]:
         Player(3, 'Vincent Vega', 5, 1, Faction.US),
         Player(4, 'Travis Bickle', 6, 0, Faction.OKW),
         Player(5, 'Raoul Duke', 7, 1, Faction.SU),
-        Player(6, 'Hans Landa', 8, 0, Faction.WM),
+        Player(6, 'Hans Gruber', 8, 0, Faction.WM),
         Player(7, 'Tyler Durden', 9, 1, Faction.UK),
     ]
 

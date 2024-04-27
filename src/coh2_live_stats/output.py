@@ -375,7 +375,7 @@ class Output:
 
         v_str = str(v[0])
         colored = self.settings.table.color
-        if colored:
+        if colored and v[1] != v[2]:
             if v[1]:
                 v_str = self.settings.table.colors.player.high.colorize(v_str)
             if v[2]:

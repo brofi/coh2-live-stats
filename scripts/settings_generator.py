@@ -21,7 +21,6 @@ it without changing some values has no effect. *Pydantic* ``Field`` descriptions
 used as comments.
 """
 
-from collections.abc import Sequence
 from typing import get_args
 
 from coh2_live_stats.data.color import Color
@@ -37,51 +36,36 @@ from pydantic import BaseModel
 from tomlkit import TOMLDocument, comment, document, dumps, items, nl
 from tomlkit.items import AbstractTable, Comment, Trivia
 
+from scripts.script_util import bullet, list_inline, list_multi, list_single
 
-def _wrap(__s: str, __w: str = "'") -> str:
-    return f'{__w}{__s}{__w}'
+_NORMAL_COLORS = [
+    c.name.lower() for c in Color if Color.BLACK <= c.value <= Color.WHITE
+]
+_BRIGHT_COLORS = [
+    c.name.lower() for c in Color if Color.BRIGHT_BLACK <= c.value <= Color.BRIGHT_WHITE
+]
 
-
-def _bullet(__s: str, __c: str = '*', __indent: int = 4) -> str:
-    return f"{' ' * __indent}{__c} {__s}"
-
-
-def _list_multi(__seq: Sequence[str]) -> str:
-    return '\n'.join(map(_bullet, __seq))
-
-
-def _list_single(__seq: Sequence[str]) -> str:
-    return _bullet(_list_inline(__seq))
-
-
-def _list_inline(__s: Sequence[str]) -> str:
-    return (
-        ' or '.join((', '.join(_wrap(s) for s in __s[:-1]), _wrap(__s[-1])))
-        if len(__s) > 1
-        else str(__s)[1:-1]
-    )
-
-
-header_comment = f"""Configuration file for CoH2LiveStats
+_HEADER_COMMENT = f"""Configuration file for CoH2LiveStats
 
 Valid config locations:
-{_list_multi(CONFIG_PATHS[:-1])}
-{_bullet('Next to executable')}
+{list_multi(CONFIG_PATHS[:-1], 4)}
+{bullet('Next to executable', 4)}
 Valid config names:
-{_list_multi(CONFIG_NAMES)}
+{list_multi(CONFIG_NAMES, 4)}
 
 Valid colors:
-{_list_single([c.name.lower() for c in Color if Color.BLACK <= c.value <= Color.WHITE])}
-{_list_single([c.name.lower() for c in Color if Color.BRIGHT_BLACK <= c.value <= Color.BRIGHT_WHITE])}
+    {list_single(_NORMAL_COLORS)}
+    {list_single(_BRIGHT_COLORS)}
 
 Valid sound values:
-{_list_single(get_args(Sound))}
-{_bullet('Path to custom WAV file')}
+    {list_single(get_args(Sound))}
+    {bullet('Path to custom WAV file')}
 
-Valid alignment values: {_list_inline(get_args(Align))}
+Valid alignment values: {list_inline(get_args(Align))}
 
 Notes:
-{_bullet('CJK characters can distort table (table.border = false and name column last is recommended)')}"""
+    {bullet('CJK characters can distort table (table.border = false and name column '
+            'last is recommended)')}"""
 
 
 def _create_doc(_model: BaseModel) -> TOMLDocument:
@@ -112,7 +96,7 @@ def default() -> None:
     settings = Settings()
 
     doc: TOMLDocument = document()
-    for line in header_comment.splitlines():
+    for line in _HEADER_COMMENT.splitlines():
         doc.add(comment(line) if line else Comment(Trivia(comment='#')))
     doc.add(nl()).add(nl())
     _init_doc(settings, doc)

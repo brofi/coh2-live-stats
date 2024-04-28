@@ -36,6 +36,26 @@ You can either run _CoH2 Live Stats_ as a standalone bundled application or inst
 
 ## Configuration
 
+_CoH2 Live Stats_ is configured via a TOML configuration file. A default configuration file named __coh2livestats.toml_
+is supplied with the bundled application. A configuration file can be put in the user's home directory (_%USERPROFILE%_)
+or left next to the application's executable.\
+A configuration file can have one of the following names:
+
+[//]: # (<mark_valid_configs>)
+
+* _coh2livestats.toml
+* .coh2livestats.toml
+* coh2livestats.toml
+* _coh2_live_stats.toml
+* .coh2_live_stats.toml
+* coh2_live_stats.toml
+
+[//]: # (</mark_valid_configs>)
+
+The first **valid** configuration file detected in the above order is used. The following sections describe all
+available configuration attributes grouped by TOML table. All attributes ungrouped are found [here](#appendix). More
+information on TOML syntax is found [here](https://toml.io/).
+
 
 [//]: # (<mark_settings>)
 

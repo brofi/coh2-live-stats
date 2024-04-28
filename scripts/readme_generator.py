@@ -26,9 +26,11 @@ from coh2_live_stats.data.faction import Faction
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.data.team import Team
 from coh2_live_stats.output import Output
-from coh2_live_stats.settings import Settings
+from coh2_live_stats.settings import CONFIG_NAMES, Settings
 from prettytable import PrettyTable
 from pydantic import BaseModel
+
+from scripts.script_util import list_multi
 
 RGB = tuple[int, int, int]
 
@@ -437,7 +439,10 @@ RE_MARKS = re.compile(
 
 def replace_marks() -> None:
     """Insert generated markdown between predefined marks in the `README.md` file."""
-    marks = {'mark_settings': '\n'.join(_settings_section())}
+    marks = {
+        'mark_settings': '\n'.join(_settings_section()),
+        'mark_valid_configs': list_multi(CONFIG_NAMES),
+    }
 
     with README_FILE.open() as f:
         readme = f.read()

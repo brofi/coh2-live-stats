@@ -10,6 +10,30 @@ Example output on [Windows Terminal](https://github.com/microsoft/terminal)
 with [gruvbox](https://github.com/morhetz/gruvbox) colors
 and [Inconsolata](https://github.com/googlefonts/Inconsolata) font.
 
+## Installation
+
+You can either run _CoH2 Live Stats_ as a standalone bundled application or install and run it with Python.
+
+### Run Bundle [Recommended]
+
+1. [Download](https://github.com/brofi/coh2-live-stats/releases) latest release of _CoH2LiveStats-bundle-[version].zip_
+2. Unzip and run _CoH2LiveStats.exe_
+
+
+### Install from source
+
+1. Get source code
+   * [Download](https://github.com/brofi/coh2-live-stats/archive/refs/heads/master.zip) source files and unzip
+   * **_or_** download and install [Git](https://git-scm.com/download/win) and run `git  clone https://github.com/brofi/coh2-live-stats.git`
+2. Download and install [Python](https://www.python.org/downloads/windows/) >= 3.12
+3. Run `pip install .` from project root
+4. Run `python -m coh2_live_stats` or simply `coh2livestats`
+
+### Requirements
+
+* Microsoft Windows
+* (Optional) [Windows Terminal](https://github.com/microsoft/terminal) for proper UTF-8 support
+
 ## Configuration
 
 

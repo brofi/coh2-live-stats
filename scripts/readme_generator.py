@@ -16,6 +16,7 @@
 """Module for generated markdown."""
 
 import re
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Final
 
@@ -29,12 +30,23 @@ from coh2_live_stats.settings import Settings
 from prettytable import PrettyTable
 from pydantic import BaseModel
 
+RGB = tuple[int, int, int]
+TableInfo = dict[str, dict[str, str | PrettyTable]]
+
 README_FILE = Path(__file__).parents[1].joinpath('README.md')
+SVG_FILE = (
+    Path(__file__)
+    .parents[1]
+    .joinpath('src', 'coh2_live_stats', 'res', 'example_output.svg')
+)
 
 _STYLES: Final[dict] = {
     'campbell': {
         'fonts': ['Cascadia Mono', 'Consolas'],
-        'size': '10.5pt',
+        'size': '11.5pt',
+        'space': '1.24em',
+        'width': 900,
+        'height': 320,
         'palette': {
             'fg': (204, 204, 204),
             'bg': (12, 12, 12),
@@ -59,6 +71,9 @@ _STYLES: Final[dict] = {
     'gruvbox': {
         'fonts': ['Inconsolata', 'Cascadia Mono'],
         'size': '12pt',
+        'space': '1.125em',
+        'width': 800,
+        'height': 300,
         'palette': {
             'fg': (235, 219, 178),
             'bg': (29, 32, 33),
@@ -241,25 +256,62 @@ def _sample_players() -> list[Player]:
 RE_COLOR = re.compile(r'\x1b\[(?P<color>[3|9][0-7])m(?P<value>.*?)\x1b\[0m')
 
 
-def _example_output(style: dict[str, Any]) -> str:
+def _example_output_recolored(
+    style: dict[str, Any], repl: Callable[[RGB, str], str]
+) -> str:
     output = Output(Settings())
     output.init_table(_sample_players())
-    _out = output.table_string()
-    for _m in RE_COLOR.finditer(_out):
-        fg = style['palette'][int(_m.group('color'))]
-        _out = _out.replace(
-            _m.group(), f"<span style='color:rgb{fg}'>{_m.group('value')}</span>"
-        )
-    _out = (
+    out = output.table_string()
+    for m in RE_COLOR.finditer(out):
+        fg: RGB = style['palette'][int(m.group('color'))]
+        out = out.replace(m.group(), repl(fg, m.group('value')))
+    return out
+
+
+def _inline_color_html(color: RGB, value: str) -> str:
+    return f"<span style='color:rgb{color}'>{value}</span>"
+
+
+def _inline_color_svg(color: RGB, value: str) -> str:
+    return f'<tspan fill="rgb{color}">{value}</tspan>'
+
+
+def _example_output_html(style: dict[str, Any]) -> str:
+    out = _example_output_recolored(style, _inline_color_html)
+    out = (
         '<pre style="'
         f'font-family:{','.join(style['fonts'])},monospace;'
         f'font-size:{style['size']};'
         f'color:rgb{style['palette']['fg']};'
         f'background-color:rgb{style['palette']['bg']};'
-        f'">{_out}</pre>\n'
+        f'">{out}</pre>\n'
     )
-    _out = _out.replace('\x1b[0m', '\n')
-    return re.sub(r'\s+$', '', _out, flags=re.MULTILINE)
+    out = out.replace('\x1b[0m', '\n')
+    return re.sub(r'\s+$', '', out, flags=re.MULTILINE)
+
+
+def _example_output_svg(style: dict[str, Any]) -> str:
+    out = _example_output_recolored(style, _inline_color_svg)
+    out = out.replace('\x1b[0m', '')
+
+    pad = 10
+    lines = out.split('\n')
+    for i, line in enumerate(lines):
+        lines[i] = f'\t\t<tspan x="{pad}" dy="{style['space']}">{line}</tspan>'
+
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" '
+        f'width="{style['width']}" '
+        f'height="{style['height']}">\n'
+        f'\t<rect width="100%" height="100%" fill="rgb{style['palette']['bg']}"/>\n'
+        f'\t<text x="{pad}" y="{pad}" fill="rgb{style['palette']['fg']}" '
+        f'font-family="{','.join(style['fonts'])}" '
+        f'font-size="{style['size']}" '
+        f'style="white-space:pre">\n'
+        f'{'\n'.join(lines)}\n'
+        f'\t</text>\n'
+        f'</svg>\n'
+    )
 
 
 def _create_pretty_table() -> PrettyTable:
@@ -271,14 +323,11 @@ def _create_pretty_table() -> PrettyTable:
     return table
 
 
-type TableInfo = dict[str, dict[str, str | PrettyTable]]
-
-
 def _create_tables_recursive(
     model: BaseModel, ti: TableInfo | None = None, _key: str = ''
 ) -> TableInfo:
     if ti is None:
-        ti: TableInfo = {_key: {'description': ''}}
+        ti = {_key: {'description': ''}}
 
     table = _create_pretty_table()
     ti[_key]['table'] = table
@@ -360,6 +409,12 @@ def _settings_section() -> list[str]:
     return out
 
 
+def write_example_svg() -> None:
+    """Write generated SVG file of example output."""
+    SVG_FILE.touch()
+    SVG_FILE.write_text(_example_output_svg(_STYLES['gruvbox']).expandtabs(4))
+
+
 RE_MARKS = re.compile(
     r'^(?P<start>\[//]: # \(<(?P<mark>.*?)>\))$'
     r'(?P<value>.*?)'
@@ -370,10 +425,7 @@ RE_MARKS = re.compile(
 
 def replace_marks() -> None:
     """Insert generated markdown between predefined marks in the `README.md` file."""
-    marks = {
-        'mark_output': _example_output(_STYLES['gruvbox']),
-        'mark_settings': '\n'.join(_settings_section()),
-    }
+    marks = {'mark_settings': '\n'.join(_settings_section())}
 
     with README_FILE.open() as f:
         readme = f.read()
@@ -388,4 +440,5 @@ def replace_marks() -> None:
 
 
 if __name__ == '__main__':
+    write_example_svg()
     replace_marks()

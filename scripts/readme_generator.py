@@ -31,7 +31,6 @@ from prettytable import PrettyTable
 from pydantic import BaseModel
 
 RGB = tuple[int, int, int]
-TableInfo = dict[str, dict[str, str | PrettyTable]]
 
 README_FILE = Path(__file__).parents[1].joinpath('README.md')
 SVG_FILE = (
@@ -314,95 +313,108 @@ def _example_output_svg(style: dict[str, Any]) -> str:
     )
 
 
-def _create_pretty_table() -> PrettyTable:
-    table = PrettyTable()
-    table.set_style(prettytable.MARKDOWN)
-    table.field_names = ['Attribute', 'Description']
-    table.align['Attribute'] = 'l'
-    table.align['Description'] = 'l'
-    return table
+class _MarkdownTable:
+    def __init__(self, key: str, description: str) -> None:
+        self.key = key
+        self.description = description
+        self.table = PrettyTable()
+        self.table.set_style(prettytable.MARKDOWN)
+        self.table.field_names = ['Attribute', 'Description']
+        self.table.align = 'l'
+
+    def get_lines_with_header(self, header: str = '') -> list[str]:
+        if not header:
+            header = f'`[{self.key}]` {self.description}'
+        return [f'### {header}', *self.get_lines()]
+
+    def get_lines(self) -> list[str]:
+        table_lines = self.table.get_string().split('\n')
+        table_lines[1] = table_lines[1].replace('| :-', '|:--').replace('-: |', '--:|')
+        return ['', *table_lines, '']
 
 
 def _create_tables_recursive(
-    model: BaseModel, ti: TableInfo | None = None, _key: str = ''
-) -> TableInfo:
-    if ti is None:
-        ti = {_key: {'description': ''}}
-
-    table = _create_pretty_table()
-    ti[_key]['table'] = table
-
+    model: BaseModel,
+    tables: list[_MarkdownTable] | None = None,
+    key: str = '',
+    description: str = '',
+) -> list[_MarkdownTable]:
+    if tables is None:
+        tables = []
+    mdt = _MarkdownTable(key, description)
+    tables.append(mdt)
     for attr_name, field_info in model.model_fields.items():
+        descr = field_info.description or ''
         if isinstance(field_info.default, BaseModel):
-            k = f'{_key}{'.' if _key else ''}{attr_name}'
-            ti[k] = {'description': field_info.description}
-            _create_tables_recursive(getattr(model, attr_name), ti, k)
+            k = f'{key}{'.' if key else ''}{attr_name}'
+            _create_tables_recursive(getattr(model, attr_name), tables, k, descr)
         else:
-            table.add_row([f'`{attr_name}`', field_info.description])
-    return ti
+            mdt.table.add_row([f'`{attr_name}`', descr])
+    return tables
 
 
 def _create_table_recursive(
-    model: BaseModel, _table: PrettyTable | None = None, _key: str = ''
-) -> PrettyTable:
-    if _table is None:
-        _table = _create_pretty_table()
+    model: BaseModel,
+    mdt: _MarkdownTable | None = None,
+    key: str = '',
+    description: str = '',
+) -> _MarkdownTable:
+    if mdt is None:
+        mdt = _MarkdownTable(key, description)
     for attr_name, field_info in model.model_fields.items():
         is_model = isinstance(field_info.default, BaseModel)
-        k = f'{_key}{'.' if _key else ''}{attr_name}'
-        _table.add_row([f'`{f'[{k}]' if is_model else k}`', field_info.description])
+        k = f'{key}{'.' if key else ''}{attr_name}'
+        mdt.table.add_row(
+            [f'`{f'[{k}]' if is_model else k}`', field_info.description or '']
+        )
         if is_model:
-            _create_table_recursive(getattr(model, attr_name), _table, k)
-    return _table
+            _create_table_recursive(getattr(model, attr_name), mdt, k, '')
+    return mdt
 
 
-def _create_table(model: BaseModel) -> PrettyTable:
-    table = _create_pretty_table()
+def _create_table(settings: Settings, key: str = '') -> _MarkdownTable:
+    model_names = key.split('.')
+    model: BaseModel = settings
+    descriptions = ['']
+    for name in model_names:
+        m = getattr(model, name, None)
+        if m is None or not isinstance(m, BaseModel):
+            msg = f'Not a model: {name!r}'
+            raise ValueError(msg)
+        descriptions.append(model.model_fields[name].description or '')
+        model = m
+
+    mdt = _MarkdownTable(key, descriptions[-1])
     for attr_name, field_info in model.model_fields.items():
-        table.add_row([f'`{attr_name}`', field_info.description])
-    return table
-
-
-def _table_lines_patched(_table: PrettyTable) -> list[str]:
-    table_lines = _table.get_string().split('\n')
-    table_lines[1] = table_lines[1].replace('| :-', '|:--').replace('-: |', '--:|')
-    return table_lines
-
-
-def _table_to_md(_table: PrettyTable, _header: str = '') -> list[str]:
-    h = f'### {_header}' if _header else ''
-    return [h, *_table_lines_patched(_table), '']
+        mdt.table.add_row([f'`{attr_name}`', field_info.description])
+    return mdt
 
 
 def _settings_section() -> list[str]:
-    tables = _create_tables_recursive(Settings())
+    tables = _create_tables_recursive(Settings(), description='Root level settings')
     out: list[str] = []
-    for key, info in tables.items():
-        if 'table.columns' not in key:
-            desc = info['description']
-            header = f'`[{key}]` {desc or 'Root level settings'}'
-            out.extend(_table_to_md(info['table'], header))
+    for table in tables:
+        if 'table.columns' not in table.key:
+            out.extend(table.get_lines_with_header())
 
-    settings: BaseModel = Settings()
-    out.extend(
-        _table_to_md(
-            _create_table(settings.table.columns),
-            f'`[table.columns]` {settings.table.model_fields['columns'].description}',
-        )
-    )
-    col_table = _create_table(settings.table.columns.faction)
+    settings = Settings()
+    out.extend(_create_table(settings, 'table.columns').get_lines_with_header())
+    col_table = _create_table(settings, 'table.columns.faction')
     row: list[str]
     i_name = 'column'
-    for row in col_table.rows:
+    for row in col_table.table.rows:
         row[1] = row[1].replace('faction', i_name)
 
-    out.extend(_table_to_md(col_table, f'For each `{i_name}` in `[table.columns]`:'))
+    out.extend(
+        col_table.get_lines_with_header(f'For each `{i_name}` in `[table.columns]`:')
+    )
     out.extend(
         (
             '### Appendix',
+            '',
             '<details>',
             '<summary>All settings</summary>',
-            *_table_to_md(_create_table_recursive(settings)),
+            *_create_table_recursive(settings).get_lines(),
             '</details>',
         )
     )

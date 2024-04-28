@@ -16,17 +16,20 @@ and [Inconsolata](https://github.com/googlefonts/Inconsolata) font.
 [//]: # (<mark_settings>)
 
 ### `[]` Root level settings
+
 | Attribute | Description                                                                       |
 |:----------|:----------------------------------------------------------------------------------|
 | `logfile` | Path to observed Company of Heroes 2 log file (supports OS environment variables) |
 
 ### `[notification]` Notification sound settings
+
 | Attribute    | Description                                                                 |
 |:-------------|:----------------------------------------------------------------------------|
 | `play_sound` | Play a notification sound when a new multiplayer match was found            |
 | `sound`      | Built-in notification sound name or full path to custom waveform audio file |
 
 ### `[table]` Output table settings
+
 | Attribute                   | Description                                                                                 |
 |:----------------------------|:--------------------------------------------------------------------------------------------|
 | `color`                     | Use color for output                                                                        |
@@ -40,12 +43,14 @@ and [Inconsolata](https://github.com/googlefonts/Inconsolata) font.
 | `prestige_half_star_char`   | Character to use for a half prestige level star                                             |
 
 ### `[table.colors]` Output table color settings
+
 | Attribute | Description               |
 |:----------|:--------------------------|
 | `border`  | Output table border color |
 | `label`   | Output table header color |
 
 ### `[table.colors.player]` Player-specific color settings
+
 | Attribute        | Description                                        |
 |:-----------------|:---------------------------------------------------|
 | `high_drop_rate` | Color for a high player drop ratio                 |
@@ -53,6 +58,7 @@ and [Inconsolata](https://github.com/googlefonts/Inconsolata) font.
 | `low`            | Color for lowest ranked player and low win ratio   |
 
 ### `[table.colors.faction]` Faction colors
+
 | Attribute | Description             |
 |:----------|:------------------------|
 | `wm`      | Wehrmacht color         |
@@ -62,6 +68,7 @@ and [Inconsolata](https://github.com/googlefonts/Inconsolata) font.
 | `uk`      | British Forces color    |
 
 ### `[table.columns]` Output table columns
+
 | Attribute       | Description                                                                                                                            |
 |:----------------|:---------------------------------------------------------------------------------------------------------------------------------------|
 | `faction`       | Player faction                                                                                                                         |
@@ -78,6 +85,7 @@ and [Inconsolata](https://github.com/googlefonts/Inconsolata) font.
 | `name`          | Player name                                                                                                                            |
 
 ### For each `column` in `[table.columns]`:
+
 | Attribute | Description                                |
 |:----------|:-------------------------------------------|
 | `label`   | `column` header                            |
@@ -86,6 +94,7 @@ and [Inconsolata](https://github.com/googlefonts/Inconsolata) font.
 | `pos`     | `column` position used for column ordering |
 
 ### Appendix
+
 <details>
 <summary>All settings</summary>
 

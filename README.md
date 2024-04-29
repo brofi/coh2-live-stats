@@ -1,4 +1,6 @@
-# CoH2 Live Stats
+# <img src="src/coh2_live_stats/res/coh2_live_stats.ico" alt="Icon" width="64" align="center"/> CoH2 Live Stats
+
+
 
 [//]: # (<mark_description>)
 
@@ -6,7 +8,6 @@ Show player and team stats of a currently played, replayed or last played Compan
 
 [//]: # (</mark_description>)
 
----
 
 ![Example output](src/coh2_live_stats/res/example_default.svg)
 

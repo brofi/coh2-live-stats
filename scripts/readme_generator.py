@@ -16,12 +16,12 @@
 """Module for generated markdown."""
 
 import re
+import tomllib
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Final, get_args
 
 import prettytable
-import tomlkit
 from coh2_live_stats.data.color import Color
 from coh2_live_stats.data.faction import Faction
 from coh2_live_stats.data.player import Player
@@ -35,7 +35,7 @@ from pydantic.fields import FieldInfo
 from scripts.script_util import list_multi
 
 RGB = tuple[int, int, int]
-ConfigExample = tuple[str, dict[str, Any]]
+ConfigExample = tuple[str, list[str]]
 
 README_FILE = Path(__file__).parents[1].joinpath('README.md')
 RES_DIR = Path(__file__).parents[1].joinpath('src', 'coh2_live_stats', 'res')
@@ -101,37 +101,46 @@ CONFIG_EXAMPLES: list[ConfigExample] = [
         '* Move column `prestige` to the front\n'
         '* Move column `faction` in front of column `name`\n'
         '* Unify faction colors\n',
-        {
-            'table': {
-                'border': True,
-                'show_average': False,
-                'columns': {
-                    'drop_ratio': {'visible': False},
-                    'prestige': {'visible': True, 'pos': -1},
-                    'faction': {'pos': 1},
-                    'name': {'pos': 2},
-                },
-                'colors': {'faction': {'okw': 'red', 'su': 'blue', 'uk': 'blue'}},
-            }
-        },
+        [
+            '[table]',
+            'border = true',
+            'show_average = false',
+            '',
+            '[table.columns.drop_ratio]',
+            'visible = false',
+            '',
+            '[table.columns.prestige]',
+            'visible = true',
+            'pos = -1',
+            '',
+            '[table.columns.faction]',
+            'pos = 1',
+            '',
+            '[table.columns.name]',
+            'pos = 2',
+            '',
+            '[table.colors.faction]',
+            'okw = "red"',
+            'su = "blue"',
+            'uk = "blue"',
+        ],
     ),
     (
         'A minimalistic output configuration',
-        {
-            'table': {
-                'color': False,
-                'show_average': False,
-                'columns': {
-                    'rank': {'visible': False},
-                    'win_ratio': {'visible': False},
-                    'drop_ratio': {'visible': False},
-                    'country': {'visible': False},
-                    'team': {'label': 'T'},
-                    'team_rank': {'visible': False},
-                    'team_level': {'label': 'TL'},
-                },
-            }
-        },
+        [
+            '[table]',
+            'color = false',
+            'show_average = false',
+            '',
+            '[table.columns]',
+            'rank.visible = false',
+            'win_ratio.visible = false',
+            'drop_ratio.visible = false',
+            'country.visible = false',
+            'team.label = "T"',
+            'team_rank.visible = false',
+            'team_level.label = "TL"',
+        ],
     ),
 ]
 
@@ -536,7 +545,7 @@ def _examples_to_md() -> str:
             f'{example[0]}\n'
             '\n#### TOML configuration\n\n'
             '```toml\n'
-            f'{tomlkit.dumps(example[1])}\n'
+            f'{'\n'.join(example[1])}\n'
             '```\n'
             '\n#### Resulting output\n\n'
             f'![Example output](src/coh2_live_stats/res/example_{i}.svg)\n'
@@ -552,7 +561,7 @@ def write_example_images() -> None:
     )
     for i, example in enumerate(CONFIG_EXAMPLES):
         RES_DIR.joinpath(f'example_{i}.svg').write_text(
-            _example_output_svg(Settings(**example[1]), style)
+            _example_output_svg(Settings(**tomllib.loads('\n'.join(example[1]))), style)
         )
 
 

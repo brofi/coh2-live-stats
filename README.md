@@ -259,7 +259,6 @@ information on TOML syntax is found [here](https://toml.io/).
 border = true
 show_average = false
 
-[table.columns]
 [table.columns.drop_ratio]
 visible = false
 
@@ -277,7 +276,6 @@ pos = 2
 okw = "red"
 su = "blue"
 uk = "blue"
-
 ```
 
 #### Resulting output
@@ -296,27 +294,13 @@ color = false
 show_average = false
 
 [table.columns]
-[table.columns.rank]
-visible = false
-
-[table.columns.win_ratio]
-visible = false
-
-[table.columns.drop_ratio]
-visible = false
-
-[table.columns.country]
-visible = false
-
-[table.columns.team]
-label = "T"
-
-[table.columns.team_rank]
-visible = false
-
-[table.columns.team_level]
-label = "TL"
-
+rank.visible = false
+win_ratio.visible = false
+drop_ratio.visible = false
+country.visible = false
+team.label = "T"
+team_rank.visible = false
+team_level.label = "TL"
 ```
 
 #### Resulting output

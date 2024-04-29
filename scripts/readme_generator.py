@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any, Final, get_args
 
 import prettytable
+import tomlkit
 from coh2_live_stats.data.color import Color
 from coh2_live_stats.data.faction import Faction
 from coh2_live_stats.data.player import Player
@@ -34,21 +35,16 @@ from pydantic.fields import FieldInfo
 from scripts.script_util import list_multi
 
 RGB = tuple[int, int, int]
+ConfigExample = tuple[str, dict[str, Any]]
 
 README_FILE = Path(__file__).parents[1].joinpath('README.md')
-SVG_FILE = (
-    Path(__file__)
-    .parents[1]
-    .joinpath('src', 'coh2_live_stats', 'res', 'example_output.svg')
-)
+RES_DIR = Path(__file__).parents[1].joinpath('src', 'coh2_live_stats', 'res')
 
 _STYLES: Final[dict] = {
     'campbell': {
         'fonts': ['Cascadia Mono', 'Consolas'],
         'size': '11.5pt',
-        'space': '1.24em',
-        'width': 900,
-        'height': 320,
+        'scale': (0.56, 1.24),
         'palette': {
             'fg': (204, 204, 204),
             'bg': (12, 12, 12),
@@ -73,9 +69,7 @@ _STYLES: Final[dict] = {
     'gruvbox': {
         'fonts': ['Inconsolata', 'Cascadia Mono'],
         'size': '12pt',
-        'space': '1.125em',
-        'width': 800,
-        'height': 300,
+        'scale': (0.5, 1.125),
         'palette': {
             'fg': (235, 219, 178),
             'bg': (29, 32, 33),
@@ -98,6 +92,48 @@ _STYLES: Final[dict] = {
         },
     },
 }
+
+CONFIG_EXAMPLES: list[ConfigExample] = [
+    (
+        '* Add a border and remove the average row\n'
+        '* Remove column `drop_ratio`\n'
+        '* Add column `prestige`\n'
+        '* Move column `prestige` to the front\n'
+        '* Move column `faction` in front of column `name`\n'
+        '* Unify faction colors\n',
+        {
+            'table': {
+                'border': True,
+                'show_average': False,
+                'columns': {
+                    'drop_ratio': {'visible': False},
+                    'prestige': {'visible': True, 'pos': -1},
+                    'faction': {'pos': 1},
+                    'name': {'pos': 2},
+                },
+                'colors': {'faction': {'okw': 'red', 'su': 'blue', 'uk': 'blue'}},
+            }
+        },
+    ),
+    (
+        'A minimalistic output configuration',
+        {
+            'table': {
+                'color': False,
+                'show_average': False,
+                'columns': {
+                    'rank': {'visible': False},
+                    'win_ratio': {'visible': False},
+                    'drop_ratio': {'visible': False},
+                    'country': {'visible': False},
+                    'team': {'label': 'T'},
+                    'team_rank': {'visible': False},
+                    'team_level': {'label': 'TL'},
+                },
+            }
+        },
+    ),
+]
 
 _HG = Player(
     id=6,
@@ -258,12 +294,15 @@ def _sample_players() -> list[Player]:
 RE_COLOR = re.compile(r'\x1b\[(?P<color>[3|9][0-7])m(?P<value>.*?)\x1b\[0m')
 
 
-def _example_output_recolored(
-    style: dict[str, Any], repl: Callable[[RGB, str], str]
-) -> str:
-    output = Output(Settings())
+def _example_output(settings: Settings) -> str:
+    output = Output(settings)
     output.init_table(_sample_players())
-    out = output.table_string()
+    return output.table_string()
+
+
+def _recolor_output(
+    out: str, style: dict[str, Any], repl: Callable[[RGB, str], str]
+) -> str:
     for m in RE_COLOR.finditer(out):
         fg: RGB = style['palette'][int(m.group('color'))]
         out = out.replace(m.group(), repl(fg, m.group('value')))
@@ -278,8 +317,8 @@ def _inline_color_svg(color: RGB, value: str) -> str:
     return f'<tspan fill="rgb{color}">{value}</tspan>'
 
 
-def _example_output_html(style: dict[str, Any]) -> str:
-    out = _example_output_recolored(style, _inline_color_html)
+def _example_output_html(settings: Settings, style: dict[str, Any]) -> str:
+    out = _recolor_output(_example_output(settings), style, _inline_color_html)
     out = (
         '<pre style="'
         f'font-family:{','.join(style['fonts'])},monospace;'
@@ -292,19 +331,25 @@ def _example_output_html(style: dict[str, Any]) -> str:
     return re.sub(r'\s+$', '', out, flags=re.MULTILINE)
 
 
-def _example_output_svg(style: dict[str, Any]) -> str:
-    out = _example_output_recolored(style, _inline_color_svg)
+def _get_dim(out: list[str]) -> tuple[int, int]:
+    return max(map(len, out)), len(out)
+
+
+def _example_output_svg(settings: Settings, style: dict[str, Any]) -> str:
+    out = _recolor_output(_example_output(settings), style, _inline_color_svg)
     out = out.replace('\x1b[0m', '')
 
     pad = 10
     lines = out.split('\n')
     for i, line in enumerate(lines):
-        lines[i] = f'\t\t<tspan x="{pad}" dy="{style['space']}">{line}</tspan>'
+        lines[i] = f'\t\t<tspan x="{pad}" dy="{style['scale'][1]}em">{line}</tspan>'
 
+    settings.table.color = False
+    dim = _get_dim(_example_output(settings).split('\n'))
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" '
-        f'width="{style['width']}" '
-        f'height="{style['height']}">\n'
+        f'width="{dim[0] * style['scale'][0] + 1.25}em" '
+        f'height="{dim[1] * style['scale'][1] + 1.25}em">\n'
         f'\t<rect width="100%" height="100%" fill="rgb{style['palette']['bg']}"/>\n'
         f'\t<text x="{pad}" y="{pad}" fill="rgb{style['palette']['fg']}" '
         f'font-family="{','.join(style['fonts'])}" '
@@ -313,7 +358,7 @@ def _example_output_svg(style: dict[str, Any]) -> str:
         f'{'\n'.join(lines)}\n'
         f'\t</text>\n'
         f'</svg>\n'
-    )
+    ).expandtabs(4)
 
 
 class _MarkdownTable:
@@ -483,10 +528,32 @@ def _settings_section() -> list[str]:
     return out
 
 
-def write_example_svg() -> None:
-    """Write generated SVG file of example output."""
-    SVG_FILE.touch()
-    SVG_FILE.write_text(_example_output_svg(_STYLES['gruvbox']).expandtabs(4))
+def _examples_to_md() -> str:
+    md = ''
+    for i, example in enumerate(CONFIG_EXAMPLES):
+        md += (
+            '\n#### Description\n\n'
+            f'{example[0]}\n'
+            '\n#### TOML configuration\n\n'
+            '```toml\n'
+            f'{tomlkit.dumps(example[1])}\n'
+            '```\n'
+            '\n#### Resulting output\n\n'
+            f'![Example output](src/coh2_live_stats/res/example_{i}.svg)\n'
+        )
+    return md
+
+
+def write_example_images() -> None:
+    """Write generated SVG files of example outputs."""
+    style = _STYLES['gruvbox']
+    RES_DIR.joinpath('example_default.svg').write_text(
+        _example_output_svg(Settings(), style)
+    )
+    for i, example in enumerate(CONFIG_EXAMPLES):
+        RES_DIR.joinpath(f'example_{i}.svg').write_text(
+            _example_output_svg(Settings(**example[1]), style)
+        )
 
 
 RE_MARKS = re.compile(
@@ -502,6 +569,7 @@ def replace_marks() -> None:
     marks = {
         'mark_settings': '\n'.join(_settings_section()),
         'mark_valid_configs': list_multi(CONFIG_NAMES),
+        'mark_examples': _examples_to_md(),
     }
 
     with README_FILE.open() as f:
@@ -517,5 +585,5 @@ def replace_marks() -> None:
 
 
 if __name__ == '__main__':
-    write_example_svg()
+    write_example_images()
     replace_marks()

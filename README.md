@@ -4,7 +4,7 @@ Show match stats of a currently played, replayed or last played Company of Heroe
 
 ---
 
-![Example output](src/coh2_live_stats/res/example_output.svg)
+![Example output](src/coh2_live_stats/res/example_default.svg)
 
 Example output on [Windows Terminal](https://github.com/microsoft/terminal)
 with [gruvbox](https://github.com/morhetz/gruvbox) colors
@@ -241,6 +241,87 @@ information on TOML syntax is found [here](https://toml.io/).
 
 [//]: # (<mark_examples>)
 
+
+#### Description
+
+* Add a border and remove the average row
+* Remove column `drop_ratio`
+* Add column `prestige`
+* Move column `prestige` to the front
+* Move column `faction` in front of column `name`
+* Unify faction colors
+
+
+#### TOML configuration
+
+```toml
+[table]
+border = true
+show_average = false
+
+[table.columns]
+[table.columns.drop_ratio]
+visible = false
+
+[table.columns.prestige]
+visible = true
+pos = -1
+
+[table.columns.faction]
+pos = 1
+
+[table.columns.name]
+pos = 2
+
+[table.colors.faction]
+okw = "red"
+su = "blue"
+uk = "blue"
+
+```
+
+#### Resulting output
+
+![Example output](src/coh2_live_stats/res/example_0.svg)
+
+#### Description
+
+A minimalistic output configuration
+
+#### TOML configuration
+
+```toml
+[table]
+color = false
+show_average = false
+
+[table.columns]
+[table.columns.rank]
+visible = false
+
+[table.columns.win_ratio]
+visible = false
+
+[table.columns.drop_ratio]
+visible = false
+
+[table.columns.country]
+visible = false
+
+[table.columns.team]
+label = "T"
+
+[table.columns.team_rank]
+visible = false
+
+[table.columns.team_level]
+label = "TL"
+
+```
+
+#### Resulting output
+
+![Example output](src/coh2_live_stats/res/example_1.svg)
 
 
 [//]: # (</mark_examples>)

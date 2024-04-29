@@ -91,8 +91,8 @@ def _init_doc(
     return _container
 
 
-def default() -> None:
-    """Create a TOML settings file from the default application settings."""
+def write_default() -> None:
+    """Write TOML settings file with comments from the default application settings."""
     settings = Settings()
 
     doc: TOMLDocument = document()
@@ -104,5 +104,10 @@ def default() -> None:
     CONFIG_FILE_DEV.write_text(dumps(doc))
 
 
+def get_default() -> str:
+    """Get TOML string from the default application settings."""
+    return dumps(_create_doc(Settings()))
+
+
 if __name__ == '__main__':
-    default()
+    write_default()

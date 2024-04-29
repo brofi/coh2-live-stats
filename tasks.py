@@ -146,7 +146,7 @@ def build(c: Context, *, clean: bool = False) -> None:
         return
 
     if settings_generator is not None:
-        settings_generator.default()
+        settings_generator.write_default()
 
     _run(c, *_pycmd, 'build', hide=False)
 

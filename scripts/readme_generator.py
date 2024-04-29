@@ -32,6 +32,7 @@ from prettytable import PrettyTable
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
+from scripts import settings_generator
 from scripts.script_util import list_multi
 
 RGB = tuple[int, int, int]
@@ -524,16 +525,6 @@ def _settings_section() -> list[str]:
     out.extend(
         col_table.get_lines_with_header(f'For each `{i_name}` in `[table.columns]`:')
     )
-    out.extend(
-        (
-            '### Appendix',
-            '',
-            '<details>',
-            '<summary>All settings</summary>',
-            *_create_table_recursive(settings).get_lines(),
-            '</details>',
-        )
-    )
     return out
 
 
@@ -551,6 +542,22 @@ def _examples_to_md() -> str:
             f'![Example output](src/coh2_live_stats/res/example_{i}.svg)\n'
         )
     return md
+
+
+def _appendix_section() -> list[str]:
+    return [
+        '<details>',
+        '<summary>All configuration options</summary>',
+        *_create_table_recursive(Settings()).get_lines(),
+        '</details>',
+        '<details>',
+        '<summary>Full default configuration</summary>',
+        '',
+        '```toml',
+        settings_generator.get_default(),
+        '```',
+        '</details>',
+    ]
 
 
 def write_example_images() -> None:
@@ -579,6 +586,7 @@ def replace_marks() -> None:
         'mark_settings': '\n'.join(_settings_section()),
         'mark_valid_configs': list_multi(CONFIG_NAMES),
         'mark_examples': _examples_to_md(),
+        'mark_appendix': '\n'.join(_appendix_section()),
     }
 
     with README_FILE.open() as f:

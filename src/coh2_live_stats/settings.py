@@ -270,15 +270,17 @@ class _Notification(BaseModel):
         'audio file',
     )
 
-    @classmethod
+    # noinspection PyNestedDecorators
     @field_validator('sound', mode='before')
+    @classmethod
     def validate_sound(cls, v: str) -> Path:
         if v in get_args(Sound):
             return resolve_sound_name(v)  # type: ignore[arg-type]
         return Path(v)
 
-    @staticmethod
+    # noinspection PyNestedDecorators
     @field_serializer('sound')
+    @staticmethod
     def serialize_sound(sound: Path) -> str:
         for s in get_args(Sound):
             if sound == resolve_sound_name(s):

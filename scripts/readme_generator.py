@@ -38,8 +38,10 @@ from scripts.script_util import list_multi
 RGB = tuple[int, int, int]
 ConfigExample = tuple[str, list[str]]
 
-README_FILE = Path(__file__).parents[1].joinpath('README.md')
-RES_DIR = Path(__file__).parents[1].joinpath('src', 'coh2_live_stats', 'res')
+ROOT_DIR = Path(__file__).parents[1]
+PROJECT_FILE = ROOT_DIR.joinpath('pyproject.toml')
+README_FILE = ROOT_DIR.joinpath('README.md')
+RES_DIR = ROOT_DIR.joinpath('src', 'coh2_live_stats', 'res')
 
 _STYLES: Final[dict] = {
     'campbell': {
@@ -299,6 +301,11 @@ def _sample_players() -> list[Player]:
         p.rank_level = Player.rank_level_from_rank(p.rank, p.rank_total)
         p.highest_rank_level = Player.rank_level_from_rank(p.highest_rank, p.rank_total)
     return players
+
+
+def _get_description() -> str:
+    with PROJECT_FILE.open('rb') as f:
+        return tomllib.load(f)['project']['description']
 
 
 RE_COLOR = re.compile(r'\x1b\[(?P<color>[3|9][0-7])m(?P<value>.*?)\x1b\[0m')
@@ -583,6 +590,7 @@ RE_MARKS = re.compile(
 def replace_marks() -> None:
     """Insert generated markdown between predefined marks in the `README.md` file."""
     marks = {
+        'mark_description': _get_description(),
         'mark_settings': '\n'.join(_settings_section()),
         'mark_valid_configs': list_multi(CONFIG_NAMES),
         'mark_examples': _examples_to_md(),

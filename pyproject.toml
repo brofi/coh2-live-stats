@@ -16,7 +16,7 @@ requires-python = ">= 3.12"
 authors = [
     { name = "Andreas Becker", email = "brofi.archlinux@gmail.com" },
 ]
-description = "Show match stats of a currently played, replayed or last played Company of Heroes 2 match."
+description = "Show player and team stats of a currently played, replayed or last played Company of Heroes 2 match."
 readme = "README.md"
 license = { file = "COPYING" }
 keywords = ["CoH2", "Company of Heroes 2"]

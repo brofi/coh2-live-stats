@@ -1,6 +1,10 @@
 # CoH2 Live Stats
 
-Show match stats of a currently played, replayed or last played Company of Heroes 2 match.
+[//]: # (<mark_description>)
+
+Show player and team stats of a currently played, replayed or last played Company of Heroes 2 match.
+
+[//]: # (</mark_description>)
 
 ---
 

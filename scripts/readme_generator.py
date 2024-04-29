@@ -415,6 +415,9 @@ class _MarkdownTable:
         if isinstance(default, BaseModel):
             return ''
 
+        if isinstance(default, bool):
+            return str(default).lower()
+
         if isinstance(default, Path):
             for s in get_args(Sound):
                 if default == resolve_sound_name(s):

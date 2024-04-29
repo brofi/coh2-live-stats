@@ -18,17 +18,18 @@
 import re
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Final
+from typing import Any, Final, get_args
 
 import prettytable
 from coh2_live_stats.data.color import Color
 from coh2_live_stats.data.faction import Faction
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.data.team import Team
-from coh2_live_stats.output import Output
-from coh2_live_stats.settings import CONFIG_NAMES, Settings
+from coh2_live_stats.output import Output, SupportsStr
+from coh2_live_stats.settings import CONFIG_NAMES, Settings, Sound, resolve_sound_name
 from prettytable import PrettyTable
 from pydantic import BaseModel
+from pydantic.fields import FieldInfo
 
 from scripts.script_util import list_multi
 
@@ -316,13 +317,49 @@ def _example_output_svg(style: dict[str, Any]) -> str:
 
 
 class _MarkdownTable:
+    COL_ATTR: Final[str] = 'Attribute'
+    COL_TYPE: Final[str] = 'Type'
+    COL_DEFAULT: Final[str] = 'Default'
+    COL_DESCR: Final[str] = 'Description'
+
     def __init__(self, key: str, description: str) -> None:
         self.key = key
         self.description = description
         self.table = PrettyTable()
         self.table.set_style(prettytable.MARKDOWN)
-        self.table.field_names = ['Attribute', 'Description']
+        self.table.field_names = [
+            self.COL_ATTR,
+            self.COL_TYPE,
+            self.COL_DEFAULT,
+            self.COL_DESCR,
+        ]
         self.table.align = 'l'
+        self.table.custom_format[self.COL_TYPE] = self._format_type
+        self.table.custom_format[self.COL_DEFAULT] = self._format_default
+
+    @staticmethod
+    def _format_type(_: str, fi: FieldInfo) -> str:
+        if not fi.annotation or isinstance(fi.default, BaseModel):
+            return ''
+
+        args = get_args(fi.annotation)
+        if args:
+            return ', '.join(args)
+
+        return fi.annotation.__name__
+
+    @staticmethod
+    def _format_default(_: str, default: SupportsStr) -> str:
+        if isinstance(default, BaseModel):
+            return ''
+
+        if isinstance(default, Path):
+            for s in get_args(Sound):
+                if default == resolve_sound_name(s):
+                    return s
+            return ''
+
+        return str(default)
 
     def get_lines_with_header(self, header: str = '') -> list[str]:
         if not header:
@@ -333,6 +370,18 @@ class _MarkdownTable:
         table_lines = self.table.get_string().split('\n')
         table_lines[1] = table_lines[1].replace('| :-', '|:--').replace('-: |', '--:|')
         return ['', *table_lines, '']
+
+    def strip(self) -> None:
+        empty_cols = []
+        for i, f in enumerate(self.table.field_names):
+            formatter = self.table.custom_format.get(f)
+            if all(
+                (formatter and not formatter(f, r[i])) or (not formatter and not r[i])
+                for r in self.table.rows
+            ):
+                empty_cols.append(f)
+        for f in empty_cols:
+            self.table.del_column(f)
 
 
 def _create_tables_recursive(
@@ -351,7 +400,8 @@ def _create_tables_recursive(
             k = f'{key}{'.' if key else ''}{attr_name}'
             _create_tables_recursive(getattr(model, attr_name), tables, k, descr)
         else:
-            mdt.table.add_row([f'`{attr_name}`', descr])
+            mdt.table.add_row([f'`{attr_name}`', field_info, field_info.default, descr])
+    mdt.strip()
     return tables
 
 
@@ -367,10 +417,16 @@ def _create_table_recursive(
         is_model = isinstance(field_info.default, BaseModel)
         k = f'{key}{'.' if key else ''}{attr_name}'
         mdt.table.add_row(
-            [f'`{f'[{k}]' if is_model else k}`', field_info.description or '']
+            [
+                f'`{f'[{k}]' if is_model else k}`',
+                field_info,
+                field_info.default,
+                field_info.description or '',
+            ]
         )
         if is_model:
             _create_table_recursive(getattr(model, attr_name), mdt, k, '')
+    mdt.strip()
     return mdt
 
 
@@ -388,7 +444,10 @@ def _create_table(settings: Settings, key: str = '') -> _MarkdownTable:
 
     mdt = _MarkdownTable(key, descriptions[-1])
     for attr_name, field_info in model.model_fields.items():
-        mdt.table.add_row([f'`{attr_name}`', field_info.description])
+        mdt.table.add_row(
+            [f'`{attr_name}`', field_info, field_info.default, field_info.description]
+        )
+    mdt.strip()
     return mdt
 
 
@@ -404,9 +463,10 @@ def _settings_section() -> list[str]:
     col_table = _create_table(settings, 'table.columns.faction')
     row: list[str]
     i_name = 'column'
+    idx_descr = col_table.table.field_names.index(_MarkdownTable.COL_DESCR)
     for row in col_table.table.rows:
-        row[1] = row[1].replace('faction', i_name)
-
+        row[idx_descr] = row[idx_descr].replace('faction', i_name)
+    col_table.table.del_column(_MarkdownTable.COL_DEFAULT)
     out.extend(
         col_table.get_lines_with_header(f'For each `{i_name}` in `[table.columns]`:')
     )

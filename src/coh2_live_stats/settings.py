@@ -73,7 +73,8 @@ Align = Literal['l', 'c', 'r']
 Sound = Literal['horn_subtle', 'horn', 'horn_epic']
 
 
-def _resolve_sound_name(s: Sound) -> Path:
+def resolve_sound_name(s: Sound) -> Path:
+    """Return the ``Path`` for the given ``Sound``."""
     return Path(getattr(sys, '_MEIPASS', str(Path(__file__).parent))).joinpath(
         'res', f'{s}.wav'
     )
@@ -263,7 +264,7 @@ class _Notification(BaseModel):
         description='Play a notification sound when a new multiplayer match was found',
     )
     sound: _PT = Field(
-        default=_resolve_sound_name('horn'),
+        default=resolve_sound_name('horn'),
         description='Built-in notification sound name or full path to custom waveform '
         'audio file',
     )
@@ -273,7 +274,7 @@ class _Notification(BaseModel):
     @classmethod
     def validate_sound(cls, v: str) -> Path:
         if v in get_args(Sound):
-            return _resolve_sound_name(v)  # type: ignore[arg-type]
+            return resolve_sound_name(v)  # type: ignore[arg-type]
         return Path(v)
 
 

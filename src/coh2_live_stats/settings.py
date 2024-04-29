@@ -39,6 +39,7 @@ from pydantic import (
     FilePath,
     PlainSerializer,
     create_model,
+    field_serializer,
     field_validator,
 )
 from pydantic_settings import (
@@ -269,13 +270,20 @@ class _Notification(BaseModel):
         'audio file',
     )
 
-    # noinspection PyNestedDecorators
-    @field_validator('sound', mode='before')
     @classmethod
+    @field_validator('sound', mode='before')
     def validate_sound(cls, v: str) -> Path:
         if v in get_args(Sound):
             return resolve_sound_name(v)  # type: ignore[arg-type]
         return Path(v)
+
+    @staticmethod
+    @field_serializer('sound')
+    def serialize_sound(sound: Path) -> str:
+        for s in get_args(Sound):
+            if sound == resolve_sound_name(s):
+                return s
+        return str(sound)
 
 
 class Settings(BaseSettings):

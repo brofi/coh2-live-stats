@@ -339,7 +339,7 @@ class Output:
         if isinstance(v, str):
             return (
                 self.settings.table.colors.label.colorize(v)
-                if self.settings.table.color
+                if v and self.settings.table.color
                 else v
             )
         return '' if v is None else None

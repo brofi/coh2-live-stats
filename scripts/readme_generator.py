@@ -133,6 +133,7 @@ CONFIG_EXAMPLES: list[ConfigExample] = [
         [
             '[table]',
             'color = false',
+            'header = false',
             'show_average = false',
             '',
             '[table.columns]',

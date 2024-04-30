@@ -226,6 +226,7 @@ class _Table(BaseModel):
     border: bool = Field(
         default=False, description='Draw a border around the output table'
     )
+    header: bool = Field(default=True, description='Show output table header')
     show_average: bool = Field(
         default=True, description="Show team's average rank and level"
     )

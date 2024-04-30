@@ -87,6 +87,7 @@ class Output:
             table = PrettyTable()
 
         table.border = self.settings.table.border
+        table.header = self.settings.table.header
         table.preserve_internal_border = True
 
         return table

@@ -83,6 +83,7 @@ information on TOML syntax is found [here](https://toml.io/).
 |:----------------------------|:------|:--------|:--------------------------------------------------------------------------------------------|
 | `color`                     | bool  | true    | Use color for output                                                                        |
 | `border`                    | bool  | false   | Draw a border around the output table                                                       |
+| `header`                    | bool  | true    | Show output table header                                                                    |
 | `show_average`              | bool  | true    | Show team's average rank and level                                                          |
 | `always_show_team`          | bool  | false   | Always show team columns, even if they're empty                                             |
 | `drop_ratio_high_threshold` | float | 0.05    | Drop ratios are considered high if they're higher than or equal this value (used for color) |
@@ -199,6 +200,7 @@ A minimalistic output configuration
 ```toml
 [table]
 color = false
+header = false
 show_average = false
 
 [table.columns]
@@ -265,6 +267,7 @@ $ inv build
 | `[table]`                             |         |              | Output table settings                                                                                                                  |
 | `table.color`                         | bool    | true         | Use color for output                                                                                                                   |
 | `table.border`                        | bool    | false        | Draw a border around the output table                                                                                                  |
+| `table.header`                        | bool    | true         | Show output table header                                                                                                               |
 | `table.show_average`                  | bool    | true         | Show team's average rank and level                                                                                                     |
 | `table.always_show_team`              | bool    | false        | Always show team columns, even if they're empty                                                                                        |
 | `table.drop_ratio_high_threshold`     | float   | 0.05         | Drop ratios are considered high if they're higher than or equal this value (used for color)                                            |
@@ -361,6 +364,7 @@ sound = "horn"
 [table]
 color = true
 border = false
+header = true
 show_average = true
 always_show_team = false
 drop_ratio_high_threshold = 0.05

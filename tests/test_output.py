@@ -266,3 +266,15 @@ def test_format_rank(out: Output, rank: int, level: int) -> None:
 @pytest.mark.parametrize(('precision', 'value'), [(1, 1.0), (2, 1 / 3)])
 def test_format_ratio(out: Output, precision: int, value: float) -> None:
     assert _strip(out._format_ratio(precision, '', value)) == f'{value:.{precision}%}'  # noqa: SLF001
+
+
+def test_format_avg_label(out: Output) -> None:
+    assert out._format_faction('', 'Avg') == out.settings.table.colors.label.colorize(  # noqa: SLF001
+        'Avg'
+    )
+    assert out._format_ratio(0, '', 'Avg') == out.settings.table.colors.label.colorize(  # noqa: SLF001
+        'Avg'
+    )
+    assert out._format_high_low('', 'Avg') == out.settings.table.colors.label.colorize(  # noqa: SLF001
+        'Avg'
+    )

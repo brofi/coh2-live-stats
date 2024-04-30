@@ -18,7 +18,7 @@
 import asyncio
 import logging
 from functools import partial
-from typing import Any, Final, Literal, Protocol, override
+from typing import Any, Final, Protocol, override
 
 from prettytable import PrettyTable
 from prettytable.colortable import ColorTable, Theme
@@ -30,14 +30,23 @@ from .data.player import Player
 from .settings import Settings
 from .util import cls_name
 
-Empty = Literal[''] | None
-
 
 class SupportsStr(Protocol):
     """An ABC with one abstract method __str__."""
 
     @override
     def __str__(self) -> str: ...
+
+
+RankTableType = tuple[str, int | float, bool, bool]
+HighLowTableType = tuple[str, bool, bool]
+TableType = Faction | RankTableType | HighLowTableType | float | str | None
+
+
+class _TableTypeError(Exception):
+    def __init__(self, value: TableType) -> None:
+        self.msg = f'Invalid type for argument: {value!r}'
+        super().__init__(self.msg)
 
 
 LOG = logging.getLogger('coh2_live_stats')
@@ -109,7 +118,7 @@ class Output:
         self.table.custom_format[cols.win_ratio.label] = partial(self._format_ratio, 0)
         self.table.custom_format[cols.drop_ratio.label] = partial(self._format_ratio, 2)
         for c in cols.prestige, cols.country, cols.name:
-            self.table.custom_format[c.label] = self._format_min_max
+            self.table.custom_format[c.label] = self._format_high_low
 
     def _set_column(self, row: list[SupportsStr], col: Any, val: SupportsStr) -> None:  # noqa: ANN401
         if col.visible:
@@ -326,58 +335,78 @@ class Output:
         """Remove leftovers from progress bar."""
         print('\033[D\033[K', end='', flush=True)
 
-    def _format_faction(self, _: str, v: Faction | str) -> str:
-        colored = self.settings.table.color
-        if isinstance(v, Faction):
+    def _format_string(self, v: TableType) -> str | None:
+        if isinstance(v, str):
             return (
-                self.settings.table.colors.get_faction_color(v).colorize(v.name)
-                if colored
-                else v.name
+                self.settings.table.colors.label.colorize(v)
+                if self.settings.table.color
+                else v
             )
-        return self.settings.table.colors.label.colorize(v) if colored else v
+        return '' if v is None else None
 
-    def _format_rank(
-        self, precision: int, _: str, v: tuple[str, int | float, bool, bool]
-    ) -> str:
+    def _format_faction(self, _: str, v: Faction | str | None) -> str:
+        s = self._format_string(v)
+        if s is not None:
+            return s
+
+        if not isinstance(v, Faction):
+            raise _TableTypeError(v)
+
+        return (
+            self.settings.table.colors.get_faction_color(v).colorize(v.name)
+            if self.settings.table.color
+            else v.name
+        )
+
+    def _format_rank(self, precision: int, _: str, v: RankTableType) -> str:
+        if not isinstance(v, tuple):
+            raise _TableTypeError(v)
+
         v_str = ''
         if isinstance(v[1], float):
             v_str = f'{v[0]}{v[1]:.{precision}f}'
         elif isinstance(v[1], int):
             v_str = f'{v[0]}{v[1]}'
-        return self._format_min_max(_, (v_str, v[2], v[3]))
+        return self._format_high_low(_, (v_str, v[2], v[3]))
 
-    def _format_ratio(self, precision: int, f: str, v: float | Empty) -> str:
+    def _format_ratio(self, precision: int, f: str, v: float | str | None) -> str:
+        s = self._format_string(v)
+        if s is not None:
+            return s
+
         if not isinstance(v, float):
-            return ''
+            raise _TableTypeError(v)
 
-        colored = self.settings.table.color
         v_str = f'{v:.{precision}%}'
-        if (
-            colored
-            and f == self.settings.table.columns.drop_ratio.label
-            and v >= self.settings.table.drop_ratio_high_threshold
-        ):
-            v_str = self.settings.table.colors.player.high_drop_rate.colorize(v_str)
-        elif f == self.settings.table.columns.win_ratio.label:
-            v_str = self._format_min_max(
-                f,
-                (
-                    v_str,
-                    v >= self.settings.table.win_ratio_high_threshold,
-                    v < self.settings.table.win_ratio_low_threshold,
-                ),
-            )
+        if self.settings.table.color:
+            if (
+                f == self.settings.table.columns.drop_ratio.label
+                and v >= self.settings.table.drop_ratio_high_threshold
+            ):
+                v_str = self.settings.table.colors.player.high_drop_rate.colorize(v_str)
+            elif f == self.settings.table.columns.win_ratio.label:
+                v_str = self._format_high_low(
+                    f,
+                    (
+                        v_str,
+                        v >= self.settings.table.win_ratio_high_threshold,
+                        v < self.settings.table.win_ratio_low_threshold,
+                    ),
+                )
         return v_str
 
-    def _format_min_max(self, _: str, v: tuple[str, bool, bool] | Empty) -> str:
-        if not v:
-            return ''
+    def _format_high_low(self, _: str, v: HighLowTableType | str | None) -> str:
+        s = self._format_string(v)
+        if s is not None:
+            return s
 
-        v_str = str(v[0])
-        colored = self.settings.table.color
-        if colored and v[1] != v[2]:
+        if not isinstance(v, tuple):
+            raise _TableTypeError(v)
+
+        if self.settings.table.color and v[1] != v[2]:
+            color = self.settings.table.colors.player
             if v[1]:
-                v_str = self.settings.table.colors.player.high.colorize(v_str)
+                return color.high.colorize(v[0])
             if v[2]:
-                v_str = self.settings.table.colors.player.low.colorize(v_str)
-        return v_str
+                return color.low.colorize(v[0])
+        return v[0]

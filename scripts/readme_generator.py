@@ -98,7 +98,7 @@ _STYLES: Final[dict] = {
 
 CONFIG_EXAMPLES: list[ConfigExample] = [
     (
-        '* Add a border and remove the average row\n'
+        '* Add full border and remove the average row\n'
         '* Remove column `drop_ratio`\n'
         '* Add column `prestige`\n'
         '* Move column `prestige` to the front\n'
@@ -106,7 +106,7 @@ CONFIG_EXAMPLES: list[ConfigExample] = [
         '* Unify faction colors\n',
         [
             '[table]',
-            'border = true',
+            "border = 'full'",
             'show_average = false',
             '',
             '[table.columns.drop_ratio]',
@@ -134,6 +134,7 @@ CONFIG_EXAMPLES: list[ConfigExample] = [
             '[table]',
             'color = false',
             'header = false',
+            "border = 'none'",
             'show_average = false',
             '',
             '[table.columns]',
@@ -360,7 +361,9 @@ def _example_output_svg(settings: Settings, style: dict[str, Any]) -> str:
     pad = 10
     lines = out.split('\n')
     for i, line in enumerate(lines):
-        lines[i] = f'\t\t<tspan x="{pad}" dy="{style['scale'][1]}em">{line}</tspan>'
+        lines[i] = (
+            f'\t\t<tspan x="{pad}" dy="{style['scale'][1]}em">{line or ' '}</tspan>'
+        )
 
     settings.table.color = False
     dim = _get_dim(_example_output(settings).split('\n'))
@@ -407,7 +410,7 @@ class _MarkdownTable:
 
         args = get_args(fi.annotation)
         if args:
-            return ', '.join(args)
+            return ',\n'.join(map(repr, args))
 
         return fi.annotation.__name__
 

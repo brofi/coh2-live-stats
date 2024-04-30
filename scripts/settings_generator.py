@@ -29,6 +29,7 @@ from coh2_live_stats.settings import (
     CONFIG_NAMES,
     CONFIG_PATHS,
     Align,
+    Border,
     Settings,
     Sound,
 )
@@ -52,6 +53,9 @@ Valid config locations:
 {bullet('Next to executable', 4)}
 Valid config names:
 {list_multi(CONFIG_NAMES, 4)}
+
+Valid border types:
+    {list_single(get_args(Border))}
 
 Valid colors:
     {list_single(_NORMAL_COLORS)}

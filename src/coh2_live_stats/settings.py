@@ -71,6 +71,7 @@ CONFIG_FILES = [
 CONFIG_FILE_DEV: Path = Path(__file__).with_name(CONFIG_NAMES[0])
 
 Align = Literal['l', 'c', 'r']
+Border = Literal['full', 'inner', 'none']
 Sound = Literal['horn_subtle', 'horn', 'horn_epic']
 
 
@@ -223,8 +224,8 @@ else:
 
 class _Table(BaseModel):
     color: bool = Field(default=True, description='Use color for output')
-    border: bool = Field(
-        default=False, description='Draw a border around the output table'
+    border: Border = Field(
+        default='inner', description='Border type of the output table'
     )
     header: bool = Field(default=True, description='Show output table header')
     show_average: bool = Field(

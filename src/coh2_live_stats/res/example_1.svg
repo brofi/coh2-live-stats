@@ -1,14 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="20.25em" height="11.375em">
+<svg xmlns="http://www.w3.org/2000/svg" width="17.75em" height="11.375em">
     <rect width="100%" height="100%" fill="rgb(29, 32, 33)"/>
     <text x="10" y="10" fill="rgb(235, 219, 178)" font-family="Inconsolata,Cascadia Mono" font-size="12pt" style="white-space:pre">
-        <tspan x="10" dy="1.125em"> WM  | 19 | A | 16 | Hans Gruber      </tspan>
-        <tspan x="10" dy="1.125em"> OKW | 14 | A | 16 | R.P. McMurphy    </tspan>
-        <tspan x="10" dy="1.125em"> WM  | 14 | A | 16 | Walter Sobchak   </tspan>
-        <tspan x="10" dy="1.125em"> OKW | 16 |   |    | Travis Bickle    </tspan>
-        <tspan x="10" dy="1.125em">-----+----+---+----+-----------------</tspan>
-        <tspan x="10" dy="1.125em"> US  | 16 | A | 16 | Jules Winnfield  </tspan>
-        <tspan x="10" dy="1.125em"> SU  | 17 |   |    | Raoul Duke       </tspan>
-        <tspan x="10" dy="1.125em"> US  | 14 | A | 16 | Vincent Vega     </tspan>
-        <tspan x="10" dy="1.125em"> UK  | 14 |   |    | Tyler Durden     </tspan>
+        <tspan x="10" dy="1.125em"> WM   19  A  16  Hans Gruber     </tspan>
+        <tspan x="10" dy="1.125em"> OKW  14  A  16  R.P. McMurphy   </tspan>
+        <tspan x="10" dy="1.125em"> WM   14  A  16  Walter Sobchak  </tspan>
+        <tspan x="10" dy="1.125em"> OKW  16         Travis Bickle   </tspan>
+        <tspan x="10" dy="1.125em"> </tspan>
+        <tspan x="10" dy="1.125em"> US   16  A  16  Jules Winnfield </tspan>
+        <tspan x="10" dy="1.125em"> SU   17         Raoul Duke      </tspan>
+        <tspan x="10" dy="1.125em"> US   14  A  16  Vincent Vega    </tspan>
+        <tspan x="10" dy="1.125em"> UK   14         Tyler Durden    </tspan>
     </text>
 </svg>

@@ -86,9 +86,9 @@ class Output:
         else:
             table = PrettyTable()
 
-        table.border = self.settings.table.border
+        table.border = self.settings.table.border == 'full'
         table.header = self.settings.table.header
-        table.preserve_internal_border = True
+        table.preserve_internal_border = self.settings.table.border == 'inner'
 
         return table
 
@@ -160,7 +160,7 @@ class Output:
         # names directly would mess with everything that needs them (e.g.
         # formatting).
         table_lines = self.table.get_string().splitlines(keepends=True)
-        i = int(self.settings.table.border)
+        i = int(self.settings.table.border == 'full')
         for h in self.table.field_names:
             header = ' ' * self.table.padding_width + h + ' ' * self.table.padding_width
             color_header = self.settings.table.colors.label.colorize(header)

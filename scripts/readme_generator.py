@@ -425,10 +425,13 @@ class _MarkdownTable:
         if isinstance(default, Path):
             for s in get_args(Sound):
                 if default == resolve_sound_name(s):
-                    return s
+                    return repr(s)
             return ''
 
-        return str(default)
+        if isinstance(default, Color):
+            return repr(str(default))
+
+        return repr(default)
 
     def get_lines_with_header(self, header: str = '') -> list[str]:
         if not header:

@@ -57,6 +57,8 @@ Package = dict[str, str]
 _pkg = 'coh2_live_stats'
 _pycmd = [sys.executable, '-m']
 _pipcmd = [*_pycmd, 'pip', '--isolated', '--require-virtualenv']
+_ruff_cmd = [*_pycmd, 'ruff', 'check', '.']
+_mypy_cmd = [*_pycmd, 'mypy', 'src', 'tests', 'scripts', 'tasks.py']
 _pytest_cmd = [*_pycmd, 'pytest', '--verbose', '--no-header', '--no-summary', '--tb=no']
 
 _build_dir = Path(__file__).with_name('build')
@@ -82,6 +84,15 @@ def _stop_logging(_: Context) -> None:
 
 def _run(c: Context, *args: str, **kwargs: Any) -> Result | None:  # noqa: ANN401
     return c.run(' '.join(args), **kwargs)
+
+
+@task
+def _run_check(c: Context, *cmd: str) -> bool:
+    res = _run(c, *cmd, echo=True, hide=False, warn=True)
+    if res is None:
+        msg = f'Failed to run check: {' '.join(cmd)!r}'
+        raise RuntimeError(msg)
+    return res.return_code == 0
 
 
 def _success(res: Result | None) -> bool:
@@ -140,6 +151,21 @@ def _clean() -> bool:
     return True
 
 
+@task(pre=[_activate], post=[_stop_logging])
+def check(c: Context) -> bool:
+    """Run checks (ruff, mypy, pytest)."""
+    if not _run_check(c, *_ruff_cmd):
+        LOG.error('Ruff found errors.')
+        return False
+    if not _run_check(c, *_mypy_cmd):
+        LOG.error('Mypy found errors.')
+        return False
+    if not _run_check(c, *_pytest_cmd):
+        LOG.error('Running tests failed. Run pytest for more info.')
+        return False
+    return True
+
+
 @task(
     pre=[_activate],
     post=[_stop_logging],
@@ -151,9 +177,7 @@ def build(c: Context, *, clean: bool = False) -> None:
         _clean()
         return
 
-    res = _run(c, *_pytest_cmd, hide=False, warn=True)
-    if res is None or res.return_code > 0:
-        LOG.error('Failed to run tests. Run pytest for more info.')
+    if not check(c):
         return
 
     if settings_generator is not None:
@@ -192,4 +216,4 @@ def install(c: Context, *, normal_mode: bool = False, dev: bool = False) -> bool
     return installed
 
 
-namespace = Collection(build, install)
+namespace = Collection(check, build, install)

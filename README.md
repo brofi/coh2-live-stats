@@ -125,6 +125,8 @@ information on TOML syntax is found [here](https://toml.io/).
 | `rank`          | Leaderboard rank if the player currently has a rank or highest known rank (indicator: +) if available or estimated rank (indicator: ?) |
 | `level`         | Rank level representing the leaderboard rank                                                                                           |
 | `prestige`      | Experience expressed in stars                                                                                                          |
+| `wins`          | Number of games won                                                                                                                    |
+| `losses`        | Number of games lost                                                                                                                   |
 | `win_ratio`     | Percentage of games won                                                                                                                |
 | `drop_ratio`    | Percentage of games dropped                                                                                                            |
 | `num_games`     | Total number of games played                                                                                                           |
@@ -319,6 +321,16 @@ $ inv build
 | `table.columns.prestige.visible`      | `bool`   | `false`          | Whether to show the `prestige`                                                                                                         |
 | `table.columns.prestige.align`        | `Align`  | `'l'`            | `prestige` alignment                                                                                                                   |
 | `table.columns.prestige.pos`          | `int`    | `0`              | `prestige` position used for column ordering                                                                                           |
+| `[table.columns.wins]`                |          |                  | Number of games won                                                                                                                    |
+| `table.columns.wins.label`            | `str`    | `'W'`            | `wins` header                                                                                                                          |
+| `table.columns.wins.visible`          | `bool`   | `false`          | Whether to show the `wins`                                                                                                             |
+| `table.columns.wins.align`            | `Align`  | `'l'`            | `wins` alignment                                                                                                                       |
+| `table.columns.wins.pos`              | `int`    | `0`              | `wins` position used for column ordering                                                                                               |
+| `[table.columns.losses]`              |          |                  | Number of games lost                                                                                                                   |
+| `table.columns.losses.label`          | `str`    | `'L'`            | `losses` header                                                                                                                        |
+| `table.columns.losses.visible`        | `bool`   | `false`          | Whether to show the `losses`                                                                                                           |
+| `table.columns.losses.align`          | `Align`  | `'l'`            | `losses` alignment                                                                                                                     |
+| `table.columns.losses.pos`            | `int`    | `0`              | `losses` position used for column ordering                                                                                             |
 | `[table.columns.win_ratio]`           |          |                  | Percentage of games won                                                                                                                |
 | `table.columns.win_ratio.label`       | `str`    | `'W%'`           | `win_ratio` header                                                                                                                     |
 | `table.columns.win_ratio.visible`     | `bool`   | `true`           | Whether to show the `win_ratio`                                                                                                        |
@@ -425,6 +437,18 @@ pos = 0
 
 [table.columns.prestige]
 label = "XP"
+visible = false
+align = "l"
+pos = 0
+
+[table.columns.wins]
+label = "W"
+visible = false
+align = "l"
+pos = 0
+
+[table.columns.losses]
+label = "L"
 visible = false
 align = "l"
 pos = 0

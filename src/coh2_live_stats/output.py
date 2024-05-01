@@ -233,6 +233,8 @@ class Output:
         )
         self._set_column(row, cols.prestige, (prestige, *is_high_low_lvl_player))
 
+        self._set_column(row, cols.wins, player.wins)
+        self._set_column(row, cols.losses, player.losses)
         self._set_column(row, cols.win_ratio, player.win_ratio)
         self._set_column(row, cols.drop_ratio, player.drop_ratio)
         self._set_column(row, cols.num_games, player.num_games)

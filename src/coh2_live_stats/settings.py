@@ -174,6 +174,8 @@ class _ColumnDefaults(_Col, Enum):
         'Lvl', align='r', description='Rank level representing the leaderboard rank'
     )
     PRESTIGE = _Col('XP', visible=False, description='Experience expressed in stars')
+    WINS = _Col('W', visible=False, description='Number of games won')
+    LOSSES = _Col('L', visible=False, description='Number of games lost')
     WIN_RATIO = _Col('W%', align='r', description='Percentage of games won')
     DROP_RATIO = _Col('Drop%', align='r', description='Percentage of games dropped')
     NUM_GAMES = _Col('Total', description='Total number of games played')

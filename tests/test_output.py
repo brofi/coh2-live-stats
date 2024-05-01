@@ -31,6 +31,7 @@ from coh2_live_stats.data.player import Player
 from coh2_live_stats.data.team import Team
 from coh2_live_stats.output import Output
 from coh2_live_stats.settings import Settings
+from scripts.script_util import flip
 
 from tests.conftest import (
     random_country,
@@ -213,9 +214,6 @@ def test_output_columns(
 def _column_validators(
     party: Party, player: Player
 ) -> dict[str, Callable[[Any], bool]]:
-    def flip(f: Callable) -> Callable:
-        return lambda *args: f(*reversed(args))
-
     cols = Settings().table.columns
     rank_estimate = party.rank_estimates[player.relic_id]
     team = next(iter(party.pre_made_teams), None)

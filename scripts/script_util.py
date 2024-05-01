@@ -15,8 +15,17 @@
 
 """Common script functions."""
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from functools import partial
+
+
+def flip(f: Callable) -> Callable:
+    """Flip arguments of a given function.
+
+    >>> flip(lambda x, y: x / y)(2, 3)
+    1.5
+    """
+    return lambda *args: f(*reversed(args))
 
 
 def wrap(__s: str, __w: str = "'") -> str:
@@ -63,8 +72,8 @@ def list_single(__seq: Sequence[str], __indent: int = 0) -> str:
     return bullet(list_inline(__seq), __indent)
 
 
-def list_inline(__s: Sequence[str]) -> str:
-    """Return a comma-separated list with conjunction.
+def list_inline(__s: Sequence[str], __w: str = "'", *, __quote: bool = True) -> str:
+    """Return a comma-separated, optionally quoted list with conjunction.
 
     >>> list_inline(['a'])
     "'a'"
@@ -72,9 +81,13 @@ def list_inline(__s: Sequence[str]) -> str:
     "'a' or 'b'"
     >>> list_inline(['a', 'b', 'c'])
     "'a', 'b' or 'c'"
+    >>> list_inline(['a', 'b', 'c'], __quote=False)
+    'a, b or c'
+    >>> list_inline(['a', 'b', 'c'], '`')
+    '`a`, `b` or `c`'
     """
+    if __quote:
+        __s = list(map(partial(flip(wrap), __w), __s))
     return (
-        ' or '.join((', '.join(wrap(s) for s in __s[:-1]), wrap(__s[-1])))
-        if len(__s) > 1
-        else str(__s)[1:-1]
+        ' or '.join((', '.join(__s[:-1]), __s[-1])) if len(__s) > 1 else str(__s)[1:-1]
     )

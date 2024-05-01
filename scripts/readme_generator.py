@@ -27,13 +27,21 @@ from coh2_live_stats.data.faction import Faction
 from coh2_live_stats.data.player import Player
 from coh2_live_stats.data.team import Team
 from coh2_live_stats.output import Output, SupportsStr
-from coh2_live_stats.settings import CONFIG_NAMES, Settings, Sound, resolve_sound_name
+from coh2_live_stats.settings import (
+    CONFIG_NAMES,
+    Align,
+    Border,
+    Settings,
+    Sound,
+    resolve_sound_name,
+)
+from coh2_live_stats.util import cls_name
 from prettytable import PrettyTable
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
 from scripts import settings_generator
-from scripts.script_util import list_multi
+from scripts.script_util import list_inline, list_multi
 
 RGB = tuple[int, int, int]
 ConfigExample = tuple[str, list[str]]
@@ -42,6 +50,8 @@ ROOT_DIR = Path(__file__).parents[1]
 PROJECT_FILE = ROOT_DIR.joinpath('pyproject.toml')
 README_FILE = ROOT_DIR.joinpath('README.md')
 RES_DIR = ROOT_DIR.joinpath('src', 'coh2_live_stats', 'res')
+
+_LITERAL_TYPES = (Border, 'Border'), (Align, 'Align'), (Sound, 'Sound')
 
 _STYLES: Final[dict] = {
     'campbell': {
@@ -142,9 +152,7 @@ CONFIG_EXAMPLES: list[ConfigExample] = [
             'win_ratio.visible = false',
             'drop_ratio.visible = false',
             'country.visible = false',
-            'team.label = "T"',
             'team_rank.visible = false',
-            'team_level.label = "TL"',
         ],
     ),
 ]
@@ -409,10 +417,11 @@ class _MarkdownTable:
             return ''
 
         args = get_args(fi.annotation)
-        if args:
-            return ',\n'.join(map(repr, args))
+        for t, n in _LITERAL_TYPES:
+            if args == get_args(t):
+                return f'`{n}`'
 
-        return fi.annotation.__name__
+        return f'`{fi.annotation.__name__}`'
 
     @staticmethod
     def _format_default(_: str, default: SupportsStr) -> str:
@@ -420,18 +429,18 @@ class _MarkdownTable:
             return ''
 
         if isinstance(default, bool):
-            return str(default).lower()
+            return f'`{str(default).lower()}`'
 
         if isinstance(default, Path):
             for s in get_args(Sound):
                 if default == resolve_sound_name(s):
-                    return repr(s)
+                    return f'`{s!r}`'
             return ''
 
         if isinstance(default, Color):
-            return repr(str(default))
+            return f'`{str(default)!r}`'
 
-        return repr(default)
+        return f'`{default!r}`'
 
     def get_lines_with_header(self, header: str = '') -> list[str]:
         if not header:
@@ -542,6 +551,11 @@ def _settings_section() -> list[str]:
     out.extend(
         col_table.get_lines_with_header(f'For each `{i_name}` in `[table.columns]`:')
     )
+    type_listing_items = [
+        f'`{n}`: {list_inline(list(map(repr, get_args(t))), '`')}'
+        for (t, n) in _LITERAL_TYPES
+    ] + [f'`{cls_name(Color)}`: {list_inline(list(map(repr, map(str, Color))), '`')}']
+    out.extend(('\n### Custom Types\n', list_multi(type_listing_items), ''))
     return out
 
 

@@ -127,6 +127,7 @@ information on TOML syntax is found [here](https://toml.io/).
 | `prestige`      | Experience expressed in stars                                                                                                          |
 | `win_ratio`     | Percentage of games won                                                                                                                |
 | `drop_ratio`    | Percentage of games dropped                                                                                                            |
+| `num_games`     | Total number of games played                                                                                                           |
 | `team`          | The pre-made team the player is part of if any                                                                                         |
 | `team_rank`     | The current rank of the pre-made team if any                                                                                           |
 | `team_level`    | The current rank level of the pre-made team if any                                                                                     |
@@ -217,6 +218,7 @@ show_average = false
 rank.visible = false
 win_ratio.visible = false
 drop_ratio.visible = false
+num_games.visible = false
 country.visible = false
 team_rank.visible = false
 ```
@@ -327,6 +329,11 @@ $ inv build
 | `table.columns.drop_ratio.visible`    | `bool`   | `true`           | Whether to show the `drop_ratio`                                                                                                       |
 | `table.columns.drop_ratio.align`      | `Align`  | `'r'`            | `drop_ratio` alignment                                                                                                                 |
 | `table.columns.drop_ratio.pos`        | `int`    | `0`              | `drop_ratio` position used for column ordering                                                                                         |
+| `[table.columns.num_games]`           |          |                  | Total number of games played                                                                                                           |
+| `table.columns.num_games.label`       | `str`    | `'Total'`        | `num_games` header                                                                                                                     |
+| `table.columns.num_games.visible`     | `bool`   | `true`           | Whether to show the `num_games`                                                                                                        |
+| `table.columns.num_games.align`       | `Align`  | `'l'`            | `num_games` alignment                                                                                                                  |
+| `table.columns.num_games.pos`         | `int`    | `0`              | `num_games` position used for column ordering                                                                                          |
 | `[table.columns.team]`                |          |                  | The pre-made team the player is part of if any                                                                                         |
 | `table.columns.team.label`            | `str`    | `'Team'`         | `team` header                                                                                                                          |
 | `table.columns.team.visible`          | `bool`   | `true`           | Whether to show the `team`                                                                                                             |
@@ -338,7 +345,7 @@ $ inv build
 | `table.columns.team_rank.align`       | `Align`  | `'r'`            | `team_rank` alignment                                                                                                                  |
 | `table.columns.team_rank.pos`         | `int`    | `0`              | `team_rank` position used for column ordering                                                                                          |
 | `[table.columns.team_level]`          |          |                  | The current rank level of the pre-made team if any                                                                                     |
-| `table.columns.team_level.label`      | `str`    | `'T_Level'`      | `team_level` header                                                                                                                    |
+| `table.columns.team_level.label`      | `str`    | `'T_Lvl'`        | `team_level` header                                                                                                                    |
 | `table.columns.team_level.visible`    | `bool`   | `true`           | Whether to show the `team_level`                                                                                                       |
 | `table.columns.team_level.align`      | `Align`  | `'r'`            | `team_level` alignment                                                                                                                 |
 | `table.columns.team_level.pos`        | `int`    | `0`              | `team_level` position used for column ordering                                                                                         |
@@ -434,6 +441,12 @@ visible = true
 align = "r"
 pos = 0
 
+[table.columns.num_games]
+label = "Total"
+visible = true
+align = "l"
+pos = 0
+
 [table.columns.team]
 label = "Team"
 visible = true
@@ -447,7 +460,7 @@ align = "r"
 pos = 0
 
 [table.columns.team_level]
-label = "T_Level"
+label = "T_Lvl"
 visible = true
 align = "r"
 pos = 0

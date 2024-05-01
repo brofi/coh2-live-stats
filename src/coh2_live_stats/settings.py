@@ -176,6 +176,7 @@ class _ColumnDefaults(_Col, Enum):
     PRESTIGE = _Col('XP', visible=False, description='Experience expressed in stars')
     WIN_RATIO = _Col('W%', align='r', description='Percentage of games won')
     DROP_RATIO = _Col('Drop%', align='r', description='Percentage of games dropped')
+    NUM_GAMES = _Col('Total', description='Total number of games played')
     TEAM = _Col(
         'Team', align='c', description='The pre-made team the player is part of if any'
     )
@@ -183,7 +184,7 @@ class _ColumnDefaults(_Col, Enum):
         'T_Rank', align='r', description='The current rank of the pre-made team if any'
     )
     TEAM_LEVEL = _Col(
-        'T_Level',
+        'T_Lvl',
         align='r',
         description='The current rank level of the pre-made team if any',
     )

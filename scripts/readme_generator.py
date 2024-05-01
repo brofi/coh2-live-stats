@@ -151,6 +151,7 @@ CONFIG_EXAMPLES: list[ConfigExample] = [
             'rank.visible = false',
             'win_ratio.visible = false',
             'drop_ratio.visible = false',
+            'num_games.visible = false',
             'country.visible = false',
             'team_rank.visible = false',
         ],

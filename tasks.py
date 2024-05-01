@@ -25,20 +25,31 @@ from typing import Any
 
 from invoke import Collection, Context, Result, task
 
+# Conditional imports and mypy - see: https://github.com/python/mypy/issues/1297
+
 try:
-    from coh2_live_stats.logging_conf import LoggingConf
+    # noinspection PyUnresolvedReferences
+    from coh2_live_stats.logging_conf import LoggingConf as _LoggingConf
 except ImportError:
     LoggingConf = None
+else:
+    LoggingConf = _LoggingConf
 
 try:
-    from scripts import settings_generator
+    # noinspection PyUnresolvedReferences
+    from scripts import settings_generator as _settings_generator
 except ImportError:
     settings_generator = None
+else:
+    settings_generator = _settings_generator
 
 try:
-    from scripts import pyinstaller_setup
+    # noinspection PyUnresolvedReferences
+    from scripts import pyinstaller_setup as _pyinstaller_setup
 except ImportError:
     pyinstaller_setup = None
+else:
+    pyinstaller_setup = _pyinstaller_setup
 
 
 Package = dict[str, str]

@@ -21,7 +21,7 @@ it without changing some values has no effect. *Pydantic* ``Field`` descriptions
 used as comments.
 """
 
-from typing import get_args
+from typing import cast, get_args
 
 from coh2_live_stats.data.color import Color
 from coh2_live_stats.settings import (
@@ -92,7 +92,7 @@ def _init_doc(
             if isinstance(item, AbstractTable)
             else item
         )
-    return _container
+    return cast(TOMLDocument, _container)
 
 
 def write_default() -> None:

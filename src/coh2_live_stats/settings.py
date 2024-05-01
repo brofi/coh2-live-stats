@@ -203,7 +203,7 @@ class _ColumnDefaults(_Col, Enum):
 
 
 def _create_columns_model() -> type[BaseModel]:
-    field_definitions = {}
+    field_definitions: dict[str, Any] = {}
     for d in _ColumnDefaults:
         col_name = d.name.lower()
         model_col = create_model(

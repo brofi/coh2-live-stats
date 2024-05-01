@@ -203,6 +203,7 @@ class CoH2API:
             if s['leaderboard_id'] == leaderboard_id:
                 player.wins = s['wins']
                 player.losses = s['losses']
+                player.streak = s['streak']
                 player.drops = s['drops']
                 player.rank = s['rank']
                 player.rank_level = s['ranklevel']

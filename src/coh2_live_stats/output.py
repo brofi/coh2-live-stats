@@ -40,7 +40,7 @@ class SupportsStr(Protocol):
 
 RankTableType = tuple[str, int | float, bool, bool]
 HighLowTableType = tuple[str, bool, bool]
-TableType = Faction | RankTableType | HighLowTableType | float | str | None
+TableType = Faction | RankTableType | HighLowTableType | int | float | str | None
 
 
 class _TableTypeError(Exception):
@@ -116,6 +116,7 @@ class Output:
         self.table.custom_format[cols.faction.label] = self._format_faction
         self.table.custom_format[cols.rank.label] = partial(self._format_rank, 2)
         self.table.custom_format[cols.level.label] = partial(self._format_rank, 1)
+        self.table.custom_format[cols.streak.label] = self._format_streak
         self.table.custom_format[cols.win_ratio.label] = partial(self._format_ratio, 0)
         self.table.custom_format[cols.drop_ratio.label] = partial(self._format_ratio, 2)
         for c in cols.prestige, cols.country, cols.name:
@@ -233,6 +234,7 @@ class Output:
         )
         self._set_column(row, cols.prestige, (prestige, *is_high_low_lvl_player))
 
+        self._set_column(row, cols.streak, player.streak)
         self._set_column(row, cols.wins, player.wins)
         self._set_column(row, cols.losses, player.losses)
         self._set_column(row, cols.win_ratio, player.win_ratio)
@@ -414,3 +416,18 @@ class Output:
             if v[2]:
                 return color.low.colorize(v[0])
         return v[0]
+
+    def _format_streak(self, _: str, v: int | str | None) -> str:
+        s = self._format_string(v)
+        if s is not None:
+            return s
+
+        if not isinstance(v, int):
+            raise _TableTypeError(v)
+
+        if self.settings.table.color:
+            if v > 0:
+                return self.settings.table.colors.player.win_streak.colorize(f'+{v}')
+            if v < 0:
+                return self.settings.table.colors.player.loss_streak.colorize(str(v))
+        return ''

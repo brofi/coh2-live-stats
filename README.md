@@ -106,6 +106,8 @@ information on TOML syntax is found [here](https://toml.io/).
 | `high_drop_rate` | `Color` | `'red'`          | Color for a high player drop ratio                 |
 | `high`           | `Color` | `'bright white'` | Color for highest ranked player and high win ratio |
 | `low`            | `Color` | `'bright black'` | Color for lowest ranked player and low win ratio   |
+| `win_streak`     | `Color` | `'green'`        | Color for a win streak                             |
+| `loss_streak`    | `Color` | `'red'`          | Color for a loss streak                            |
 
 ### `[table.colors.faction]` Faction colors
 
@@ -125,6 +127,7 @@ information on TOML syntax is found [here](https://toml.io/).
 | `rank`          | Leaderboard rank if the player currently has a rank or highest known rank (indicator: +) if available or estimated rank (indicator: ?) |
 | `level`         | Rank level representing the leaderboard rank                                                                                           |
 | `prestige`      | Experience expressed in stars                                                                                                          |
+| `streak`        | Number of games won (positive) or lost (negative) in a row                                                                             |
 | `wins`          | Number of games won                                                                                                                    |
 | `losses`        | Number of games lost                                                                                                                   |
 | `win_ratio`     | Percentage of games won                                                                                                                |
@@ -166,8 +169,8 @@ information on TOML syntax is found [here](https://toml.io/).
 #### Description
 
 * Add full border and remove the average row
-* Remove column `drop_ratio`
-* Add column `prestige`
+* Remove column `drop_ratio` and `num_games`
+* Add column `streak` and `prestige`
 * Move column `prestige` to the front
 * Move column `faction` in front of column `name`
 * Unify faction colors
@@ -182,6 +185,12 @@ show_average = false
 
 [table.columns.drop_ratio]
 visible = false
+
+[table.columns.num_games]
+visible = false
+
+[table.columns.streak]
+visible = true
 
 [table.columns.prestige]
 visible = true
@@ -294,6 +303,8 @@ $ inv build
 | `table.colors.player.high_drop_rate`  | `Color`  | `'red'`          | Color for a high player drop ratio                                                                                                     |
 | `table.colors.player.high`            | `Color`  | `'bright white'` | Color for highest ranked player and high win ratio                                                                                     |
 | `table.colors.player.low`             | `Color`  | `'bright black'` | Color for lowest ranked player and low win ratio                                                                                       |
+| `table.colors.player.win_streak`      | `Color`  | `'green'`        | Color for a win streak                                                                                                                 |
+| `table.colors.player.loss_streak`     | `Color`  | `'red'`          | Color for a loss streak                                                                                                                |
 | `[table.colors.faction]`              |          |                  | Faction colors                                                                                                                         |
 | `table.colors.faction.wm`             | `Color`  | `'red'`          | Wehrmacht color                                                                                                                        |
 | `table.colors.faction.su`             | `Color`  | `'red'`          | Soviet Union color                                                                                                                     |
@@ -321,6 +332,11 @@ $ inv build
 | `table.columns.prestige.visible`      | `bool`   | `false`          | Whether to show the `prestige`                                                                                                         |
 | `table.columns.prestige.align`        | `Align`  | `'l'`            | `prestige` alignment                                                                                                                   |
 | `table.columns.prestige.pos`          | `int`    | `0`              | `prestige` position used for column ordering                                                                                           |
+| `[table.columns.streak]`              |          |                  | Number of games won (positive) or lost (negative) in a row                                                                             |
+| `table.columns.streak.label`          | `str`    | `'+/-'`          | `streak` header                                                                                                                        |
+| `table.columns.streak.visible`        | `bool`   | `false`          | Whether to show the `streak`                                                                                                           |
+| `table.columns.streak.align`          | `Align`  | `'l'`            | `streak` alignment                                                                                                                     |
+| `table.columns.streak.pos`            | `int`    | `0`              | `streak` position used for column ordering                                                                                             |
 | `[table.columns.wins]`                |          |                  | Number of games won                                                                                                                    |
 | `table.columns.wins.label`            | `str`    | `'W'`            | `wins` header                                                                                                                          |
 | `table.columns.wins.visible`          | `bool`   | `false`          | Whether to show the `wins`                                                                                                             |
@@ -408,6 +424,8 @@ label = "BRIGHT_BLACK"
 high_drop_rate = "RED"
 high = "BRIGHT_WHITE"
 low = "BRIGHT_BLACK"
+win_streak = "GREEN"
+loss_streak = "RED"
 
 [table.colors.faction]
 wm = "RED"
@@ -437,6 +455,12 @@ pos = 0
 
 [table.columns.prestige]
 label = "XP"
+visible = false
+align = "l"
+pos = 0
+
+[table.columns.streak]
+label = "+/-"
 visible = false
 align = "l"
 pos = 0

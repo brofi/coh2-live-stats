@@ -778,6 +778,7 @@ async def test_get_players(
             if s['leaderboard_id'] == lid:
                 player_json.wins = s['wins']
                 player_json.losses = s['losses']
+                player_json.streak = s['streak']
                 player_json.drops = s['drops']
                 player_json.rank = s['rank']
                 player_json.rank_level = s['ranklevel']

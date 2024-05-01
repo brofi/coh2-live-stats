@@ -109,8 +109,8 @@ _STYLES: Final[dict] = {
 CONFIG_EXAMPLES: list[ConfigExample] = [
     (
         '* Add full border and remove the average row\n'
-        '* Remove column `drop_ratio`\n'
-        '* Add column `prestige`\n'
+        '* Remove column `drop_ratio` and `num_games`\n'
+        '* Add column `streak` and `prestige`\n'
         '* Move column `prestige` to the front\n'
         '* Move column `faction` in front of column `name`\n'
         '* Unify faction colors\n',
@@ -121,6 +121,12 @@ CONFIG_EXAMPLES: list[ConfigExample] = [
             '',
             '[table.columns.drop_ratio]',
             'visible = false',
+            '',
+            '[table.columns.num_games]',
+            'visible = false',
+            '',
+            '[table.columns.streak]',
+            'visible = true',
             '',
             '[table.columns.prestige]',
             'visible = true',
@@ -167,6 +173,7 @@ _HG = Player(
     steam_profile='',
     prestige=300,
     country='de',
+    streak=7,
     wins=4831,
     losses=3211,
     drops=103,
@@ -182,6 +189,7 @@ _RPM = Player(
     steam_profile='',
     prestige=300,
     country='ie',
+    streak=-1,
     wins=789,
     losses=654,
     drops=51,
@@ -197,6 +205,7 @@ _WS = Player(
     steam_profile='',
     prestige=300,
     country='pl',
+    streak=-4,
     wins=543,
     losses=612,
     drops=59,
@@ -212,6 +221,7 @@ _TB = Player(
     steam_profile='',
     prestige=249,
     country='us',
+    streak=2,
     wins=2862,
     losses=2690,
     drops=201,
@@ -227,6 +237,7 @@ _JW = Player(
     steam_profile='',
     prestige=300,
     country='us',
+    streak=6,
     wins=3410,
     losses=2471,
     drops=83,
@@ -242,6 +253,7 @@ _RD = Player(
     steam_profile='',
     prestige=300,
     country='pt',
+    streak=8,
     wins=1720,
     losses=1082,
     drops=57,
@@ -257,6 +269,7 @@ _VV = Player(
     steam_profile='',
     prestige=249,
     country='nl',
+    streak=-3,
     wins=639,
     losses=730,
     drops=19,
@@ -272,6 +285,7 @@ _TD = Player(
     steam_profile='',
     prestige=149,
     country='us',
+    streak=1,
     wins=120,
     losses=117,
     drops=8,

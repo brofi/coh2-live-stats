@@ -230,6 +230,7 @@ def _column_validators(
                 partial(flip(operator.contains), rank_estimate[1]),
                 partial(flip(operator.contains), rank_estimate[2]),
                 partial(flip(operator.contains), player.get_prestige_level_stars()),
+                partial(operator.eq, player.streak),
                 partial(operator.eq, player.wins),
                 partial(operator.eq, player.losses),
                 partial(operator.eq, player.win_ratio),

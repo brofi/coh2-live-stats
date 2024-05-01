@@ -123,6 +123,8 @@ class _TableColorsPlayer(BaseModel):
         Color.BRIGHT_BLACK,
         description='Color for lowest ranked player and low win ratio',
     )
+    win_streak: _CT = Field(Color.GREEN, description='Color for a win streak')
+    loss_streak: _CT = Field(Color.RED, description='Color for a loss streak')
 
 
 if TYPE_CHECKING:
@@ -174,6 +176,11 @@ class _ColumnDefaults(_Col, Enum):
         'Lvl', align='r', description='Rank level representing the leaderboard rank'
     )
     PRESTIGE = _Col('XP', visible=False, description='Experience expressed in stars')
+    STREAK = _Col(
+        '+/-',
+        visible=False,
+        description='Number of games won (positive) or lost (negative) in a row',
+    )
     WINS = _Col('W', visible=False, description='Number of games won')
     LOSSES = _Col('L', visible=False, description='Number of games lost')
     WIN_RATIO = _Col('W%', align='r', description='Percentage of games won')

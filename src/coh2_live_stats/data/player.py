@@ -48,6 +48,7 @@ class Player:
     country: str = ''
     wins: int = -1
     losses: int = -1
+    streak: int = 0
     drops: int = -1
     rank: int = -1
     rank_total: int = -1

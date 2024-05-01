@@ -143,13 +143,14 @@ information on TOML syntax is found [here](https://toml.io/).
 | `align`   | `Align` | `column` alignment                         |
 | `pos`     | `int`   | `column` position used for column ordering |
 
+### Custom types
 
-### Custom Types
-
-* `Border`: `'full'`, `'inner'` or `'none'`
-* `Align`: `'l'`, `'c'` or `'r'`
-* `Sound`: `'horn_subtle'`, `'horn'` or `'horn_epic'`
-* `Color`: `'black'`, `'red'`, `'green'`, `'yellow'`, `'blue'`, `'magenta'`, `'cyan'`, `'white'`, `'bright black'`, `'bright red'`, `'bright green'`, `'bright yellow'`, `'bright blue'`, `'bright magenta'`, `'bright cyan'` or `'bright white'`
+| Type     | Values                                                                                                                                                                                                                                 |
+|:---------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Border` | `'full'`, `'inner'` or `'none'`                                                                                                                                                                                                        |
+| `Align`  | `'l'`, `'c'` or `'r'`                                                                                                                                                                                                                  |
+| `Sound`  | `'horn_subtle'`, `'horn'` or `'horn_epic'`                                                                                                                                                                                             |
+| `Color`  | `'black'`, `'red'`, `'green'`, `'yellow'`, `'blue'`, `'magenta'`, `'cyan'`, `'white'`, `'bright black'`, `'bright red'`, `'bright green'`, `'bright yellow'`, `'bright blue'`, `'bright magenta'`, `'bright cyan'` or `'bright white'` |
 
 
 [//]: # (</mark_settings>)

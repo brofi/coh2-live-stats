@@ -391,23 +391,54 @@ def _example_output_svg(settings: Settings, style: dict[str, Any]) -> str:
 
 
 class _MarkdownTable:
+    def __init__(self) -> None:
+        self.table = PrettyTable()
+        self.table.set_style(prettytable.MARKDOWN)
+        self.table.align = 'l'
+
+    def get_lines(self) -> list[str]:
+        table_lines = self.table.get_string().split('\n')
+        table_lines[1] = table_lines[1].replace('| :-', '|:--').replace('-: |', '--:|')
+        return ['', *table_lines, '']
+
+    def strip(self) -> None:
+        empty_cols = []
+        for i, f in enumerate(self.table.field_names):
+            formatter = self.table.custom_format.get(f)
+            if all(
+                (formatter and not formatter(f, r[i])) or (not formatter and not r[i])
+                for r in self.table.rows
+            ):
+                empty_cols.append(f)
+        for f in empty_cols:
+            self.table.del_column(f)
+
+
+class _CustomTypesTable(_MarkdownTable):
+    COL_TYPE: Final[str] = 'Type'
+    COL_VALUES: Final[str] = 'Values'
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.table.field_names = [self.COL_TYPE, self.COL_VALUES]
+
+
+class _SettingsTable(_MarkdownTable):
     COL_ATTR: Final[str] = 'Attribute'
     COL_TYPE: Final[str] = 'Type'
     COL_DEFAULT: Final[str] = 'Default'
     COL_DESCR: Final[str] = 'Description'
 
     def __init__(self, key: str, description: str) -> None:
+        super().__init__()
         self.key = key
         self.description = description
-        self.table = PrettyTable()
-        self.table.set_style(prettytable.MARKDOWN)
         self.table.field_names = [
             self.COL_ATTR,
             self.COL_TYPE,
             self.COL_DEFAULT,
             self.COL_DESCR,
         ]
-        self.table.align = 'l'
         self.table.custom_format[self.COL_TYPE] = self._format_type
         self.table.custom_format[self.COL_DEFAULT] = self._format_default
 
@@ -447,33 +478,16 @@ class _MarkdownTable:
             header = f'`[{self.key}]` {self.description}'
         return [f'### {header}', *self.get_lines()]
 
-    def get_lines(self) -> list[str]:
-        table_lines = self.table.get_string().split('\n')
-        table_lines[1] = table_lines[1].replace('| :-', '|:--').replace('-: |', '--:|')
-        return ['', *table_lines, '']
-
-    def strip(self) -> None:
-        empty_cols = []
-        for i, f in enumerate(self.table.field_names):
-            formatter = self.table.custom_format.get(f)
-            if all(
-                (formatter and not formatter(f, r[i])) or (not formatter and not r[i])
-                for r in self.table.rows
-            ):
-                empty_cols.append(f)
-        for f in empty_cols:
-            self.table.del_column(f)
-
 
 def _create_tables_recursive(
     model: BaseModel,
-    tables: list[_MarkdownTable] | None = None,
+    tables: list[_SettingsTable] | None = None,
     key: str = '',
     description: str = '',
-) -> list[_MarkdownTable]:
+) -> list[_SettingsTable]:
     if tables is None:
         tables = []
-    mdt = _MarkdownTable(key, description)
+    mdt = _SettingsTable(key, description)
     tables.append(mdt)
     for attr_name, field_info in model.model_fields.items():
         descr = field_info.description or ''
@@ -488,12 +502,12 @@ def _create_tables_recursive(
 
 def _create_table_recursive(
     model: BaseModel,
-    mdt: _MarkdownTable | None = None,
+    mdt: _SettingsTable | None = None,
     key: str = '',
     description: str = '',
-) -> _MarkdownTable:
+) -> _SettingsTable:
     if mdt is None:
-        mdt = _MarkdownTable(key, description)
+        mdt = _SettingsTable(key, description)
     for attr_name, field_info in model.model_fields.items():
         is_model = isinstance(field_info.default, BaseModel)
         k = f'{key}{'.' if key else ''}{attr_name}'
@@ -511,7 +525,7 @@ def _create_table_recursive(
     return mdt
 
 
-def _create_table(settings: Settings, key: str = '') -> _MarkdownTable:
+def _create_table(settings: Settings, key: str = '') -> _SettingsTable:
     model_names = key.split('.')
     model: BaseModel = settings
     descriptions = ['']
@@ -523,7 +537,7 @@ def _create_table(settings: Settings, key: str = '') -> _MarkdownTable:
         descriptions.append(model.model_fields[name].description or '')
         model = m
 
-    mdt = _MarkdownTable(key, descriptions[-1])
+    mdt = _SettingsTable(key, descriptions[-1])
     for attr_name, field_info in model.model_fields.items():
         mdt.table.add_row(
             [f'`{attr_name}`', field_info, field_info.default, field_info.description]
@@ -544,18 +558,21 @@ def _settings_section() -> list[str]:
     col_table = _create_table(settings, 'table.columns.faction')
     row: list[str]
     i_name = 'column'
-    idx_descr = col_table.table.field_names.index(_MarkdownTable.COL_DESCR)
+    idx_descr = col_table.table.field_names.index(_SettingsTable.COL_DESCR)
     for row in col_table.table.rows:
         row[idx_descr] = row[idx_descr].replace('faction', i_name)
-    col_table.table.del_column(_MarkdownTable.COL_DEFAULT)
+    col_table.table.del_column(_SettingsTable.COL_DEFAULT)
     out.extend(
         col_table.get_lines_with_header(f'For each `{i_name}` in `[table.columns]`:')
     )
-    type_listing_items = [
-        f'`{n}`: {list_inline(list(map(repr, get_args(t))), '`')}'
-        for (t, n) in _LITERAL_TYPES
-    ] + [f'`{cls_name(Color)}`: {list_inline(list(map(repr, map(str, Color))), '`')}']
-    out.extend(('\n### Custom Types\n', list_multi(type_listing_items), ''))
+    out.append('### Custom types')
+    tbl = _CustomTypesTable()
+    for t, n in _LITERAL_TYPES:
+        tbl.table.add_row([f'`{n}`', list_inline(list(map(repr, get_args(t))), '`')])
+    tbl.table.add_row(
+        [f'`{cls_name(Color)}`', list_inline(list(map(repr, map(str, Color))), '`')]
+    )
+    out.extend(tbl.get_lines())
     return out
 
 

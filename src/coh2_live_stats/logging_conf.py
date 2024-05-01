@@ -25,7 +25,10 @@ from logging.handlers import QueueHandler, QueueListener
 from pathlib import Path
 from queue import Queue
 from tomllib import TOMLDecodeError
-from typing import Any, Final, override
+from typing import TYPE_CHECKING, Any, Final, override
+
+if TYPE_CHECKING:
+    from coh2_live_stats.__main__ import LogInfo
 
 
 class LoggingConfError(Exception):
@@ -84,7 +87,7 @@ class LoggingConf:
         logging.logMultiprocessing = False
 
         # Setup custom queue handler
-        que: Queue = Queue(-1)
+        que: Queue[LogInfo] = Queue(-1)
         queue_handler = CustomQueueHandler(que)
         logging.getLogger().addHandler(queue_handler)
         # Listener needs to be created manually, unlike when configuring the default

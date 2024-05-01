@@ -18,7 +18,7 @@
 import asyncio
 import logging
 from enum import IntEnum
-from typing import Any, override
+from typing import Any, cast, override
 
 from httpx import AsyncClient, URL
 
@@ -264,7 +264,7 @@ class CoH2API:
             self.URL_PLAYER, params=params, timeout=self.timeout
         )
         r.raise_for_status()
-        return r.json()
+        return cast(dict[str, Any], r.json())
 
     async def init_leaderboards(self) -> None:
         """Initialize CoH2 leaderboards with their total amount of ranked players."""
@@ -289,7 +289,7 @@ class CoH2API:
             self.URL_LEADERBOARDS, params={'title': 'coh2'}, timeout=self.timeout
         )
         r.raise_for_status()
-        return r.json()
+        return cast(dict[str, Any], r.json())
 
     async def _get_leaderboard(self, leaderboard_id: int) -> dict[str, Any]:
         params: dict[str, str | int] = {
@@ -301,7 +301,7 @@ class CoH2API:
             self.URL_LEADERBOARD, params=params, timeout=self.timeout
         )
         r.raise_for_status()
-        return r.json()
+        return cast(dict[str, Any], r.json())
 
     async def close(self) -> None:
         """Close the HTTP Client."""

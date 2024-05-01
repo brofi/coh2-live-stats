@@ -39,16 +39,16 @@ def logfile() -> Generator[Path, Any, None]:
 
 
 @pytest_asyncio.fixture(scope='module')
-async def queue(logfile: Path) -> AsyncGenerator[Queue, Any]:  # noqa: RUF029 (need loop)
-    queue: Queue = Queue()
+async def queue(logfile: Path) -> AsyncGenerator[Queue[LogInfo], Any]:  # noqa: RUF029 (need loop)
+    queue: Queue[LogInfo] = Queue()
     observer = Observer()
     observer.schedule(
         LogFileEventHandler(asyncio.get_running_loop(), queue, logfile),
         str(logfile.parent),
-    )
-    observer.start()
+    )  # type: ignore[no-untyped-call]
+    observer.start()  # type: ignore[no-untyped-call]
     yield queue
-    observer.stop()
+    observer.stop()  # type: ignore[no-untyped-call]
     observer.join()
 
 
@@ -84,12 +84,12 @@ def _log_playing(logfile: Path, now: str) -> None:
         f.write(log)
 
 
-def test_initial_parse(queue: Queue) -> None:
+def test_initial_parse(queue: Queue[LogInfo]) -> None:
     assert queue.qsize() == 1
 
 
 @pytest.mark.asyncio(scope='module')
-async def test_initial_parse_empty(queue: Queue) -> None:
+async def test_initial_parse_empty(queue: Queue[LogInfo]) -> None:
     log_info: LogInfo = await queue.get()
     queue.task_done()
     assert log_info == LogInfo([], is_new_match=True, is_multiplayer_match=False)
@@ -98,7 +98,7 @@ async def test_initial_parse_empty(queue: Queue) -> None:
 @pytest.mark.asyncio(scope='module')
 @pytest.mark.usefixtures('_equality')
 async def test_parse_new_match(
-    queue: Queue, logfile: Path, now: str, players1: list[Player]
+    queue: Queue[LogInfo], logfile: Path, now: str, players1: list[Player]
 ) -> None:
     log_match(logfile, now, players1, mode='a')
     log_info: LogInfo = await queue.get()
@@ -109,7 +109,7 @@ async def test_parse_new_match(
 @pytest.mark.asyncio(scope='module')
 @pytest.mark.usefixtures('_equality')
 async def test_parse_next_match(
-    queue: Queue, logfile: Path, now: str, players2: list[Player]
+    queue: Queue[LogInfo], logfile: Path, now: str, players2: list[Player]
 ) -> None:
     log_match(logfile, now, players2, mode='a')
     log_info: LogInfo = await queue.get()
@@ -119,7 +119,9 @@ async def test_parse_next_match(
 
 @pytest.mark.asyncio(scope='module')
 @pytest.mark.usefixtures('_equality', '_log_playing')
-async def test_parse_now_playing_match(queue: Queue, players2: list[Player]) -> None:
+async def test_parse_now_playing_match(
+    queue: Queue[LogInfo], players2: list[Player]
+) -> None:
     log_info: LogInfo = await queue.get()
     queue.task_done()
     assert log_info == LogInfo(players2, is_new_match=False, is_multiplayer_match=True)

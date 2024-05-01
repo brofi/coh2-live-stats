@@ -17,9 +17,12 @@
 
 from collections.abc import Callable, Sequence
 from functools import partial
+from typing import TypeVar
+
+_T = TypeVar('_T')
 
 
-def flip(f: Callable) -> Callable:
+def flip(f: Callable[..., _T]) -> Callable[..., _T]:
     """Flip arguments of a given function.
 
     >>> flip(lambda x, y: x / y)(2, 3)

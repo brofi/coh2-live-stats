@@ -28,6 +28,7 @@ from typing import (
     Any,
     Literal,
     NamedTuple,
+    cast,
     get_args,
     override,
 )
@@ -153,7 +154,7 @@ class _TableColors(BaseModel):
     )
 
     def get_faction_color(self, f: Faction) -> Color:
-        return getattr(self.faction, f.name.lower())
+        return cast(Color, getattr(self.faction, f.name.lower()))
 
 
 class _Col(NamedTuple):
@@ -294,6 +295,7 @@ class _Notification(BaseModel):
     @field_serializer('sound')
     @staticmethod
     def serialize_sound(sound: Path) -> str:
+        s: Sound
         for s in get_args(Sound):
             if sound == resolve_sound_name(s):
                 return s

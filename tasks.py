@@ -175,19 +175,21 @@ def build(c: Context, *, clean: bool = False) -> None:
 )
 def install(c: Context, *, normal_mode: bool = False, dev: bool = False) -> bool:
     """Install project in editable (default) or non-editable mode."""
+    installed = True
     if normal_mode:
         LOG.info('Installing %s in non-editable mode...', _pkg)
-        return _install(c)
-
-    pkg = _get_pkg(c, _pkg)
-    if pkg is None:
-        LOG.info('Installing %s in editable mode...', _pkg)
-        return _install_editable(c, force=False, dev=dev)
-    if not _is_editable(pkg):
-        LOG.info('Reinstalling %s in editable mode...', _pkg)
-        return _install_editable(c, force=True, dev=dev)
-    LOG.info('%s is up to date.', _pkg)
-    return True
+        installed = _install(c)
+    else:
+        pkg = _get_pkg(c, _pkg)
+        if pkg is None:
+            LOG.info('Installing %s in editable mode...', _pkg)
+            installed = _install_editable(c, force=False, dev=dev)
+        elif not _is_editable(pkg):
+            LOG.info('Reinstalling %s in editable mode...', _pkg)
+            installed = _install_editable(c, force=True, dev=dev)
+        else:
+            LOG.info('%s is up to date.', _pkg)
+    return installed
 
 
 namespace = Collection(build, install)

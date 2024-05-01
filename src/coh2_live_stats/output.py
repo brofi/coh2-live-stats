@@ -18,7 +18,7 @@
 import asyncio
 import logging
 from functools import partial
-from typing import Any, Final, Protocol, override
+from typing import Any, Final, Protocol, cast, override
 
 from prettytable import PrettyTable
 from prettytable.colortable import ColorTable, Theme
@@ -128,7 +128,7 @@ class Output:
 
     def get_column_index(self, col: Any) -> int:  # noqa: ANN401
         """Return the index into ``PrettyTable`` field names for a given column."""
-        return self.table.field_names.index(col.label)
+        return cast(int, self.table.field_names.index(col.label))
 
     def print_match(self, players: list[Player]) -> None:
         """Print a match.

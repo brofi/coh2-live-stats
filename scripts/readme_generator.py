@@ -19,7 +19,7 @@ import re
 import tomllib
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Final, get_args
+from typing import Any, Final, cast, get_args
 
 import prettytable
 from coh2_live_stats.data.color import Color
@@ -53,7 +53,7 @@ RES_DIR = ROOT_DIR.joinpath('src', 'coh2_live_stats', 'res')
 
 _LITERAL_TYPES = (Border, 'Border'), (Align, 'Align'), (Sound, 'Sound')
 
-_STYLES: Final[dict] = {
+_STYLES: Final[dict[str, Any]] = {
     'campbell': {
         'fonts': ['Cascadia Mono', 'Consolas'],
         'size': '11.5pt',
@@ -330,7 +330,7 @@ def _sample_players() -> list[Player]:
 
 def _get_description() -> str:
     with PROJECT_FILE.open('rb') as f:
-        return tomllib.load(f)['project']['description']
+        return cast(str, tomllib.load(f)['project']['description'])
 
 
 RE_COLOR = re.compile(r'\x1b\[(?P<color>[3|9][0-7])m(?P<value>.*?)\x1b\[0m')

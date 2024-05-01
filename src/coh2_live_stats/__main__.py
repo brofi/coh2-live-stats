@@ -115,7 +115,7 @@ class LogFileEventHandler(FileSystemEventHandler):
             lines = f.readlines()
 
         pl = 0
-        player_matches: list[re.Match] = []
+        player_matches: list[re.Match[str]] = []
         for i, line in enumerate(lines):
             m = self.PLAYER_PATTERN.search(line)
             if m is not None:
@@ -192,16 +192,16 @@ def _start_logfile_observer(queue: Queue[LogInfo], logfile: Path) -> BaseObserve
     observer = Observer()
     handler = LogFileEventHandler(asyncio.get_running_loop(), queue, logfile)
     LOG.info('Scheduling %s for: %s', cls_name(handler), str(logfile.parent))
-    observer.schedule(handler, str(logfile.parent))
+    observer.schedule(handler, str(logfile.parent))  # type: ignore[no-untyped-call]
     LOG.info('Starting observer: %s[name=%s]', cls_name(observer), observer.name)
-    observer.start()
+    observer.start()  # type: ignore[no-untyped-call]
     return observer
 
 
 def _stop_logfile_observer(observer: BaseObserver) -> None:
     if observer:
         LOG.info('Stopping observer: %s[name=%s]', cls_name(observer), observer.name)
-        observer.stop()
+        observer.stop()  # type: ignore[no-untyped-call]
         observer.join()
 
 
@@ -227,7 +227,7 @@ async def main() -> int:
     api = CoH2API()
     output = Output(settings)
 
-    queue: Queue = Queue()
+    queue: Queue[LogInfo] = Queue()
     observer = _start_logfile_observer(queue, settings.logfile)
 
     # Force CoH2 to write out its collected log

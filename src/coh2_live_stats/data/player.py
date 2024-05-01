@@ -43,18 +43,21 @@ class Player:
     faction: Faction
 
     # CoH2 API data
+    # Player data
     steam_profile: str = ''
     prestige: int = -1
     country: str = ''
-    wins: int = -1
-    losses: int = -1
+    # Player stats
+    wins: int = 0
+    losses: int = 0
     streak: int = 0
-    drops: int = -1
+    drops: int = 0
     rank: int = -1
     rank_total: int = -1
     rank_level: int = -1
     highest_rank: int = -1
     highest_rank_level: int = -1
+    # Pre-made teams
     teams: list[Team] = field(default_factory=list)
 
     @property

@@ -26,6 +26,7 @@ from typing import (
     TYPE_CHECKING,
     Annotated,
     Any,
+    ClassVar,
     Literal,
     NamedTuple,
     cast,
@@ -305,10 +306,19 @@ class _Notification(BaseModel):
 class Settings(BaseSettings):
     """Pydantic model for application settings."""
 
+    _LOGFILE_DEFAULT: ClassVar[Path] = Path().home()
+    if sys.platform == 'win32' or sys.platform == 'cygwin':
+        _LOGFILE_DEFAULT = _LOGFILE_DEFAULT.joinpath(
+            'Documents', 'My Games', 'Company of Heroes 2'
+        )
+    elif sys.platform == 'linux':
+        _LOGFILE_DEFAULT = _LOGFILE_DEFAULT.joinpath(
+            '.local', 'share', 'feral-interactive', 'CompanyOfHeroes2', 'AppData'
+        )
+    _LOGFILE_DEFAULT /= 'warnings.log'
+
     logfile: _PT = Field(
-        Path.home().joinpath(
-            'Documents', 'My Games', 'Company of Heroes 2', 'warnings.log'
-        ),
+        _LOGFILE_DEFAULT,
         validate_default=True,
         description='Path to observed Company of Heroes 2 log file (supports OS '
         'environment variables)',

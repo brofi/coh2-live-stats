@@ -17,6 +17,7 @@
 
 import json
 import logging
+import os
 import sys
 from collections.abc import Callable
 from pathlib import Path
@@ -101,7 +102,13 @@ def _success(res: Result | None) -> bool:
 
 @task
 def _activate(c: Context) -> bool:
-    return _success(c.run('.\\venv\\Scripts\\activate.bat'))
+    venv = Path(__file__).with_name('venv')
+    cmd = (
+        str(venv.joinpath('Scripts', 'activate.bat'))
+        if os.name == 'nt'
+        else f'. {venv.joinpath('bin', 'activate')}'
+    )
+    return _success(c.run(cmd))
 
 
 def _is_editable(p: Package) -> bool:

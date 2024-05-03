@@ -38,6 +38,7 @@ You can either run _CoH2 Live Stats_ as a standalone bundled application or inst
 
 * Microsoft Windows
 * (Optional) [Windows Terminal](https://github.com/microsoft/terminal) for proper UTF-8 support
+* **_or_** Linux
 
 ## Configuration
 
@@ -245,11 +246,12 @@ team_rank.visible = false
 
 ### Setup
 
-* Create and activate virtual environment:
-```console
-$  python -m venv venv
-$ .\venv\Scripts\Activate.ps1
-```
+* Create virtual environment: `python -m venv venv`
+* Activate virtual environment:
+  * Bash: `. venv/bin/activate`
+  * PowerShell: `venv\Scripts\Activate.ps1`
+  * cmd.exe: `venv\Scripts\activate.bat`
+
 
 * Install project with development dependencies in editable mode:
 ```console
@@ -260,6 +262,11 @@ $ inv install --dev
 * Install `pre-commit` hooks:
 ```console
 $ pre-commit install
+```
+
+* Install missing stub packages:
+```console
+$ mypy --install-types --non-interactive src tests scripts tasks.py
 ```
 
 ### Build

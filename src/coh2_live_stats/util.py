@@ -15,10 +15,13 @@
 
 """Utility functions."""
 
-import winsound
+import sys
 from contextlib import suppress
 from inspect import isclass
 from pathlib import Path
+
+if sys.platform == 'win32':
+    from winsound import SND_ASYNC, SND_FILENAME, SND_NODEFAULT, PlaySound
 
 
 def cls_name(obj: type | object) -> str:
@@ -49,8 +52,9 @@ def ratio(x: float, total: float) -> float | None:
 
 def stop_sound() -> None:
     """Stop currently playing waveform sound."""
-    with suppress(RuntimeError):
-        winsound.PlaySound(None, 0)
+    if sys.platform == 'win32':
+        with suppress(RuntimeError):
+            PlaySound(None, 0)
 
 
 def play_sound(soundfile: Path) -> bool:
@@ -59,18 +63,15 @@ def play_sound(soundfile: Path) -> bool:
     :param soundfile: the WAV file to play
     :return: whether the sound was played
     """
-    # When using SND_ASYNC there is no RuntimeError for non-existing files without a
-    # default sound.
-    if not (soundfile.is_file() and soundfile.suffix == '.wav'):
-        return False
+    if sys.platform == 'win32':
+        # When using SND_ASYNC there is no RuntimeError for non-existing files without a
+        # default sound.
+        if not (soundfile.is_file() and soundfile.suffix == '.wav'):
+            return False
 
-    stop_sound()
-    try:
-        winsound.PlaySound(
-            str(soundfile),
-            winsound.SND_FILENAME | winsound.SND_NODEFAULT | winsound.SND_ASYNC,
-        )
-    except RuntimeError:
-        return False
-    else:
-        return True
+        stop_sound()
+        try:
+            PlaySound(str(soundfile), SND_FILENAME | SND_NODEFAULT | SND_ASYNC)
+        except RuntimeError:
+            return False
+    return True

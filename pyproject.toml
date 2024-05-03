@@ -26,6 +26,7 @@ classifiers = [
     "Natural Language :: English",
     "Programming Language :: Python :: 3",
     "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
     "Topic :: Games/Entertainment :: Real Time Strategy"
 ]
 
@@ -38,6 +39,7 @@ dev = [
 build = [
     "build >= 1.2.1",
     "invoke >= 2.2.0",
+    "mypy >= 1.10.0",
     "pyinstaller >= 6.6.0",
     "pytest >= 8.1.1",
     "pytest-asyncio >= 0.23.6",

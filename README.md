@@ -23,10 +23,14 @@ and [Inconsolata](https://github.com/googlefonts/Inconsolata) font.
 
 You can either run _CoH2 Live Stats_ as a standalone bundled application or install and run it with Python.
 
-### Run Bundle [Recommended]
+### Run Bundle [Windows Recommended]
 
 1. [Download](https://github.com/brofi/coh2-live-stats/releases) latest release of _CoH2LiveStats-bundle-[version].zip_
 2. Unzip and run _CoH2LiveStats.exe_
+
+### Install from PyPI [Linux Recommended]
+1. Run `pip install coh2-live-stats`
+2. Run `python -m coh2_live_stats` or simply `coh2livestats`
 
 
 ### Install from source

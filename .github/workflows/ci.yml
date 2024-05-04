@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: [ 'master' ]
+  pull_request:
+    branches: [ 'master' ]
+
+jobs:
+
+  lint:
+    name: lint ${{ matrix.python-version }}
+    runs-on: 'ubuntu-latest'
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - name: set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: create virtual environment
+        run: |
+          python -m venv --without-pip .venv
+          python -m venv --upgrade-deps --upgrade .venv
+      - name: install dependencies
+        run: |
+          . .venv/bin/activate
+          python -m pip install ruff
+      - name: run lint
+        run: |
+          . .venv/bin/activate
+          python -m ruff check
+
+  type-check:
+    name: type-check ${{ matrix.python-version }}
+    runs-on: 'ubuntu-latest'
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - name: set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: create virtual environment
+        run: |
+          python -m venv --without-pip .venv
+          python -m venv --upgrade-deps --upgrade .venv
+      - name: install dependencies
+        # See: https://github.com/python/mypy/issues/10600
+        run: |
+          . .venv/bin/activate
+          python -m pip install .[build] types-colorama types-pyinstaller
+      - name: run mypy
+        run: |
+          . .venv/bin/activate
+          python -m mypy src tests scripts tasks.py
+
+  test:
+    name: test ${{ matrix.os }} / ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['ubuntu-latest']
+        python-version: ['3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - name: set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: create virtual environment
+        run: |
+          python -m venv --without-pip .venv
+          python -m venv --upgrade-deps --upgrade .venv
+      - name: install dependencies
+        run: |
+          . .venv/bin/activate
+          python -m pip install .[build]
+      - name: mock log file
+        run: >
+          . .venv/bin/activate && python -c
+          "import os; from pathlib import Path;
+          logfile = Path().home();
+          logfile = logfile.joinpath('Documents', 'My Games', 'Company of Heroes 2') if os.name == 'nt'
+          else logfile.joinpath('.local', 'share', 'feral-interactive', 'CompanyOfHeroes2', 'AppData');
+          logfile.mkdir(parents=True, exist_ok=True);
+          logfile /= 'warnings.log';
+          logfile.touch()"
+      - name: run pytest
+        run: |
+          . .venv/bin/activate
+          python -m pytest --verbose -s

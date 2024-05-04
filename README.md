@@ -1,6 +1,6 @@
 # <img src="src/coh2_live_stats/res/coh2_live_stats.ico" alt="Icon" width="64" align="center"/> CoH2 Live Stats
 
-![CI branch master](https://github.com/brofi/coh2-live-stats/actions/workflows/ci.yml/badge.svg)
+[![CI branch master](https://github.com/brofi/coh2-live-stats/actions/workflows/ci.yml/badge.svg)](https://github.com/brofi/coh2-live-stats/actions/workflows/ci.yml)
 
 [//]: # (<mark_description>)
 

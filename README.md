@@ -1,6 +1,10 @@
 # <img src="src/coh2_live_stats/res/coh2_live_stats.ico" alt="Icon" width="64" align="center"/> CoH2 Live Stats
 
 [![CI branch master](https://github.com/brofi/coh2-live-stats/actions/workflows/ci.yml/badge.svg)](https://github.com/brofi/coh2-live-stats/actions/workflows/ci.yml)
+[![pypi](https://img.shields.io/pypi/v/coh2-live-stats)](https://pypi.org/project/coh2-live-stats/)
+[![versions](https://img.shields.io/pypi/pyversions/coh2-live-stats)](https://github.com/brofi/coh2-live-stats)
+[![license](https://img.shields.io/github/license/brofi/coh2-live-stats)](https://github.com/brofi/coh2-live-stats/blob/master/COPYING)
+
 
 [//]: # (<mark_description>)
 

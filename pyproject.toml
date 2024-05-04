@@ -29,6 +29,11 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Topic :: Games/Entertainment :: Real Time Strategy"
 ]
+[project.urls]
+Homepage = 'https://github.com/brofi/coh2-live-stats'
+Documentation = 'https://github.com/brofi/coh2-live-stats'
+Issues = "https://github.com/brofi/coh2-live-stats/issues"
+Source = 'https://github.com/brofi/coh2-live-stats'
 
 # No better solution for this yet (https://peps.python.org/pep-0735/)
 [project.optional-dependencies]

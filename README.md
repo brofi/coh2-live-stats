@@ -275,7 +275,7 @@ $ mypy --install-types --non-interactive src tests scripts tasks.py
 ```console
 $ inv build
 ```
-* Distribution bundle: `.\dist\CoH2LiveStats-bundle-{version}.zip`
+* Distribution bundle: `.\dist_bundle\CoH2LiveStats-bundle-{version}.zip`
 * See `inv -l` and `inv [task] -h` for more information on available `invoke` tasks
 
 

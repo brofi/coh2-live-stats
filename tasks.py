@@ -62,8 +62,8 @@ _ruff_cmd = [*_pycmd, 'ruff', 'check', '.']
 _mypy_cmd = [*_pycmd, 'mypy', 'src', 'tests', 'scripts', 'tasks.py']
 _pytest_cmd = [*_pycmd, 'pytest', '--verbose', '--no-header', '--no-summary', '--tb=no']
 
-_build_dir = Path(__file__).with_name('build')
-_dist_dir = Path(__file__).with_name('dist')
+_gen_dirs = [Path(__file__).with_name(n) for n in ('dist', 'dist_bundle', 'build')]
+_dist_dir = _gen_dirs[0]
 
 _logging = None
 if LoggingConf is not None:
@@ -152,7 +152,7 @@ def _clean() -> bool:
     def err(_: Callable[[str], Any], path: str, __: Exception) -> None:
         LOG.error('Failed to remove %s', path)
 
-    for d in _build_dir, _dist_dir:
+    for d in _gen_dirs:
         if d.is_dir():
             rmtree(d, onexc=err)
     return True

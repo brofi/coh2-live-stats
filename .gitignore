@@ -3,13 +3,12 @@ __pycache__
 .idea/
 # virtual environment
 venv/
-# build
+# setuptools build
 dist/
-## setuptools build
 src/coh2_live_stats.egg-info/
 ## pyinstaller build
+dist_bundle/
 build/
-CoH2LiveStats.spec
 ## generated
 version.py
 _coh2livestats.toml

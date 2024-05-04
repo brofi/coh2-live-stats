@@ -40,7 +40,7 @@ license_file_name = 'COPYING'
 exec_name = f'{app_name}.exe'
 contents_dir_name = 'lib'
 content_root = Path(__file__).parents[1]
-dist_path = content_root.joinpath('dist')
+dist_path = content_root.joinpath('dist_bundle')
 build_path = content_root.joinpath('build')
 module_path = content_root.joinpath('src', 'coh2_live_stats')
 res_path = module_path.joinpath('res')
@@ -107,13 +107,13 @@ def bundle() -> None:
             str(build_path),
             '--noconfirm',
             '--specpath',
-            str(content_root),
+            str(build_path),
             '--name',
             app_name,
             '--contents-directory',
             contents_dir_name,
             '--add-data',
-            f'{license_file_name}:.',
+            f'{content_root.joinpath(license_file_name)}:.',
             '--add-data',
             f'{CONFIG_FILE_DEV}:.',
             '--add-data',

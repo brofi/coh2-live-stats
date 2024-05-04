@@ -22,7 +22,7 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 from shutil import rmtree
-from typing import Any
+from typing import Any, Final
 
 from invoke import Collection, Context, Result, task
 
@@ -35,6 +35,14 @@ except ImportError:
     LoggingConf = None
 else:
     LoggingConf = _LoggingConf
+
+try:
+    # noinspection PyUnresolvedReferences
+    from coh2_live_stats.version import version_tuple as _version_tuple
+except ImportError:
+    version_tuple = None
+else:
+    version_tuple = _version_tuple
 
 try:
     # noinspection PyUnresolvedReferences
@@ -54,6 +62,8 @@ else:
 
 
 Package = dict[str, str]
+
+_VERSION_LEN: Final[int] = 3
 
 _pkg = 'coh2_live_stats'
 _pycmd = [sys.executable, '-m']
@@ -223,4 +233,29 @@ def install(c: Context, *, normal_mode: bool = False, dev: bool = False) -> bool
     return installed
 
 
-namespace = Collection(check, build, install)
+@task
+def publish(c: Context) -> None:
+    """Upload package to PyPI."""
+    if version_tuple is None:
+        LOG.error('Package coh2_live_stats not installed.')
+        return
+    if len(version_tuple) != _VERSION_LEN or not all(
+        isinstance(x, int) for x in version_tuple[:_VERSION_LEN]
+    ):
+        LOG.error("Don't publish development versions.")
+        return
+
+    base = f'coh2_live_stats-{'.'.join(map(str, version_tuple))}'
+    dist_files = [
+        str(Path(_dist_dir).joinpath(f'{base}.tar.gz')),
+        str(next(Path(_dist_dir).glob(f'{base}*.whl'))),
+    ]
+
+    if not _success(_run(c, *_pycmd, 'twine', 'check', *dist_files)):
+        LOG.error('Twine failed to check distribution files.')
+        return
+
+    _run(c, *_pycmd, 'twine', 'upload', *dist_files, hide=False)
+
+
+namespace = Collection(check, build, install, publish)

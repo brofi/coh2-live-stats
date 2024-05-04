@@ -45,6 +45,7 @@ build = [
     "pytest-asyncio >= 0.23.6",
     "respx >= 0.21.1",
     "tomlkit >= 0.12.4",
+    "twine >= 5.0.0",
 ]
 
 [project.scripts]

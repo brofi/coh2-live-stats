@@ -602,8 +602,8 @@ def _examples_to_md() -> str:
             f'{'\n'.join(example[1])}\n'
             '```\n'
             '\n#### Resulting output\n\n'
-            f'![Example output]('
-            f'https://raw.githubusercontent.com/brofi/coh2-live-stats/master/'
+            '![Example output]('
+            'https://raw.githubusercontent.com/brofi/coh2-live-stats/master/'
             f'src/coh2_live_stats/res/example_{i}.svg)\n'
         )
     return md

@@ -1,4 +1,4 @@
-# <img src="https://raw.githubusercontent.com/brofi/coh2-live-stats/master/src/coh2_live_stats/res/coh2_live_stats.ico" alt="Icon" width="64" align="center"/> CoH2 Live Stats
+# <img src="https://raw.githubusercontent.com/brofi/coh2-live-stats/master/src/coh2_live_stats/res/coh2_live_stats_64.png" width="64" align="center"/> CoH2 Live Stats
 
 [![CI branch master](https://github.com/brofi/coh2-live-stats/actions/workflows/ci.yml/badge.svg)](https://github.com/brofi/coh2-live-stats/actions/workflows/ci.yml)
 [![pypi](https://img.shields.io/pypi/v/coh2-live-stats)](https://pypi.org/project/coh2-live-stats/)

@@ -1,4 +1,4 @@
-# <img src="src/coh2_live_stats/res/coh2_live_stats.ico" alt="Icon" width="64" align="center"/> CoH2 Live Stats
+# <img src="https://raw.githubusercontent.com/brofi/coh2-live-stats/master/src/coh2_live_stats/res/coh2_live_stats.ico" alt="Icon" width="64" align="center"/> CoH2 Live Stats
 
 [![CI branch master](https://github.com/brofi/coh2-live-stats/actions/workflows/ci.yml/badge.svg)](https://github.com/brofi/coh2-live-stats/actions/workflows/ci.yml)
 [![pypi](https://img.shields.io/pypi/v/coh2-live-stats)](https://pypi.org/project/coh2-live-stats/)
@@ -13,7 +13,7 @@ Show player and team stats of a currently played, replayed or last played Compan
 [//]: # (</mark_description>)
 
 
-![Example output](src/coh2_live_stats/res/example_default.svg)
+![Example output](https://raw.githubusercontent.com/brofi/coh2-live-stats/master/src/coh2_live_stats/res/example_default.svg)
 
 Example output on [Windows Terminal](https://github.com/microsoft/terminal)
 with [gruvbox](https://github.com/morhetz/gruvbox) colors
@@ -219,7 +219,7 @@ uk = "blue"
 
 #### Resulting output
 
-![Example output](src/coh2_live_stats/res/example_0.svg)
+![Example output](https://raw.githubusercontent.com/brofi/coh2-live-stats/master/src/coh2_live_stats/res/example_0.svg)
 
 #### Description
 
@@ -245,7 +245,7 @@ team_rank.visible = false
 
 #### Resulting output
 
-![Example output](src/coh2_live_stats/res/example_1.svg)
+![Example output](https://raw.githubusercontent.com/brofi/coh2-live-stats/master/src/coh2_live_stats/res/example_1.svg)
 
 
 [//]: # (</mark_examples>)
